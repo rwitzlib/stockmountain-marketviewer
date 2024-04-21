@@ -1,5 +1,5 @@
 locals {
     team = "lad"
-    business_domain = "marketviewer"
+    business_domain = "stockmountain"
     service_name = "marketviewer"
 }
