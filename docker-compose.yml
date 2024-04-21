@@ -1,0 +1,43 @@
+name: marketviewer
+services:
+  marketviewer-api:
+    build:
+      context: ./src
+      dockerfile: MarketViewer.Api.Dockerfile
+      args:
+        - PRIVATE_NUGET_REGISTRY=https://gitlab.com/api/v4/groups/66690872/-/packages/nuget/index.json
+        - PRIVATE_NUGET_REGISTRY_USER=rwitzlib
+        - PRIVATE_NUGET_REGISTRY_PASS=
+    ports:
+      - '3001:8080'
+    environment:
+      - ASPNETCORE_ENVIRONMENT=dev
+    env_file:
+      - ./src/MarketViewer.Api/dev.env
+    networks:
+      - marketviewer
+  
+  marketviewer-web:
+    build:
+      context: ./src
+      dockerfile: MarketViewer.Web.Dockerfile
+      args:
+        - PRIVATE_NUGET_REGISTRY=https://gitlab.com/api/v4/groups/66690872/-/packages/nuget/index.json
+        - PRIVATE_NUGET_REGISTRY_USER=rwitzlib
+        - PRIVATE_NUGET_REGISTRY_PASS=
+        - Environment=docker
+    depends_on:
+      - marketviewer-api
+    ports:
+      - '3002:8080'
+    environment:
+      - ASPNETCORE_ENVIRONMENT=dev
+    env_file:
+      - ./src/MarketViewer.Web/dev.env
+    networks:
+      - marketviewer
+
+networks:
+  marketviewer:
+    external: true
+    name: marketviewer
