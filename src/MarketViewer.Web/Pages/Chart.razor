@@ -1,0 +1,39 @@
+﻿@page "/chart"
+@using MarketViewer.Contracts.Requests
+@using MarketViewer.Contracts.Enums
+
+<PageTitle>Chart</PageTitle>
+
+<MudPaper Elevation="0" style="height: 100%; width: 100%">
+    <ChartComponent StocksRequest="@GenerateAggregateRequest()" Id="@Guid.NewGuid().ToString()" Height="100%" Width="100%" DisplayParameters="true"></ChartComponent>
+</MudPaper>
+
+@code{
+    private static StocksRequest GenerateAggregateRequest()
+    {
+        var date = DateTimeOffset.Now;
+
+        var request = new StocksRequest
+        {
+            Ticker = "SPY",
+            Multiplier = 1,
+            Timespan = Timespan.minute,
+            From = new DateTimeOffset(date.Year, date.Month, date.Day, 0, 0, 0, date.Offset),
+            To = date,
+            Studies = new List<StudyFields>
+            {
+                new ()
+                {
+                    Type = StudyType.vwap
+                },
+                new ()
+                {
+                    Type = StudyType.macd,
+                    Parameters = new [] {"12", "26", "9", $"{StudyType.ema}"}
+                }
+            }
+        };
+
+        return request;
+    }
+}

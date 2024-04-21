@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	<TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MarketViewer.Contracts\MarketViewer.Contracts.csproj" />
+    <ProjectReference Include="..\MarketViewer.Core\MarketViewer.Core.csproj" />
+    <ProjectReference Include="..\MarketViewer.Infrastructure\MarketViewer.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="AWSSDK.Lambda" Version="3.7.305.8" />
+    <PackageReference Include="FluentValidation" Version="11.9.0" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,235 @@
+@using StudyColor = MarketViewer.Web.Enums.StudyColor;
+
+<div class="card-body">
+    <div class="row">
+        <div class="col-6">
+            @{
+                <select class="form-select" @onchange=CreateStudyParameters>
+                    <option selected disabled>Select a Study</option>
+                    @{
+                        var studyTypes = Assembly.GetExecutingAssembly().GetTypes().Where(q => q.IsSubclassOf(typeof(Study)));
+                        foreach (Type studyType in studyTypes)
+                        {
+                            var studyConstructor = studyType.GetConstructors().FirstOrDefault();
+                            var constructorParameter = studyConstructor.GetParameters().FirstOrDefault();
+                            <option value="@constructorParameter.ParameterType.Name">@studyType.Name</option>
+                        }
+                    }
+                </select>
+            }
+        </div>
+        <div class="col-6">
+            @{
+                if (StudyParameters != null)
+                {
+                    <EditForm Model="@Properties">
+                        <DataAnnotationsValidator></DataAnnotationsValidator>
+                        <ValidationSummary></ValidationSummary>
+                        @for (int i = 0; i < Properties.Count(); i++)
+                        {
+                            string label = StudyParameters.GetType().ToString();
+                            string key = Properties[i].Key;
+                            @if (key.Contains("Color"))
+                            {
+                                <label for="@($"{label}{key}")">@key</label>
+                                <InputSelect id="Color" class=@($"{Properties.First(q => q.Key.Equals(key)).Value} form-select") @bind-Value="@Properties.First(q => q.Key.Equals(key)).Value">
+                                    <option selected disabled>Select a Color</option>
+                                    @foreach (var value in Enum.GetValues(typeof(StudyColor)))
+                                    {
+                                        <option class=@($"{value.ToString()}") id="@($"{label}{key}")" value="@value.ToString()"></option>
+                                    }
+                                </InputSelect>
+                            }
+                            else if (key.Contains("MovingAverageType"))
+                            {
+                                <label for="@($"{label}{key}")">@key</label>
+                                <InputSelect id="MovingAverageType" class="form-select" @bind-Value="@Properties.FirstOrDefault(q => q.Key.Equals(key)).Value">
+                                    <option selected disabled>Select a Moving Average Type</option>
+                                    @foreach (var value in Enum.GetValues(typeof(MovingAverageType)))
+                                    {
+                                        <option id="@($"{label}{key}")" value="@value.ToString()">@value</option>
+                                    }
+                                </InputSelect>
+                            }
+                            else if (key.Contains("Width"))
+                            {
+                                <label for="@($"{label}{key}")">@key</label>
+                                <InputSelect id="Width" class="form-select" @bind-Value="@Properties.FirstOrDefault(q => q.Key.Equals(key)).Value">
+                                    <option selected disabled>Select a Width</option>
+                                    <option id="@($"{label}{key}1")" value="1">1</option>
+                                    <option id="@($"{label}{key}2")" value="2">2</option>
+                                    <option id="@($"{label}{key}3")" value="3">3</option>
+                                    <option id="@($"{label}{key}4")" value="4">4</option>
+                                    <option id="@($"{label}{key}5")" value="5">5</option>
+                                </InputSelect>
+                            }
+                            else if (!key.Contains("Pane", StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                <label for="@($"{label}{key}")">@key</label>
+                                <input type="number" class="form-control" id="@($"{label}{key}")" @bind="@Properties.FirstOrDefault(q => q.Key.Equals(key)).Value"></input>
+                            }
+                        }
+                        <hr />
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary btn-block" @onclick="SaveStudy">Save</button>
+                        </div>
+                    </EditForm>
+                }
+            }
+        </div>
+    </div>
+    <hr />
+    <div class="d-grid gap-2">
+        <button class="btn btn-secondary btn-block" @onclick="Close">Cancel</button>
+    </div>
+</div>
+
+<style>
+    .aqua {
+        background-color: aqua
+    }
+
+    .black {
+        background-color: black
+    }
+
+    .fuchsia {
+        background-color: fuchsia
+    }
+
+    .gray {
+        background-color: gray
+    }
+
+    .green {
+        background-color: green
+    }
+
+    .lime {
+        background-color: lime
+    }
+
+    .maroon {
+        background-color: maroon
+    }
+
+    .navy {
+        background-color: navy
+    }
+
+    .olive {
+        background-color: olive
+    }
+
+    .orange {
+        background-color: orange
+    }
+
+    .purple {
+        background-color: purple
+    }
+
+    .red {
+        background-color: red
+    }
+
+    .silver {
+        background-color: silver
+    }
+
+    .teal {
+        background-color: teal
+    }
+
+    .white {
+        background-color: white
+    }
+
+    .yellow {
+        background-color: yellow
+    }
+</style>
+
+@code {
+
+    [CascadingParameter] BlazoredModalInstance AddStudyModal { get; set; } = default!;
+
+    [Parameter] public Type StudyType { get; set; }
+
+    [Parameter] public int Pane { get; set; }
+
+    private StudyParams StudyParameters { get; set; }
+
+    private List<Property> Properties { get; set; }
+
+    private void CreateStudyParameters(ChangeEventArgs args)
+    {
+        StudyType = Assembly.GetExecutingAssembly().GetTypes().Where(q => q.Name.Equals(args.Value.ToString())).FirstOrDefault();
+        StudyParameters = (StudyParams)Activator.CreateInstance(StudyType);
+        StudyParameters.Pane = Pane;
+        Properties = new List<Property>();
+        foreach (var propertyInfo in StudyParameters.GetType().GetProperties())
+        {
+            Properties.Add(new Property
+            {
+                Key = propertyInfo.Name,
+                Value = propertyInfo.GetValue(StudyParameters).ToString()
+            });
+        }
+    }
+
+    private async Task SaveStudy()
+    {
+        var studyParameterProperties = StudyParameters.GetType().GetProperties();
+
+        foreach (var propertyInfo in studyParameterProperties)
+        {
+            var propertyType = propertyInfo.PropertyType;
+            var property = Properties.Find(p => p.Key.Equals(propertyInfo.Name));
+
+            if (propertyInfo.Name.Equals("Pane"))
+            {
+                continue;
+            }
+            if (propertyType == typeof(string))
+            {
+                propertyInfo.SetValue(StudyParameters, property.Value, null);
+                continue;
+            }
+            if (propertyType.IsEnum)
+            {
+                var enumValue = Enum.Parse(propertyType, property.Value, true);
+                propertyInfo.SetValue(StudyParameters, enumValue, null);
+                continue;
+            }
+            if (!typeof(IConvertible).IsAssignableFrom(propertyType))
+            {
+                continue;
+            }
+            
+            var convertedValue = Convert.ChangeType(property.Value, propertyType);
+            propertyInfo.SetValue(StudyParameters, convertedValue, null);
+        }
+
+        var studyTypes = Assembly.GetExecutingAssembly().GetTypes().Where(q => q.IsSubclassOf(typeof(Study)));
+
+        foreach (var studyType in studyTypes)
+        {
+            if (!studyType.GetConstructors().Any(constructor => 
+                constructor.GetParameters().Any(parameter => 
+                    parameter.ParameterType.IsEquivalentTo(StudyParameters.GetType()))))
+            {
+                continue;
+            }
+            var newStudy = Activator.CreateInstance(studyType, StudyParameters) as Study;
+            await AddStudyModal.CloseAsync(ModalResult.Ok(newStudy));
+            return;
+        }
+        await Close();
+    }
+
+    private async Task Close()
+    {
+        await AddStudyModal.CloseAsync(ModalResult.Cancel());
+    }
+}

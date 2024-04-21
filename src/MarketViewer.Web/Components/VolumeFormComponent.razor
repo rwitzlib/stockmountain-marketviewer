@@ -1,0 +1,48 @@
+﻿@inherits VolumeFormComponentBase;
+
+<div class="card">
+    <div class="card-header text-center">
+        Show Volume
+    </div>
+    <div class="card-body">
+        <EditForm Model="VolumeParams" OnValidSubmit="PlotVolumeChart">
+            <DataAnnotationsValidator></DataAnnotationsValidator>
+            <ValidationSummary></ValidationSummary>
+            <div class="form-group">
+                <label for="volumeUseDifferentColors"></label>
+                <InputCheckbox class="form-check-input" id="volumeUseDifferentColors" @bind-Value="VolumeParams.UseDifferentColors"></InputCheckbox>
+            </div>
+            @{
+                if (VolumeParams.UseDifferentColors)
+                {
+                    <div class="form-group">
+                        <label for="volumeColorUp">Up Color</label>
+                        <InputText class="form-control" id="tickerInput" @bind-Value="VolumeParams.ColorUp"></InputText>
+                    </div>
+                    <div class="form-group">
+                        <label for="volumeColorDown">Down Color</label>
+                        <InputText class="form-control" id="volumeColorDown" @bind-Value="VolumeParams.ColorDown"></InputText>
+                    </div>
+                }
+                else
+                {
+                    <div class="form-group">
+                        <label for="volumeColorDown">Color</label>
+                        <InputText class="form-control" id="volumeColorDown" @bind-Value="VolumeParams.UniformColor"></InputText>
+                    </div>
+                }
+            }
+            <hr />
+            <div>
+                <button @onclick="CloseModal" class="btn btn-primary">Plot Volume</button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code{
+    [CascadingParameter] 
+    BlazoredModalInstance BlazoredModal { get; set; } = default!;
+
+    private async Task CloseModal() => await BlazoredModal.CloseAsync(ModalResult.Ok("Great Success"));
+}

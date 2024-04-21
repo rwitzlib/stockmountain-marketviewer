@@ -1,0 +1,16 @@
+name: .NET Container Deployment
+
+on: push
+
+jobs:
+  deploy:
+    uses: rwitzlib/github-actions/.github/workflows/container-deployment.yml@master
+    with:
+      ecr_repository: 100008144700.dkr.ecr.us-east-2.amazonaws.com
+      image_name: lad-dev-stockmountain-marketviewer
+      dockerfile_directory: ./src
+      project_directory: ./src
+      global_json_file: ./src/global.json
+      private_nuget_registry: https://gitlab.com/api/v4/groups/66690872/-/packages/nuget/index.json
+      terraform_directory: ./tf
+    secrets: inherit
