@@ -1,0 +1,94 @@
+﻿@using MarketViewer.Contracts.Enums;
+@inherits ChartComponentBase;
+
+<MudPaper id=@($"{Id}-container") style="height: 100%; width: 100%;">
+    @if (DisplayParameters)
+    {
+        <MudCard id=@($"{Id}-parameters") Square="true">
+            <div class="input-group" role="group" aria-label="ChartParameters">
+                <input type="text" class="form-control" id="tickerInput" @bind="StocksRequest.Ticker" @bind:after="GetChartData" style="text-transform:uppercase" />
+                <select class="form-select" @bind="StocksRequest.Multiplier" @bind:after="GetChartData">
+                    <option selected value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="30">30</option>
+                    <option value="45">45</option>
+                </select>
+                <select class="form-select" @bind="StocksRequest.Timespan" @bind:after="GetChartData">
+                    @{
+                        foreach (var value in Enum.GetValues(typeof(Timespan)))
+                        {
+                            <option value="@value">@value</option>
+                        }
+                    }
+                </select>
+                <select class="form-select" @onchange="SetDateFromRange">
+                    <option selected value="0">1D</option>
+                    <option value="1">2D</option>
+                    <option value="2">3D</option>
+                    <option value="4">1W</option>
+                    <option value="13">>2W</option>
+                    <option value="20">3W</option>
+                    <option value="29">1M</option>
+                    <option value="59">2M</option>
+                    <option value="89">3M</option>
+                    <option value="179">6M</option>
+                    <option value="364">1Y</option>
+                </select>
+                <div class="btn-group me-2" role="group" aria-label="volume">
+                    @if (IsVolumeEnabled)
+                    {
+                        <button class="btn btn-secondary" @onclick="() => ShowOrHideVolume()">Volume <i class="fa-solid fa-chart-simple"></i></button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-primary" @onclick="() => ShowOrHideVolume()">Volume <i class="fa-solid fa-chart-simple"></i></button>
+                    }
+                </div>
+                <div class="btn-group me-2" role="group" aria-label="studies">
+                    <button @onclick="@ViewStudies" class="btn btn-primary">Studies <i class="fa-solid fa-chart-line"></i></button>
+                </div>
+
+                <MudButton Class="pa-2" Variant="Variant.Filled" Color="@(IsDrawSegmentEnabled ? Color.Error : Color.Success)" @onclick="@(() => ToggleDrawSegment(!IsDrawSegmentEnabled))">
+                    Draw Line Segment
+                </MudButton>
+
+                <MudButton Class="pa-2" Variant="Variant.Filled" Color="@(IsDrawTrendEnabled ? Color.Error : Color.Success)" @onclick="@(() => ToggleDrawTrend(!IsDrawTrendEnabled))">
+                    Draw Trend Line
+                </MudButton>
+
+                <MudButton Class="pa-2" Variant="Variant.Filled" Color="@(IsDrawResistSuppEnabled ? Color.Error : Color.Success)" @onclick="@(() => ToggleDrawResistSupport(!IsDrawResistSuppEnabled))">
+                    Draw Resistance/Support Line
+                </MudButton>
+
+                <MudButton Class="pa-2" Variant="Variant.Filled" Color="Color.Error" @onclick="RemoveAllDrawings">
+                    Erase Lines
+                </MudButton>
+            </div>
+        </MudCard>
+    }
+
+    <MudCard id="@Id" Class="tvChart" Style=@($"height: {Height} width: {Width}; position: relative;")></MudCard>
+    
+    <div id=@($"popover-spawn-{Id}")>
+        <MudPopover Open="@IsPopoverOpen" AnchorOrigin="Origin.TopRight" TransformOrigin="Origin.BottomLeft" OverflowBehavior="OverflowBehavior.FlipAlways">
+            <div class="d-flex flex-column pa-1">
+                @{
+                    var disabled = ClickedDrawingId == null;
+                }
+                <MudButton Color="Color.Error" @onclick="RemoveDrawing" Disabled="disabled">Remove Line</MudButton>
+                <MudDivider></MudDivider>
+                <MudButton Color="Color.Error" Disabled="true">Extend to Left</MudButton>
+                <MudButton Color="Color.Error" Disabled="true">Extend to Right</MudButton>
+                <MudDivider></MudDivider>
+                <MudButton Color="Color.Error" Disabled="true">Erase to Left</MudButton>
+                <MudButton Color="Color.Error" Disabled="true">Erase to Right</MudButton>
+            </div>
+        </MudPopover>
+    </div>
+
+</MudPaper>
