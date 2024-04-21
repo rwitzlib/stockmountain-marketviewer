@@ -1,0 +1,99 @@
+﻿@using Microsoft.AspNetCore.SignalR.Client;
+@inject IJSRuntime JsRuntime;
+
+<h1>Counter</h1>
+
+<p role="status">Current count: @currentCount</p>
+<p role="status">Current count: @currentCount</p>
+<p role="status">Current count: @currentCount</p>
+<p role="status">Current count: @currentCount</p>
+<p role="status">Current count: @currentCount</p>
+<p role="status">Current count: @currentCount</p>
+<p role="status">Current count: @currentCount</p>
+<p role="status">Current count: @currentCount</p>
+<p role="status">Current count: @currentCount</p>
+<p role="status">Current count: @currentCount</p>
+<p role="status">Current count: @currentCount</p>
+<p role="status">Current count: @currentCount</p>
+
+<button class="btn btn-primary" @onclick=IncrementCount>Click me</button>
+<button class="btn btn-primary" @onclick=IncrementCount>Click me</button>
+<button class="btn btn-primary" @onclick=IncrementCount>Click me</button>
+<button class="btn btn-primary" @onclick=IncrementCount>Click me</button>
+<button class="btn btn-primary" @onclick=IncrementCount>Click me</button>
+<button class="btn btn-primary" @onclick=IncrementCount>Click me</button>
+<button class="btn btn-primary" @onclick=IncrementCount>Click me</button>
+<button class="btn btn-primary" @onclick=IncrementCount>Click me</button>
+<button class="btn btn-primary" @onclick=IncrementCount>Click me</button>
+<button class="btn btn-primary" @onclick=IncrementCount>Click me</button>
+<button class="btn btn-primary" @onclick=IncrementCount>Click me</button>
+<button class="btn btn-primary" @onclick=IncrementCount>Click me</button>
+<button class="btn btn-primary" @onclick=IncrementCount>Click me</button>
+<button class="btn btn-primary" @onclick=IncrementCount>Click me</button>
+
+<div id="asdf"></div>
+
+
+<style>
+	.switcher {
+		display: flex;
+		align-items: center;
+		height: 30px;
+		margin-top: 8px;
+		color: #2196F3;
+	}
+
+	.switcher-item {
+		cursor: pointer;
+		text-decoration: none;
+		display: inline-block;
+		padding: 6px 8px;
+		font-size: 14px;
+		color: #262b3e;
+		background-color: transparent;
+		margin-right: 8px;
+		border: none;
+		border-radius: 4px;
+		outline: none;
+	}
+
+		.switcher-item:hover {
+			background-color: #f2f3f5;
+		}
+
+	.switcher-active-item {
+		text-decoration: none;
+		cursor: default;
+		color: #262b3e;
+	}
+
+		.switcher-active-item,
+		.switcher-active-item:hover {
+			background-color: #e1eff9;
+		}
+
+</style>
+
+@code {
+	private int currentCount = 0;
+	private HubConnection connection = new HubConnectionBuilder().WithUrl("https://localhost:7158/chathub").Build();
+
+
+	protected override async Task OnInitializedAsync()
+	{
+		await connection.StartAsync();
+	}
+
+	private async Task IncrementCount()
+	{
+		StateHasChanged();
+
+		await connection.InvokeAsync("SendMessage", currentCount);
+		connection.On("ReceiveMessage", (int incrementedCount) =>
+		{
+			currentCount = incrementedCount;
+		});
+		await JsRuntime.InvokeVoidAsync("changeData");
+		StateHasChanged();
+	}
+}
