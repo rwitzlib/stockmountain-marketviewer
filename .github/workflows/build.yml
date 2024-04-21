@@ -4,7 +4,7 @@ on: push
 
 jobs:
   deploy:
-    uses: rwitzlib/github-actions/.github/workflows/container-deployment.yml@MARK-177_expand-pipeline-parameters
+    uses: rwitzlib/github-actions/.github/workflows/container-deployment.yml@master
     with:
       ecr_repository: 100008144700.dkr.ecr.us-east-2.amazonaws.com
       image_name: lad-dev-stockmountain-marketviewer
