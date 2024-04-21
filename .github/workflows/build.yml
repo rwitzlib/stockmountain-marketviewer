@@ -8,7 +8,7 @@ jobs:
     with:
       ecr_repository: 100008144700.dkr.ecr.us-east-2.amazonaws.com
       image_name: lad-dev-stockmountain-marketviewer
-      dockerfile: ./src/Marketviewer.Api.Dockerfile
+      dockerfile: ./src/MarketViewer.Api.Dockerfile
       context: ./src
       project_directory: ./src
       global_json_file: ./src/global.json
