@@ -1,0 +1,152 @@
+﻿@inject IJSRuntime JsRuntime
+@implements IDisposable
+
+@if (IsLive)
+{
+    <MudChip Color="Color.Error" Icon="@Icons.Material.Filled.Camera">Live</MudChip>
+    <MudChip @onclick="SetBacktesting" Color="Color.Default" Icon="@Icons.Material.Filled.History">Backtesting</MudChip>
+}
+else
+{
+    <MudChip @onclick="SetLive" Color="Color.Default" Icon="@Icons.Material.Filled.Camera">Live</MudChip>
+    <MudChip Color="Color.Warning" Icon="@Icons.Material.Filled.History">Backtesting</MudChip>
+}
+
+@if (ShowDate){
+    <input type="date" class="form-control" min="1970-01-01" max="@($"{DateTime.Today.ToString("yyyy-MM-dd")}")" @bind="@Date" @bind:after="CheckIfLive" />
+}
+
+<input @ref="timeDiv" @onchange="SetTimeFromPicker" type="time" style="@($"font-size:{Font}px")" disabled="@IsLive" step="1" value="00:00:00" />
+
+<MudIconButton Class="ma-2" Disabled="IsLive" Icon="@Icons.Material.Filled.KeyboardDoubleArrowLeft" Color="Color.Info" @onclick="() => AdjustTime(-15)"></MudIconButton>
+<MudIconButton Class="ma-2" Disabled="IsLive" Icon="@Icons.Material.Filled.KeyboardArrowLeft" Color="Color.Info" @onclick="() => AdjustTime(-1)"></MudIconButton>
+<MudIconButton Class="ma-2" Disabled="IsLive" Icon="@Icons.Material.Filled.Pause" Color="Color.Info"></MudIconButton>
+<MudIconButton Class="ma-2" Disabled="IsLive" Icon="@Icons.Material.Filled.KeyboardArrowRight" Color="Color.Info" @onclick="() => AdjustTime(1)"></MudIconButton>
+<MudIconButton Class="ma-2" Disabled="IsLive" Icon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Color="Color.Info" @onclick="() => AdjustTime(15)"></MudIconButton>
+
+@code {
+    [Parameter] public int Font { get; set; } = 15;
+    [Parameter] public bool ShowDate { get; set; } = true;
+
+    private ElementReference timeDiv;
+    private DateTime Date { get; set; } = DateTime.Now;
+    private IJSInProcessRuntime JsInProcessRuntime;
+    private bool IsLive { get; set; } = true;
+
+    #region Protected Methods
+    protected override void OnInitialized()
+    {
+        JsInProcessRuntime = (IJSInProcessRuntime)JsRuntime;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JsRuntime.InvokeVoidAsync("startTime", timeDiv, null);
+
+            SetLive();
+        }
+    }
+    #endregion
+
+    #region Public Methods
+    public DateTimeOffset GetTime()
+    {
+        var timeString = JsInProcessRuntime.Invoke<string>("getTime", timeDiv);
+        var parsedTime = DateTime.Parse(timeString);
+
+        var isDaylightSavings = TimeZoneInfo.Local.IsDaylightSavingTime(Date);
+
+        if (isDaylightSavings)
+        {
+            var offset = DateTimeOffset.Now.Offset;
+            var result = new DateTimeOffset(Date.Year, Date.Month, Date.Day, parsedTime.Hour, parsedTime.Minute, parsedTime.Second, offset);
+            return result;
+        }
+        else
+        {
+            var offset = TimeZoneInfo.Local.BaseUtcOffset;
+            var result = new DateTimeOffset(Date.Year, Date.Month, Date.Day, parsedTime.Hour, parsedTime.Minute, parsedTime.Second, offset);
+            return result;
+        }
+    }
+
+    public void Dispose()
+    {
+        JsInProcessRuntime.InvokeVoid("stopTime");
+    }
+    #endregion
+
+    #region Private Methods
+    private void CheckIfLive()
+    {
+        var time = GetTime();
+
+        if (time.AddSeconds(5) > DateTimeOffset.Now)
+        {
+            IsLive = true;
+        }
+        else
+        {
+            IsLive = false;
+        }
+
+        StateHasChanged();
+    }
+
+    private void SetTimeFromPicker(ChangeEventArgs changeEventArgs)
+    {
+        var dateTime = DateTimeOffset.Parse(changeEventArgs.Value?.ToString() ?? string.Empty);
+
+        JsInProcessRuntime.InvokeVoid("stopTime");
+        JsInProcessRuntime.InvokeVoid("startTime", timeDiv, dateTime);
+
+        CheckIfLive();
+    }
+
+    private void SetLive()
+    {
+        IsLive = true;
+
+        Date = DateTime.Now;
+
+        JsInProcessRuntime.InvokeVoid("stopTime");
+        JsInProcessRuntime.InvokeVoid("startTime", timeDiv, null);
+
+        StateHasChanged();
+    }
+
+    private void SetBacktesting()
+    {
+        var timestamp = DateTimeOffset.Now.DayOfWeek switch
+        {
+            DayOfWeek.Sunday => DateTimeOffset.Now.AddDays(-2),
+            DayOfWeek.Monday => DateTimeOffset.Now.AddDays(-3),
+            _ => DateTimeOffset.Now.AddDays(-1)
+        };
+
+        Date = timestamp.Date;
+
+        var time = GetTime();
+
+        SetTime(time);
+        CheckIfLive();
+    }
+
+    private void AdjustTime(int minutes)
+    {
+        var currentTime = GetTime();
+        var adjustedTime = currentTime.AddMinutes(minutes);
+
+        SetTime(adjustedTime);
+        CheckIfLive();
+    }
+
+    private void SetTime(DateTimeOffset time)
+    {
+        JsInProcessRuntime.InvokeVoid("stopTime");
+        JsInProcessRuntime.InvokeVoid("startTime", timeDiv, time);
+    }
+    #endregion
+}

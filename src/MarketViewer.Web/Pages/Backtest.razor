@@ -1,0 +1,87 @@
+﻿@page "/backtest"
+
+@inherits ComponentBase;
+@using FilterOperator = MarketViewer.Contracts.Models.FilterOperator
+@using MarketViewer.Contracts.Requests
+@inject Services.BacktestService BacktestService;
+@using System.Collections.Generic;
+
+<PageTitle>Backtest</PageTitle>
+
+<div class="d-flex justify-center align-center pa-2">
+    <FilterListComponent @ref="_filterList" />
+</div>
+<MudPaper Style="overflow-y: scroll;">
+    <MudTable Items="@_backtestEntries" FixedHeader="true" Virtualize="true" FixedFooter="true" Loading="@(!_backtestEntries.Any())">
+        <ToolBarContent>
+            <MudDateRangePicker Style="flex-shrink" @bind-DateRange="@_dateRange" MinDate="_minDate" MaxDate="@_maxDate" Margin="Margin.Dense" />
+            <MudButton Class="ma-2" Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.PlayArrow" @onclick="StartBacktesting">Start Backtesting</MudButton>
+            <MudButton Class="ma-2" Style="flex: none;" Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.Clear" @onclick="() => _backtestEntries.Clear()">
+                Remove All Entries
+            </MudButton>
+            <p>Avg. Uptrend %: @PercentHigher</p>
+            <p>Avg. Long Profit: @LongProfit</p>
+            <p>Avg. Downtrend %: @PercentLower</p>
+            <p>Avg. Short Profit: @ShortProfit</p>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh Style="z-index: 1500;">Date</MudTh>
+            <MudTh Style="z-index: 1500;">Uptrend %</MudTh>
+            <MudTh Style="z-index: 1500;">Uptrend %</MudTh>
+            <MudTh Style="z-index: 1500;">Downtrend %</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Date">@context.Date</MudTd>
+            <MudTd DataLabel="Uptrend %">@context.LongRatio</MudTd>
+            <MudTd DataLabel="Uptrend %">@context.LongPositionChange</MudTd>
+            <MudTd DataLabel="Downtrend %">@context.ShortRatio</MudTd>
+            <MudTd DataLabel="Downtrend %">@context.ShortPositionChange</MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudPaper>
+@code {
+    private DateRange _dateRange { get; set; } = new DateRange(DateTime.Parse("2024-03-05"), DateTime.Parse("2024-03-05"));
+    private DateTime _minDate = DateTime.Now.Date.AddYears(-1);
+    private DateTime _maxDate = DateTime.Now.Date.AddDays(-1);
+
+    private FilterListComponent _filterList { get; set; } = new();
+
+    private List<BacktestEntry> _backtestEntries { get; set; } = new();
+
+    private double PercentHigher { get; set; } = 0;
+    private double PercentLower { get; set; } = 0;
+    private double LongProfit { get; set; } = 0;
+    private double ShortProfit { get; set; } = 0;
+
+    protected override void OnInitialized()
+    {
+
+    }
+
+    private async Task StartBacktesting()
+    {
+        var filters = _filterList.Entries.Where(q => q.Enabled == true).Select(q => q.Filter).ToArray();
+
+        var request = new BacktestRequest
+        {
+            Start = (DateTimeOffset)_dateRange.Start,
+            End = (DateTimeOffset)_dateRange.End,
+            ExitType = "vwap",
+            ExitStrategy = "hold",
+            PositionSize = 100,
+            Candles = 5,
+            Filters = filters
+        };
+
+        var response = await BacktestService.BacktestAsync(request);
+
+        _backtestEntries = response.Results.ToList();
+
+        PercentHigher = response.LongRatioAvg;
+        PercentLower = response.ShortRatioAvg;
+        LongProfit = response.LongPositionAvgChange;
+        ShortProfit = response.ShortPositionAvgChange;
+
+        StateHasChanged();
+    }
+}
