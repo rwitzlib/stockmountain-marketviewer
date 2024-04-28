@@ -57,6 +57,6 @@ resource "aws_ecs_task_definition" "marketviewer_api_task" {
 }
 
 resource "aws_cloudwatch_log_group" "marketviewer" {
-  name              = "aws/ecs/${var.environment}/${local.service_name}"
+  name              = "ecs/${var.environment}/${local.service_name}"
   retention_in_days = 14
 }
