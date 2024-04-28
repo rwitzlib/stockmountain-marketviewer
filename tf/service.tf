@@ -32,6 +32,7 @@ resource "aws_ecs_service" "marketviewer_api" {
 resource "aws_ecs_task_definition" "marketviewer_api_task" {
   family                   = "${local.team}-${var.environment}-${local.product}-${local.service_name}"
   requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
   memory                   = 512
   cpu                      = 256
   execution_role_arn       = aws_iam_role.ecs_task_role.arn
