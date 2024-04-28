@@ -1,5 +1,10 @@
 locals {
-    team = "lad"
-    business_domain = "stockmountain"
-    service_name = "marketviewer"
+  team         = "lad"
+  product      = "stockmountain"
+  service_name = "marketviewer"
+
+  alb_ingress_ports = [
+    "8080",
+    "8081"
+  ]
 }
