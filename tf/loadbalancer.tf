@@ -26,7 +26,7 @@ resource "aws_lb_target_group" "blue" {
   name        = "${local.service_name}-${var.environment}-blue"
   port        = 8080
   protocol    = "HTTP"
-  target_type = "instance"
+  target_type = "ip"
   vpc_id      = data.aws_vpc.stockmountain.id
 
   health_check {
@@ -39,7 +39,7 @@ resource "aws_lb_target_group" "green" {
   name        = "${local.service_name}-${var.environment}-green"
   port        = 8080
   protocol    = "HTTP"
-  target_type = "instance"
+  target_type = "ip"
   vpc_id      = data.aws_vpc.stockmountain.id
 
   health_check {
