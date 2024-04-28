@@ -23,7 +23,6 @@ resource "aws_ecs_service" "marketviewer_api" {
   network_configuration {
     subnets          = data.aws_subnets.public.ids
     security_groups  = [aws_security_group.ecs_task.id]
-    assign_public_ip = true
   }
 
   depends_on = [
