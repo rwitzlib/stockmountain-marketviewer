@@ -1,12 +1,12 @@
-resource "aws_security_group" "alb_sg" {
+resource "aws_security_group" "alb" {
   vpc_id = data.aws_vpc.stockmountain.id
-  name   = "application_elb_sg"
+  name   = "${local.service_name}-${var.environment}-alb"
 }
 
-resource "aws_security_group_rule" "alb_sg_ingress" {
+resource "aws_security_group_rule" "alb_ingress" {
   for_each = toset(local.alb_ingress_ports)
 
-  security_group_id = aws_security_group.alb_sg.id
+  security_group_id = aws_security_group.alb.id
   type              = "ingress"
   from_port         = each.value
   to_port           = each.value
@@ -19,7 +19,7 @@ resource "aws_lb" "alb" {
   load_balancer_type = "application"
   subnets            = data.aws_subnets.public.ids
   idle_timeout       = 60
-  security_groups    = [aws_security_group.alb_sg.id]
+  security_groups    = [aws_security_group.alb.id]
 }
 
 resource "aws_lb_target_group" "blue" {
