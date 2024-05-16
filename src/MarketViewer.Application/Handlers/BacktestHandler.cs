@@ -55,7 +55,7 @@ public class BacktestHandler(
                 Filters = request.Filters,
                 PositionSize = request.PositionSize
             };
-            tasks.Add(Task.Run(() => BacktestDay(backtesterLambdaRequest)));
+            tasks.Add(Task.Run(async () => await BacktestDay(backtesterLambdaRequest)));
         }
         var results = await Task.WhenAll(tasks);
         var validResults = results.Where(q => q is not null);
