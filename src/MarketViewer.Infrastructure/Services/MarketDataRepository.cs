@@ -29,51 +29,61 @@ namespace MarketViewer.Infrastructure.Services
     {
         public async Task<StocksResponse> GetStockDataAsync(StocksRequest request)
         {
-            StocksResponse stocksResponse = null;
-            StocksResponse stocksResponseFromPolygon = null;
+            //StocksResponse stocksResponse = null;
+            //StocksResponse stocksResponseFromPolygon = null;
             try
             {
-                var tasks = new List<Task>();
+                //var tasks = new List<Task>();
                 var aggregateRequest = mapper.Map<StocksRequest, AggregateRequest>(request);
+                aggregateRequest.To = aggregateRequest.To.AddDays(1).AddMinutes(-1);
 
-                if (aggregateRequest.To.Date == DateTimeOffset.Now.Date)
-                {
-                    aggregateRequest.From = aggregateRequest.To.Date;
-                    stocksResponseFromPolygon = await GetStockDataFromPolygon(aggregateRequest);
+                var response = await GetStockDataFromPolygon(aggregateRequest);
 
-                    var adjustedDate = aggregateRequest.To.AddDays(-1);
-                    aggregateRequest.To = adjustedDate;
-                    aggregateRequest.From = request.From;
-                }
+                return response;
+                //var days = DateUtilities.GetMarketOpenDays(aggregateRequest.From, aggregateRequest.To);
 
-                var days = DateUtilities.GetMarketOpenDays(aggregateRequest.From, aggregateRequest.To);
+                ////if (await TryGetStockDataFromMarketCache(aggregateRequest, days, out var cacheResponse))
+                ////{
 
-                if (days.Count > 0)
-                {
-                    stocksResponse = await GetStocksResponseFromCache(aggregateRequest, days) 
-                        ?? await GetStocksResponseFromMarketDataProvider(aggregateRequest, days);
-                }
+                ////}
 
-                if (stocksResponse is null)
-                {
-                    stocksResponse = stocksResponseFromPolygon;
-                }
-                else
-                {
-                    if (stocksResponseFromPolygon is not null)
-                    {
-                        stocksResponse.Results.AddRange(stocksResponseFromPolygon.Results);
-                    }
-                }
+                //if (aggregateRequest.To.Date == DateTimeOffset.Now.Date)
+                //{
+                //    aggregateRequest.From = aggregateRequest.To.Date;
+                //    stocksResponseFromPolygon = await GetStockDataFromPolygon(aggregateRequest);
 
-                var index = stocksResponse.Results.FindIndex(candle => candle.Timestamp > request.To.ToUnixTimeMilliseconds());
+                //    var adjustedDate = aggregateRequest.To.AddDays(-1);
+                //    aggregateRequest.To = adjustedDate;
+                //    aggregateRequest.From = request.From;
+                //}
 
-                if (index >= 0 )
-                {
-                    stocksResponse.Results.RemoveRange(index, stocksResponse.Results.Count() - index);
-                }
 
-                return stocksResponse;
+                //if (days.Count > 0)
+                //{
+                //    stocksResponse = await GetStocksResponseFromCache(aggregateRequest, days) 
+                //        ?? await GetStocksResponseFromMarketDataProvider(aggregateRequest, days);
+                //}
+
+                //if (stocksResponse is null)
+                //{
+                //    stocksResponse = stocksResponseFromPolygon;
+                //}
+                //else
+                //{
+                //    if (stocksResponseFromPolygon is not null)
+                //    {
+                //        stocksResponse.Results.AddRange(stocksResponseFromPolygon.Results);
+                //    }
+                //}
+
+                //var index = stocksResponse.Results.FindIndex(candle => candle.Timestamp > request.To.ToUnixTimeMilliseconds());
+
+                //if (index >= 0 )
+                //{
+                //    stocksResponse.Results.RemoveRange(index, stocksResponse.Results.Count() - index);
+                //}
+
+                //return stocksResponse;
             }
             catch (Exception ex)
             {
@@ -82,12 +92,32 @@ namespace MarketViewer.Infrastructure.Services
             }
         }
 
+        //private async Task<bool> TryGetStockDataFromMarketCache(AggregateRequest request, List<DateTime> days, out StocksResponse response)
+        //{
+        //    response = null;
+        //    try
+        //    {
+        //        var cacheResponse = await marketCacheClient.QueryAggregates<AggregateDto>(request);
+
+        //        if (cacheResponse is not null && cacheResponse.ToList().Count == days.Count)
+        //        {
+        //            response = mapper.Map<IEnumerable<AggregateDto>, StocksResponse>(cacheResponse);
+        //            return true;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        logger.LogError($"Error getting stock data for {request.Ticker}: {ex.Message}");
+        //    }
+        //    return false;
+        //}
+
         private async Task<StocksResponse> GetStockDataFromPolygon(AggregateRequest request)
         {
             try
             {
                 var polygonRequest = mapper.Map<AggregateRequest, PolygonAggregateRequest>(request);
-                polygonRequest.To = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
+                //polygonRequest.To = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
 
                 var polygonResponse = await polygonClient.GetAggregates(polygonRequest);
 
@@ -129,26 +159,6 @@ namespace MarketViewer.Infrastructure.Services
                 logger.LogError($"Error getting stock data for {request.Ticker}: {ex.Message}");
                 return null;
             }
-        }
-
-        private async Task<StocksResponse> GetStocksResponseFromCache(AggregateRequest request, List<DateTime> days)
-        {
-            try
-            {
-                var cacheResponse = await marketCacheClient.QueryAggregates<AggregateDto>(request);
-
-                if (cacheResponse is not null && cacheResponse.ToList().Count == days.Count)
-                {
-                    var mappedResponse = mapper.Map<IEnumerable<AggregateDto>, StocksResponse>(cacheResponse);
-
-                    return mappedResponse;
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogError($"Error getting stock data for {request.Ticker}: {ex.Message}");
-            }
-            return null;
         }
 
         private async Task<TickerDetails> GetTickerDetailsFromCacheOrMarketDataProvider(string ticker)
