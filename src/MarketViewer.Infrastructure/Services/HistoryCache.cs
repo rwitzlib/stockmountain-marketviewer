@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using MarketViewer.Contracts.Requests;
 using MarketViewer.Contracts.Responses;
 using System.Text.Json;
 using Microsoft.Extensions.Caching.Memory;
@@ -61,23 +60,23 @@ public class HistoryCache(
         }
     }
 
-    public async Task<IEnumerable<StocksResponse>> GetStocksResponses(ScanRequest request)
+    public async Task<IEnumerable<StocksResponse>> GetStocksResponses(DateTimeOffset timestamp)
     {
         var stocksResponses = new List<StocksResponse>();
 
-        if (memoryCache.Get<IEnumerable<string>>($"Tickers_{request.Timestamp.Date:yyyyMMdd}") is null)
+        if (memoryCache.Get<IEnumerable<string>>($"Tickers_{timestamp.Date:yyyyMMdd}") is null)
         {
-            await InitializeCache(request.Timestamp.Date);
+            await InitializeCache(timestamp.Date);
         }
 
-        var tickers = memoryCache.Get<IEnumerable<string>>($"Tickers_{request.Timestamp.Date:yyyyMMdd}");
+        var tickers = memoryCache.Get<IEnumerable<string>>($"Tickers_{timestamp.Date:yyyyMMdd}");
 
-        logger.LogInformation("Removing candles outside of {timestamp}.", request.Timestamp);
-        var time = request.Timestamp.ToUnixTimeMilliseconds();
+        logger.LogInformation("Removing candles outside of {timestamp}.", timestamp);
+        var time = timestamp.ToUnixTimeMilliseconds();
 
         foreach (var ticker in tickers)
         {
-            var stocksResponse = memoryCache.Get<StocksResponse>($"Stock_{ticker}_{request.Timestamp.Date:yyyyMMdd}");
+            var stocksResponse = memoryCache.Get<StocksResponse>($"Stock_{ticker}_{timestamp.Date:yyyyMMdd}");
 
             if (stocksResponse.Results is null || stocksResponse.Results.Count < MINIMUM_REQUIRED_CANDLES)
             {

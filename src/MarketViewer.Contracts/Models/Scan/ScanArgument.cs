@@ -6,6 +6,6 @@ namespace MarketViewer.Contracts.Models.Scan;
 public class ScanArgument
 {
     public string Operator { get; set; }
-    public ScanFilter[] Filters { get; set; }
-    public ScanArgument Arguments { get; set; }
+    public FilterV2[] Filters { get; set; }
+    public ScanArgument Argument { get; set; }
 }

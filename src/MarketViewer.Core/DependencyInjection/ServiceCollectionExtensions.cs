@@ -1,5 +1,7 @@
 ﻿using MarketViewer.Core.Scanner;
 using MarketViewer.Core.Scanner.Filters;
+using MarketViewer.Core.ScanV2;
+using MarketViewer.Core.ScanV2.Filters;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
 
