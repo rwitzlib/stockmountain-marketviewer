@@ -16,6 +16,7 @@ using System.Text.Json;
 using System.Net;
 using Microsoft.Extensions.Logging.Abstractions;
 using MarketViewer.Core.Scanner;
+using MarketViewer.Core.ScanV2;
 
 namespace MarketViewer.Application.UnitTests.Handlers
 {

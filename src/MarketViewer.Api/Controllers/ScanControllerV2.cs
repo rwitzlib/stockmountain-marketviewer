@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net;
-using MarketDataProvider.Contracts.Enums;
+using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Requests;
 using MediatR;
@@ -14,21 +14,21 @@ namespace MarketViewer.Api.Controllers
     public class ScannerController(ILogger<ScannerController> logger, IMediator mediator) : ControllerBase
     {
         [HttpPost]
-        [Route("v1")]
+        [Route("v2")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Scan([FromBody] ScannerRequest request)
+        public async Task<IActionResult> Scan([FromBody] ScanRequestV2 request)
         {
             try
             {
-                var asdf = new ScannerRequest
+                var asdf = new ScanRequestV2
                 {
                     Arguments = new ScanArgument
                     {
                         Operator = "AND",
                         Filters = [
-                            new ScanFilter 
+                            new FilterV2 
                             {
                                 First = new PriceActionOperand
                                 {
@@ -39,9 +39,23 @@ namespace MarketViewer.Api.Controllers
                                 Second = new ValueOperand
                                 {
                                     Value = 5
+                                },
+                                Timeframe = new Timeframe
+                                {
+                                    Multiplier = 5,
+                                    Timespan = Timespan.minute
                                 }
                             }
-                        ]
+                        ],
+                        Argument = new ScanArgument
+                        {
+                            Operator = "OR",
+                            Filters = [
+                                new FilterV2{
+
+                                }
+                            ]
+                        }
                     },
                     Timestamp = "asdf"
                 };
