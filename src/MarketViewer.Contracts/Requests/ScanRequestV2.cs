@@ -10,6 +10,6 @@ namespace MarketViewer.Contracts.Requests;
 [ExcludeFromCodeCoverage]
 public class ScanRequestV2 : IRequest<OperationResult<ScanResponse>>
 {
-    public ScanArgument Arguments { get; set; }
+    public ScanArgument Argument { get; set; }
     public DateTimeOffset Timestamp { get; set; }
 }

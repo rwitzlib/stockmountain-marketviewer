@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using MarketViewer.Contracts.Responses;
+using System.Diagnostics.CodeAnalysis;
 using Timespan = MarketViewer.Contracts.Enums.Timespan;
 
 namespace MarketViewer.Contracts.Models.Scan;
@@ -6,11 +7,21 @@ namespace MarketViewer.Contracts.Models.Scan;
 [ExcludeFromCodeCoverage]
 public class PriceActionOperand : IScanOperand
 {
-    public CandleAmount CandleAmount { get; set; }
+    public Modifier ValueType { get; set; }
+    public PriceActionType Type { get; set; }
     public int Multiplier { get; set; }
     public Timespan Timespan { get; set; }
-    public PriceActionType Type { get; set; }
-    public Modifier ValueType { get; set; }
+
+    public float[] Compute(StocksResponseCollection stocksResponse, Timeframe timeframe)
+    {
+        return [];
+    }
+
+    public bool HasTimespan(out Timespan? timespan)
+    {
+        timespan = Timespan;
+        return true;
+    }
 }
 
 public enum CandleAmount

@@ -6,9 +6,10 @@ namespace MarketViewer.Contracts.Models.Scan;
 [ExcludeFromCodeCoverage]
 public class FilterV2
 {
-    public IScanOperand First { get; set; }
-    public string Operator { get; set; }
-    public IScanOperand Second { get; set; }
+    public string CollectionModifier { get; set; }
+    public IScanOperand FirstOperand { get; set; }
+    public FilterOperator Operator { get; set; }
+    public IScanOperand SecondOperand { get; set; }
     public Timeframe Timeframe { get; set; }
 }
 
