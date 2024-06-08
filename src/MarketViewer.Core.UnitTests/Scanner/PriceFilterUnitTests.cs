@@ -1,9 +1,7 @@
 ﻿using FluentAssertions;
-using MarketDataProvider.Contracts.Models;
 using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Responses;
 using MarketViewer.Core.Scanner.Filters;
-using MarketViewer.Core.ScanV2.Filters;
 using Microsoft.Extensions.Logging.Abstractions;
 using Polygon.Client.Models;
 using Xunit;
