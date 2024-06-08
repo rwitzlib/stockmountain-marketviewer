@@ -5,6 +5,8 @@ using System.Linq;
 using MarketViewer.Contracts.Responses;
 using Microsoft.Extensions.Caching.Memory;
 using Polygon.Client.Models;
+using MarketViewer.Contracts.Models.Scan;
+using Timespan = MarketViewer.Contracts.Enums.Timespan;
 
 namespace MarketViewer.Infrastructure.Services
 {
@@ -51,8 +53,12 @@ namespace MarketViewer.Infrastructure.Services
             }
 
             logger.LogInformation("Returning {count} total aggregates.", stocksResponses.Count);
-
             return stocksResponses;
+        }
+
+        public StocksResponseCollection GetStocksResponses(DateTimeOffset timestamp, IEnumerable<Timespan> timespans)
+        {
+            return null;
         }
     }
 }

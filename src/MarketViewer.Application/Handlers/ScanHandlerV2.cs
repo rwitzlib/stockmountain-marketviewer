@@ -7,22 +7,20 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MarketViewer.Contracts.Interfaces;
 using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Requests;
 using Microsoft.Extensions.Logging;
-using MarketViewer.Core.Scanner;
 using System.Net;
 using MarketViewer.Contracts.Models.Scan;
-using MarketViewer.Contracts.Enums;
 using MarketViewer.Core.ScanV2;
+using MarketViewer.Contracts.Enums;
+using NRedisStack.Graph;
 
 namespace MarketViewer.Application.Handlers;
 
 public class ScanHandlerV2(
     LiveCache liveCache,
     HistoryCache backtestingCache,
-    ScanFilterFactory scanFilterFactory,
     ILogger<ScanHandlerV2> logger) : IRequestHandler<ScanRequestV2, OperationResult<ScanResponse>>
 {
     public async Task<OperationResult<ScanResponse>> Handle(ScanRequestV2 request, CancellationToken cancellationToken)
@@ -32,43 +30,38 @@ public class ScanHandlerV2(
             var sp = new Stopwatch();
             sp.Start();
 
-            IEnumerable<StocksResponse> stocksResponses;
-
+            StocksResponseCollection stocksResponseCollection;
+            var timespans = GetTimespans(request.Argument);
 
             if (IsDateTimeToday(request.Timestamp))
             {
-                stocksResponses = liveCache.GetStocksResponses(request.Timestamp);
+                stocksResponseCollection = liveCache.GetStocksResponses(request.Timestamp, timespans);
             }
             else
             {
-                stocksResponses = await backtestingCache.GetStocksResponses(request.Timestamp);
+                stocksResponseCollection = await backtestingCache.GetStocksResponses(request.Timestamp, timespans);
             }
 
-            logger.LogInformation("Total StocksResponses found: {count}", stocksResponses.Count());
+            //logger.LogInformation("Total StocksResponses found: {count}", stocksResponseCollection.Count());
 
-            var tasks = new List<Task<ScanResponse.Item>>();
-            foreach (var stocksResponse in stocksResponses)
-            {
-                tasks.Add(Task.Run(() => ApplyScanToArgument(request.Arguments, stocksResponse)));
-            }
-            var results = await Task.WhenAll(tasks);
+            var items = await ApplyScanToArgument(request.Argument, stocksResponseCollection);
 
             sp.Stop();
 
-            logger.LogInformation("Total StocksResponses after filtering: {count}", results.Count(q => q is not null));
+            //logger.LogInformation("Total StocksResponses after filtering: {count}", results.Count(result => result is not null));
             return new OperationResult<ScanResponse>
             {
                 Status = HttpStatusCode.OK,
                 Data = new ScanResponse
                 {
-                    Items = results.Where(item => item is not null),
+                    Items = items,
                     TimeElapsed = sp.ElapsedMilliseconds
                 }
             };
         }
         catch (Exception ex)
         {
-            logger.LogError($"Error scanning for {request.Timestamp}: {ex.Message}");
+            logger.LogError("Error scanning for {timestamp}: {message}", request.Timestamp, ex.Message);
             return new OperationResult<ScanResponse>
             {
                 Status = HttpStatusCode.InternalServerError,
@@ -78,61 +71,165 @@ public class ScanHandlerV2(
     }
 
     #region Private Methods
+    private static IEnumerable<Timespan> GetTimespans(ScanArgument scanArgument)
+    {
+        if (scanArgument == null)
+        {
+            return [];
+        }
+
+        var timespans = new List<Timespan>();
+
+        foreach (var filter in scanArgument.Filters)
+        {
+            if (filter.FirstOperand.HasTimespan(out var firstTimespan))
+            {
+                timespans.Add(firstTimespan.Value);
+            }
+            if (filter.SecondOperand.HasTimespan(out var secondTimespan))
+            {
+                timespans.Add(secondTimespan.Value);
+            }
+        }
+
+        var timeSpansFromArgument = GetTimespans(scanArgument);
+
+        timespans.AddRange(timeSpansFromArgument);
+
+        return timespans.Distinct();
+    }
+    
     private static bool IsDateTimeToday(DateTimeOffset date)
     {
         return date.ToString("yyyy-MM-dd").Equals(DateTime.Now.ToString("yyyy-MM-dd"));
     }
 
-    private ScanResponse.Item ApplyScanToArgument(ScanArgument argument, StocksResponse stocksResponse)
+    private async Task<IEnumerable<ScanResponse.Item>> ApplyScanToArgument(ScanArgument argument, StocksResponseCollection stocksResponseCollection)
     {
-        ScanResponse.Item item = null;
-
-        if (argument.Operator is not "AND" || argument.Operator is not "OR" || argument.Filters.Length == 0)
+        if (argument is null || argument.Operator is not "AND" || argument.Operator is not "OR" || argument.Filters.Length == 0)
         {
-            return null;
+            return [];
         }
 
-        if (argument.Argument is not null)
+        var argumentTask = Task.Run(() => ApplyScanToArgument(argument.Argument, stocksResponseCollection));
+
+        List<Task<ScanResponse.Item>> applyFilterTasks = [];
+        foreach (var filter in argument.Filters)
         {
-            item = ApplyScanToArgument(argument.Argument, stocksResponse);
+            applyFilterTasks.Add(Task.Run(() => ApplyFilter(filter, stocksResponseCollection)));
         }
 
-        List<bool> results = [];
-        results.AddRange(from filter in argument.Filters
-                         select ApplyFilter(filter, stocksResponse));
+        var itemsFromFilters = await Task.WhenAll(applyFilterTasks.);
+        var itemsFromArgument = await argumentTask;
 
         if (argument.Operator is "AND")
         {
-            if ((argument.Argument is not null && item is null) || !results.All(result => result == true))
-            {
-                return null;
-            }
+            var results = itemsFromFilters.IntersectBy(itemsFromArgument.Select(item => item.Ticker), item => item.Ticker);
+
+            return results;
         }
         else if (argument.Operator is "OR")
         {
-            if ((argument.Argument is not null && item is null) || !results.Any(result => result == true))
-            {
-                return null;
-            }
+            var results = itemsFromFilters.UnionBy(itemsFromArgument, item => item.Ticker);
+
+            return results;
         }
 
-        //var multiplier = filters.Max(q => q.Multiplier);
-        //var lastCandles = stocksResponse.Results.TakeLast(multiplier);
-
-        return new ScanResponse.Item
-        {
-            Ticker = stocksResponse.Ticker,
-            Price = stocksResponse.Results.Last().Close,
-            //Volume = lastCandles.Sum(x => x.Volume),
-            Float = stocksResponse.TickerDetails?.Float
-        };
+        return [];
     }
 
-    private bool ApplyFilter(FilterV2 filter, StocksResponse stocksResponse)
+    private static List<ScanResponse.Item> ApplyFilter(FilterV2 filter, StocksResponseCollection stocksResponseCollection)
     {
+        var stocksResponses = filter.FirstOperand.HasTimespan(out var timespan) ? stocksResponseCollection.Responses[timespan.Value] : [];
 
+        foreach (var stocksResponse in stocksResponses)
+        {
+            bool passesFilter = false;
 
-        return true;
+            var firstOperandResult = filter.FirstOperand.Compute(stocksResponse, filter.Timeframe);
+
+            var secondOperandResult = filter.SecondOperand.Compute(stocksResponse, filter.Timeframe);
+
+            switch (filter.CollectionModifier.ToLowerInvariant())
+            {
+                case "all":
+                    switch (filter.Operator)
+                    {
+                        case FilterOperator.lt:
+                            passesFilter = firstOperandResult.All(value => value < secondOperandResult.First());
+                            break;
+
+                        case FilterOperator.le:
+                            passesFilter = firstOperandResult.All(value => value <= secondOperandResult.First());
+                            break;
+
+                        case FilterOperator.eq:
+                            passesFilter = firstOperandResult.All(value => value == secondOperandResult.First());
+                            break;
+
+                        case FilterOperator.ge:
+                            passesFilter = firstOperandResult.All(value => value >= secondOperandResult.First());
+                            break;
+
+                        case FilterOperator.gt:
+                            passesFilter = firstOperandResult.All(value => value > secondOperandResult.First());
+                            break;
+                    }
+                    break;
+
+                case "any":
+                    switch (filter.Operator)
+                    {
+                        case FilterOperator.lt:
+                            passesFilter = firstOperandResult.Any(value => value < secondOperandResult.First());
+                            break;
+
+                        case FilterOperator.le:
+                            passesFilter = firstOperandResult.Any(value => value <= secondOperandResult.First());
+                            break;
+
+                        case FilterOperator.eq:
+                            passesFilter = firstOperandResult.Any(value => value == secondOperandResult.First());
+                            break;
+
+                        case FilterOperator.ge:
+                            passesFilter = firstOperandResult.Any(value => value >= secondOperandResult.First());
+                            break;
+
+                        case FilterOperator.gt:
+                            passesFilter = firstOperandResult.Any(value => value > secondOperandResult.First());
+                            break;
+                    }
+                    break;
+
+                default:
+                    switch (filter.Operator)
+                    {
+                        case FilterOperator.lt:
+                            passesFilter = firstOperandResult.First() < secondOperandResult.First();
+                            break;
+
+                        case FilterOperator.le:
+                            passesFilter = firstOperandResult.First() <= secondOperandResult.First();
+                            break;
+
+                        case FilterOperator.eq:
+                            passesFilter = firstOperandResult.First() == secondOperandResult.First();
+                            break;
+
+                        case FilterOperator.ge:
+                            passesFilter = firstOperandResult.First() >= secondOperandResult.First();
+                            break;
+
+                        case FilterOperator.gt:
+                            passesFilter = firstOperandResult.First() > secondOperandResult.First();
+                            break;
+                    }
+                    break;
+            }
+        }
+        
+        return null;
     }
     #endregion
 }
