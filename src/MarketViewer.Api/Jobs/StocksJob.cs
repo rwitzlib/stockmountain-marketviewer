@@ -56,7 +56,7 @@ namespace MarketDataProvider.Api.Jobs
 
             var stocksResponse = mapper.Map<StocksResponse>(polygonAggregateResponse);
 
-            memoryCache.Set($"Stock_{ticker}_{DateTime.Now:yyyyMMdd}", stocksResponse);
+            memoryCache.Set($"Stocks/{ticker}/minute/{DateTime.Now:yyyyMMdd}", stocksResponse);
         }
     }
 }
