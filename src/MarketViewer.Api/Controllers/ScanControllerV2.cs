@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Net;
+﻿using System.Net;
 using MarketViewer.Contracts.Enums;
+using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Requests;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using NRedisStack.Graph;
 
 namespace MarketViewer.Api.Controllers
 {
@@ -24,19 +23,19 @@ namespace MarketViewer.Api.Controllers
             {
                 var asdf = new ScanRequestV2
                 {
-                    Arguments = new ScanArgument
+                    Argument = new ScanArgument
                     {
                         Operator = "AND",
                         Filters = [
-                            new FilterV2 
+                            new FilterV2
                             {
-                                First = new PriceActionOperand
+                                FirstOperand = new PriceActionOperand
                                 {
                                     Multiplier = 5,
                                     Timespan = Timespan.minute
                                 },
-                                Operator = "GT",
-                                Second = new ValueOperand
+                                Operator = FilterOperator.gt,
+                                SecondOperand = new ValueOperand
                                 {
                                     Value = 5
                                 },
@@ -57,7 +56,7 @@ namespace MarketViewer.Api.Controllers
                             ]
                         }
                     },
-                    Timestamp = "asdf"
+                    Timestamp = DateTimeOffset.Now
                 };
 
                 var response = await mediator.Send(request);
