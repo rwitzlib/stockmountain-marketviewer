@@ -1,9 +1,9 @@
 ﻿using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Responses;
 
-namespace MarketViewer.Core.ScanV2.Filters
+namespace MarketViewer.Core.Scanner.Filters
 {
-    public interface IFilter
+    public interface IFilterV2
     {
         bool ApplyFilter(Filter filter, StocksResponse response);
     }
