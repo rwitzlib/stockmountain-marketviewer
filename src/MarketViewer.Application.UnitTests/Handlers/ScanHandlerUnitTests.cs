@@ -1,17 +1,14 @@
 ﻿using AutoFixture;
-using AutoMapper;
 using Moq;
 using Xunit;
 using FluentAssertions;
 using MarketViewer.Contracts.Responses;
 using MarketViewer.Application.Handlers;
-using MarketViewer.Contracts.Interfaces;
 using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Requests;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Infrastructure.Services;
 using Moq.AutoMock;
-using MarketViewer.Infrastructure.Mapping;
 using System.Text.Json;
 using System.Net;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -193,7 +190,7 @@ namespace MarketViewer.Application.UnitTests.Handlers
             var json = await reader.ReadToEndAsync();
             var aggregates = JsonSerializer.Deserialize<List<StocksResponse>>(json);
 
-            _backtestingCache.Setup(q => q.GetStocksResponses(It.IsAny<ScanRequest>()))
+            _backtestingCache.Setup(q => q.GetStocksResponses(It.IsAny<DateTimeOffset>()))
                 .ReturnsAsync(aggregates);
         }
     }
