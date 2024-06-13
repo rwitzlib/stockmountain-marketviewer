@@ -12,9 +12,7 @@ using MarketViewer.Contracts.Requests;
 using Microsoft.Extensions.Logging;
 using System.Net;
 using MarketViewer.Contracts.Models.Scan;
-using MarketViewer.Core.ScanV2;
 using MarketViewer.Contracts.Enums;
-using NRedisStack.Graph;
 
 namespace MarketViewer.Application.Handlers;
 
@@ -92,7 +90,7 @@ public class ScanHandlerV2(
             }
         }
 
-        var timeSpansFromArgument = GetTimespans(scanArgument);
+        var timeSpansFromArgument = GetTimespans(scanArgument.Argument);
 
         timespans.AddRange(timeSpansFromArgument);
 
@@ -106,31 +104,35 @@ public class ScanHandlerV2(
 
     private async Task<IEnumerable<ScanResponse.Item>> ApplyScanToArgument(ScanArgument argument, StocksResponseCollection stocksResponseCollection)
     {
-        if (argument is null || argument.Operator is not "AND" || argument.Operator is not "OR" || argument.Filters.Length == 0)
+        if (argument is null || (argument.Operator is not "AND" && argument.Operator is not "OR") || argument.Filters.Length == 0)
         {
             return [];
         }
 
         var argumentTask = Task.Run(() => ApplyScanToArgument(argument.Argument, stocksResponseCollection));
 
-        List<Task<ScanResponse.Item>> applyFilterTasks = [];
+        List<Task<List<ScanResponse.Item>>> applyFilterTasks = [];
         foreach (var filter in argument.Filters)
         {
             applyFilterTasks.Add(Task.Run(() => ApplyFilter(filter, stocksResponseCollection)));
         }
 
-        var itemsFromFilters = await Task.WhenAll(applyFilterTasks.);
+        var itemsFromFilterTasks = await Task.WhenAll(applyFilterTasks);
+        var itemsFromFilters = new List<ScanResponse.Item>();
+        itemsFromFilterTasks.ToList().ForEach(list => itemsFromFilters.AddRange(list));
+        var distinctItems = itemsFromFilters.DistinctBy(item => item.Ticker);
+
         var itemsFromArgument = await argumentTask;
 
         if (argument.Operator is "AND")
         {
-            var results = itemsFromFilters.IntersectBy(itemsFromArgument.Select(item => item.Ticker), item => item.Ticker);
+            var results = distinctItems.IntersectBy(itemsFromArgument.Select(item => item.Ticker), item => item.Ticker);
 
             return results;
         }
         else if (argument.Operator is "OR")
         {
-            var results = itemsFromFilters.UnionBy(itemsFromArgument, item => item.Ticker);
+            var results = distinctItems.UnionBy(itemsFromArgument, item => item.Ticker);
 
             return results;
         }
