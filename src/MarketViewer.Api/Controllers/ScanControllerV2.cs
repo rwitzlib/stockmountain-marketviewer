@@ -9,8 +9,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace MarketViewer.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
-    public class ScannerController(ILogger<ScannerController> logger, IMediator mediator) : ControllerBase
+    [Route("api/scan")]
+    public class ScanControllerV2(ILogger<ScanControllerV2> logger, IMediator mediator) : ControllerBase
     {
         [HttpPost]
         [Route("v2")]
@@ -49,17 +49,13 @@ namespace MarketViewer.Api.Controllers
                         Argument = new ScanArgument
                         {
                             Operator = "OR",
-                            Filters = [
-                                new FilterV2{
-
-                                }
-                            ]
+                            Filters = []
                         }
                     },
-                    Timestamp = DateTimeOffset.Now
+                    Timestamp = DateTimeOffset.Parse("2024-03-05T08:30:00-06:00")
                 };
 
-                var response = await mediator.Send(request);
+                var response = await mediator.Send(asdf);
 
                 return response.Status switch
                 {

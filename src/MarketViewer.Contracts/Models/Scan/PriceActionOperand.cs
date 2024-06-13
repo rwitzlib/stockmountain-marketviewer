@@ -12,9 +12,9 @@ public class PriceActionOperand : IScanOperand
     public int Multiplier { get; set; }
     public Timespan Timespan { get; set; }
 
-    public float[] Compute(StocksResponseCollection stocksResponse, Timeframe timeframe)
+    public float[] Compute(StocksResponse stocksResponse, Timeframe timeframe)
     {
-        return [];
+        throw new System.NotImplementedException();
     }
 
     public bool HasTimespan(out Timespan? timespan)
