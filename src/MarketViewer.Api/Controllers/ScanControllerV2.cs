@@ -1,7 +1,4 @@
 ﻿using System.Net;
-using MarketViewer.Contracts.Enums;
-using MarketViewer.Contracts.Models;
-using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Requests;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -21,41 +18,7 @@ namespace MarketViewer.Api.Controllers
         {
             try
             {
-                var asdf = new ScanRequestV2
-                {
-                    Argument = new ScanArgument
-                    {
-                        Operator = "AND",
-                        Filters = [
-                            new FilterV2
-                            {
-                                FirstOperand = new PriceActionOperand
-                                {
-                                    Multiplier = 5,
-                                    Timespan = Timespan.minute
-                                },
-                                Operator = FilterOperator.gt,
-                                SecondOperand = new ValueOperand
-                                {
-                                    Value = 5
-                                },
-                                Timeframe = new Timeframe
-                                {
-                                    Multiplier = 5,
-                                    Timespan = Timespan.minute
-                                }
-                            }
-                        ],
-                        Argument = new ScanArgument
-                        {
-                            Operator = "OR",
-                            Filters = []
-                        }
-                    },
-                    Timestamp = DateTimeOffset.Parse("2024-03-05T08:30:00-06:00")
-                };
-
-                var response = await mediator.Send(asdf);
+                var response = await mediator.Send(request);
 
                 return response.Status switch
                 {

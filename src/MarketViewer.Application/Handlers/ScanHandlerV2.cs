@@ -13,6 +13,9 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Enums;
+using System.Runtime.InteropServices.JavaScript;
+using MarketViewer.Application.Utilities;
+using Microsoft.VisualBasic;
 
 namespace MarketViewer.Application.Handlers;
 
@@ -117,31 +120,48 @@ public class ScanHandlerV2(
             applyFilterTasks.Add(Task.Run(() => ApplyFilter(filter, stocksResponseCollection)));
         }
 
-        var itemsFromFilterTasks = await Task.WhenAll(applyFilterTasks);
-        var itemsFromFilters = new List<ScanResponse.Item>();
-        itemsFromFilterTasks.ToList().ForEach(list => itemsFromFilters.AddRange(list));
-        var distinctItems = itemsFromFilters.DistinctBy(item => item.Ticker);
+        var itemsFromFilters = await Task.WhenAll(applyFilterTasks);
+        //var itemsFromFilters = new List<ScanResponse.Item>();
+        //itemsFromFilterTasks.ToList().ForEach(list => itemsFromFilters.AddRange(list));
 
         var itemsFromArgument = await argumentTask;
 
-        if (argument.Operator is "AND")
+        switch (argument.Operator.ToLowerInvariant())
         {
-            var results = distinctItems.IntersectBy(itemsFromArgument.Select(item => item.Ticker), item => item.Ticker);
+            case "and":
+                {
+                    var intersection = itemsFromFilters
+                        .Aggregate<IEnumerable<ScanResponse.Item>>((previous, next) => previous.Intersect(next, new ScanResponseItemComparer()));
 
-            return results;
+                    if (argument.Argument is null)
+                    {
+                        return intersection;
+                    }
+
+                    return intersection.Intersect(itemsFromArgument, new ScanResponseItemComparer());
+                }
+            case "or":
+                {
+                    var union = itemsFromFilters
+                        .Aggregate<IEnumerable<ScanResponse.Item>>((previous, next) => previous.UnionBy(next, item => item.Ticker));
+
+                    if (argument.Argument is null)
+                    {
+                        return union;
+                    }
+
+                    return union.UnionBy(itemsFromArgument, item => item.Ticker);
+                }
+            default:
+                {
+                    return [];
+                }
         }
-        else if (argument.Operator is "OR")
-        {
-            var results = distinctItems.UnionBy(itemsFromArgument, item => item.Ticker);
-
-            return results;
-        }
-
-        return [];
     }
 
     private static List<ScanResponse.Item> ApplyFilter(FilterV2 filter, StocksResponseCollection stocksResponseCollection)
     {
+        var results = new List<ScanResponse.Item>();
         var stocksResponses = filter.FirstOperand.HasTimespan(out var timespan) ? stocksResponseCollection.Responses[timespan.Value] : [];
 
         foreach (var stocksResponse in stocksResponses)
@@ -151,6 +171,11 @@ public class ScanHandlerV2(
             var firstOperandResult = filter.FirstOperand.Compute(stocksResponse, filter.Timeframe);
 
             var secondOperandResult = filter.SecondOperand.Compute(stocksResponse, filter.Timeframe);
+
+            if (firstOperandResult.Length == 0 || secondOperandResult.Length == 0)
+            {
+                continue;
+            }
 
             switch (filter.CollectionModifier.ToLowerInvariant())
             {
@@ -229,9 +254,20 @@ public class ScanHandlerV2(
                     }
                     break;
             }
+
+            if (passesFilter)
+            {
+                results.Add(new ScanResponse.Item
+                {
+                    Ticker = stocksResponse.Ticker,
+                    Price = stocksResponse.Results.Last().Close,
+                    Volume = stocksResponse.Results.TakeLast(filter.Timeframe.Multiplier).Select(q => q.Volume).Sum()
+                    //Float = stocksResponse.TickerDetails.Float
+                });
+            }
         }
         
-        return null;
+        return results;
     }
     #endregion
 }

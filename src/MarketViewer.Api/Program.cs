@@ -11,6 +11,7 @@ using Quartz;
 using MarketViewer.Api.Jobs;
 using MarketDataProvider.Api.Jobs;
 using MarketViewer.Application.Handlers;
+using MarketViewer.Application.Utilities;
 
 namespace MarketViewer.Api;
 
@@ -78,7 +79,7 @@ public class Program
         builder.Services.AddControllers(options =>
         {
             options.ModelBinderProviders.Insert(0, new AggregateBinderProvider());
-        });
+        }).AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new ScanOperandConverter()));
 
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
