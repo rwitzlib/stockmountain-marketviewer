@@ -7,7 +7,6 @@ using Timespan = MarketViewer.Contracts.Enums.Timespan;
 
 namespace MarketViewer.Contracts.Models.Scan;
 
-[ExcludeFromCodeCoverage]
 public class PriceActionOperand : IScanOperand
 {
     [JsonRequired]

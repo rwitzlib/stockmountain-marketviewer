@@ -5,7 +5,6 @@ using System.Text.Json.Serialization;
 
 namespace MarketViewer.Contracts.Models.Scan;
 
-[ExcludeFromCodeCoverage]
 public class ValueOperand : IScanOperand
 {
     [JsonRequired]
