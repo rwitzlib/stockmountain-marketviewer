@@ -1,6 +1,5 @@
 ﻿using MarketViewer.Contracts.Responses;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json.Serialization;
 using Timespan = MarketViewer.Contracts.Enums.Timespan;
