@@ -39,7 +39,7 @@ public class PriceActionOperand : IScanOperand
         var values = ValueType switch
         {
             Modifier.Value => candles,
-            Modifier.Slope => GetSlope(candles),
+            Modifier.Slope => GetSlope(candles.ToArray()),
             _ => []
         };
 
@@ -52,10 +52,21 @@ public class PriceActionOperand : IScanOperand
         return true;
     }
 
-    private float[] GetSlope(IEnumerable<float> values)
+    private static float[] GetSlope(float[] values)
     {
-        // TODO
-        return [];
+        if (values.Length < 2)
+        {
+            return [];
+        }
+
+        var results = new float [values.Length - 1];
+
+        for (int i = 0; i < values.Length - 1; i++)
+        {
+            results[i] = values[i + 1] - values[i];
+        }
+
+        return results;
     }
 }
 
