@@ -13,9 +13,7 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Enums;
-using System.Runtime.InteropServices.JavaScript;
 using MarketViewer.Application.Utilities;
-using Microsoft.VisualBasic;
 
 namespace MarketViewer.Application.Handlers;
 
@@ -121,9 +119,6 @@ public class ScanHandlerV2(
         }
 
         var itemsFromFilters = await Task.WhenAll(applyFilterTasks);
-        //var itemsFromFilters = new List<ScanResponse.Item>();
-        //itemsFromFilterTasks.ToList().ForEach(list => itemsFromFilters.AddRange(list));
-
         var itemsFromArgument = await argumentTask;
 
         switch (argument.Operator.ToLowerInvariant())
