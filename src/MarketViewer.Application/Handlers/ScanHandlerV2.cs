@@ -172,29 +172,43 @@ public class ScanHandlerV2(
                 continue;
             }
 
+            if (firstOperandResult.Length < secondOperandResult.Length)
+            {
+                secondOperandResult = secondOperandResult.TakeLast(firstOperandResult.Length).ToArray();
+            }
+            else if (firstOperandResult.Length > secondOperandResult.Length)
+            {
+                firstOperandResult = firstOperandResult.TakeLast(secondOperandResult.Length).ToArray();
+            }
+
+            if (firstOperandResult.Length != secondOperandResult.Length)
+            {
+                return null;
+            }
+
             switch (filter.CollectionModifier.ToLowerInvariant())
             {
                 case "all":
                     switch (filter.Operator)
                     {
                         case FilterOperator.lt:
-                            passesFilter = firstOperandResult.All(value => value < secondOperandResult.First());
+                            passesFilter = firstOperandResult.Zip(secondOperandResult, (x, y) => x < y).All(result => result == true);
                             break;
 
                         case FilterOperator.le:
-                            passesFilter = firstOperandResult.All(value => value <= secondOperandResult.First());
+                            passesFilter = firstOperandResult.Zip(secondOperandResult, (x, y) => x <= y).All(result => result == true);
                             break;
 
                         case FilterOperator.eq:
-                            passesFilter = firstOperandResult.All(value => value == secondOperandResult.First());
+                            passesFilter = firstOperandResult.Zip(secondOperandResult, (x, y) => x == y).All(result => result == true);
                             break;
 
                         case FilterOperator.ge:
-                            passesFilter = firstOperandResult.All(value => value >= secondOperandResult.First());
+                            passesFilter = firstOperandResult.Zip(secondOperandResult, (x, y) => x >= y).All(result => result == true);
                             break;
 
                         case FilterOperator.gt:
-                            passesFilter = firstOperandResult.All(value => value > secondOperandResult.First());
+                            passesFilter = firstOperandResult.Zip(secondOperandResult, (x, y) => x > y).All(result => result == true);
                             break;
                     }
                     break;
@@ -203,23 +217,23 @@ public class ScanHandlerV2(
                     switch (filter.Operator)
                     {
                         case FilterOperator.lt:
-                            passesFilter = firstOperandResult.Any(value => value < secondOperandResult.First());
+                            passesFilter = firstOperandResult.Zip(secondOperandResult, (x, y) => x < y).Any(result => result == true);
                             break;
 
                         case FilterOperator.le:
-                            passesFilter = firstOperandResult.Any(value => value <= secondOperandResult.First());
+                            passesFilter = firstOperandResult.Zip(secondOperandResult, (x, y) => x <= y).Any(result => result == true);
                             break;
 
                         case FilterOperator.eq:
-                            passesFilter = firstOperandResult.Any(value => value == secondOperandResult.First());
+                            passesFilter = firstOperandResult.Zip(secondOperandResult, (x, y) => x == y).Any(result => result == true);
                             break;
 
                         case FilterOperator.ge:
-                            passesFilter = firstOperandResult.Any(value => value >= secondOperandResult.First());
+                            passesFilter = firstOperandResult.Zip(secondOperandResult, (x, y) => x >= y).Any(result => result == true);
                             break;
 
                         case FilterOperator.gt:
-                            passesFilter = firstOperandResult.Any(value => value > secondOperandResult.First());
+                            passesFilter = firstOperandResult.Zip(secondOperandResult, (x, y) => x > y).Any(result => result == true);
                             break;
                     }
                     break;
@@ -228,23 +242,23 @@ public class ScanHandlerV2(
                     switch (filter.Operator)
                     {
                         case FilterOperator.lt:
-                            passesFilter = firstOperandResult.First() < secondOperandResult.First();
+                            passesFilter = firstOperandResult.Last() < secondOperandResult.Last();
                             break;
 
                         case FilterOperator.le:
-                            passesFilter = firstOperandResult.First() <= secondOperandResult.First();
+                            passesFilter = firstOperandResult.Last() <= secondOperandResult.Last();
                             break;
 
                         case FilterOperator.eq:
-                            passesFilter = firstOperandResult.First() == secondOperandResult.First();
+                            passesFilter = firstOperandResult.Last() == secondOperandResult.Last();
                             break;
 
                         case FilterOperator.ge:
-                            passesFilter = firstOperandResult.First() >= secondOperandResult.First();
+                            passesFilter = firstOperandResult.Last() >= secondOperandResult.Last();
                             break;
 
                         case FilterOperator.gt:
-                            passesFilter = firstOperandResult.First() > secondOperandResult.First();
+                            passesFilter = firstOperandResult.Last() > secondOperandResult.Last();
                             break;
                     }
                     break;
