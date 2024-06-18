@@ -11,7 +11,14 @@ public class ValueOperand : IScanOperand
 
     public float[] Compute(StocksResponse stocksResponse, Timeframe timeframe)
     {
-        return [ Value ];
+        var results = new float[timeframe.Multiplier];
+
+        for(int i = 0; i < results.Length; i++)
+        {
+            results[i] = Value;
+        }
+
+        return results;
     }
 
     public bool HasTimespan(out Timespan? timespan)
