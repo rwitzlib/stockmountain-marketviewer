@@ -1,4 +1,3 @@
-using MarketDataProvider.Contracts.Models;
 using MarketViewer.Contracts.Models;
 using Polygon.Client.Models;
 

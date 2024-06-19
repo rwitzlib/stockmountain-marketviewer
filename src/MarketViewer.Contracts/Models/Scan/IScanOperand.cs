@@ -1,10 +1,8 @@
-﻿using MarketViewer.Contracts.Responses;
-using Timespan = MarketViewer.Contracts.Enums.Timespan;
+﻿using MarketViewer.Contracts.Enums;
 
 namespace MarketViewer.Contracts.Models.Scan;
 
-public interface IScanOperand
+public interface IScanOperand 
 {
     public bool HasTimespan(out Timespan? timespan);
-    public float[] Compute(StocksResponse stocksResponse, Timeframe timeframe);
 }

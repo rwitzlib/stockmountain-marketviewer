@@ -1,7 +1,7 @@
 ﻿using MarketViewer.Contracts.Responses;
 using System.Collections.Generic;
 
-namespace MarketViewer.Application.Utilities
+namespace MarketViewer.Contracts.Comparers
 {
     public class ScanResponseItemComparer : IEqualityComparer<ScanResponse.Item>
     {
