@@ -3,7 +3,7 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace MarketViewer.Application.Utilities
+namespace MarketViewer.Contracts.Converters
 {
     public class ScanOperandConverter : JsonConverter<IScanOperand>
     {

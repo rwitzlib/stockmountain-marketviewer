@@ -1,10 +1,10 @@
 ﻿using MarketViewer.Contracts.Models;
+using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Responses;
 
-namespace MarketViewer.Core.Scanner.Filters
+namespace MarketViewer.Core.ScanV2.Filters;
+
+public interface IFilterV2
 {
-    public interface IFilterV2
-    {
-        bool ApplyFilter(Filter filter, StocksResponse response);
-    }
+    public float[] Compute(IScanOperand operand, StocksResponse stocksResponse, Timeframe timeframe);
 }

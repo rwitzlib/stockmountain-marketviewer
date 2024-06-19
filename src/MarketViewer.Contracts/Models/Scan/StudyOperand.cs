@@ -1,11 +1,14 @@
 ﻿using MarketViewer.Contracts.Enums;
-using MarketViewer.Contracts.Responses;
 using System.Text.Json.Serialization;
 
 namespace MarketViewer.Contracts.Models.Scan;
 
 public class StudyOperand : IScanOperand
 {
+    [JsonRequired]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public Modifier ValueType { get; set; }
+
     [JsonRequired]
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public StudyType Type { get; set; }
@@ -19,11 +22,6 @@ public class StudyOperand : IScanOperand
     [JsonRequired]
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public Timespan Timespan { get; set; }
-
-    public float[] Compute(StocksResponse stocksResponse, Timeframe timeframe)
-    {
-        throw new System.NotImplementedException();
-    }
 
     public bool HasTimespan(out Timespan? timespan)
     {

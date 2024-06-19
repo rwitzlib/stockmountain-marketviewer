@@ -11,7 +11,7 @@ using Quartz;
 using MarketViewer.Api.Jobs;
 using MarketDataProvider.Api.Jobs;
 using MarketViewer.Application.Handlers;
-using MarketViewer.Application.Utilities;
+using MarketViewer.Contracts.Converters;
 
 namespace MarketViewer.Api;
 

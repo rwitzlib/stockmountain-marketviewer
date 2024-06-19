@@ -1,9 +1,10 @@
-﻿using MarketViewer.Application.Utilities;
-using MarketViewer.Contracts.Enums;
+﻿using MarketViewer.Contracts.Converters;
+using MarketViewer.Contracts.Models;
+using MarketViewer.Contracts.Models.Scan;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
-namespace MarketViewer.Contracts.Models.Scan;
+namespace MarketViewer.Core.ScanV2;
 
 [ExcludeFromCodeCoverage]
 public class FilterV2
@@ -19,12 +20,4 @@ public class FilterV2
     [JsonConverter(typeof(ScanOperandConverter))]
     public IScanOperand SecondOperand { get; set; }
     public Timeframe Timeframe { get; set; }
-}
-
-public class Timeframe
-{
-    public int Multiplier { get; set; }
-
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public Timespan Timespan { get; set; }
 }

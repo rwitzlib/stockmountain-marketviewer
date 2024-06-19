@@ -13,13 +13,15 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Enums;
-using MarketViewer.Application.Utilities;
+using MarketViewer.Core.ScanV2;
+using MarketViewer.Contracts.Comparers;
 
 namespace MarketViewer.Application.Handlers;
 
 public class ScanHandlerV2(
     LiveCache liveCache,
     HistoryCache backtestingCache,
+    ScanFilterFactoryV2 scanFilterFactory,
     ILogger<ScanHandlerV2> logger) : IRequestHandler<ScanRequestV2, OperationResult<ScanResponse>>
 {
     public async Task<OperationResult<ScanResponse>> Handle(ScanRequestV2 request, CancellationToken cancellationToken)
@@ -154,7 +156,7 @@ public class ScanHandlerV2(
         }
     }
 
-    private static List<ScanResponse.Item> ApplyFilter(FilterV2 filter, StocksResponseCollection stocksResponseCollection)
+    private List<ScanResponse.Item> ApplyFilter(FilterV2 filter, StocksResponseCollection stocksResponseCollection)
     {
         var results = new List<ScanResponse.Item>();
         var stocksResponses = filter.FirstOperand.HasTimespan(out var timespan) ? stocksResponseCollection.Responses[timespan.Value] : [];
@@ -163,9 +165,11 @@ public class ScanHandlerV2(
         {
             bool passesFilter = false;
 
-            var firstOperandResult = filter.FirstOperand.Compute(stocksResponse, filter.Timeframe);
+            var firstFilter = scanFilterFactory.GetScanFilter(filter.FirstOperand);
+            var firstOperandResult = firstFilter.Compute(filter.FirstOperand, stocksResponse, filter.Timeframe);
 
-            var secondOperandResult = filter.SecondOperand.Compute(stocksResponse, filter.Timeframe);
+            var secondFilter = scanFilterFactory.GetScanFilter(filter.SecondOperand);
+            var secondOperandResult = secondFilter.Compute(filter.SecondOperand, stocksResponse, filter.Timeframe);
 
             if (firstOperandResult.Length == 0 || secondOperandResult.Length == 0)
             {
