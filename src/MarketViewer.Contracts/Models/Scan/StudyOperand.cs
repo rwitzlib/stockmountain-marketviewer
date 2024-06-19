@@ -1,8 +1,10 @@
 ﻿using MarketViewer.Contracts.Enums;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace MarketViewer.Contracts.Models.Scan;
 
+[ExcludeFromCodeCoverage]
 public class StudyOperand : IScanOperand
 {
     [JsonRequired]
