@@ -1,10 +1,10 @@
-﻿using MarketViewer.Contracts.Models;
-using MarketViewer.Contracts.Responses;
+﻿using MarketViewer.Contracts.Enums;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
-using Timespan = MarketViewer.Contracts.Enums.Timespan;
 
 namespace MarketViewer.Contracts.Models.Scan;
 
+[ExcludeFromCodeCoverage]
 public class PriceActionOperand : IScanOperand
 {
     [JsonRequired]
