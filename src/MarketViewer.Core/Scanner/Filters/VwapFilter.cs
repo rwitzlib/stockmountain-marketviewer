@@ -4,15 +4,8 @@ using Microsoft.Extensions.Logging;
 
 namespace MarketViewer.Core.Scanner.Filters
 {
-    public class VwapFilter : IFilter
+    public class VwapFilter(ILogger<VwapFilter> logger) : IFilter
     {
-        private readonly ILogger<VwapFilter> _logger;
-
-        public VwapFilter(ILogger<VwapFilter> logger)
-        {
-            _logger = logger;
-        }
-
         public bool ApplyFilter(Filter filter, StocksResponse response)
         {
             try
@@ -39,7 +32,7 @@ namespace MarketViewer.Core.Scanner.Filters
             }
             catch(Exception ex)
             {
-                _logger.LogError($"Error filtering by VWAP on {response.Ticker}: {ex.Message}");
+                logger.LogError($"Error filtering by VWAP on {response.Ticker}: {ex.Message}");
                 return false;
             }
         }
