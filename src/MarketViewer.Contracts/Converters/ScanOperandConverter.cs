@@ -1,4 +1,4 @@
-﻿using MarketViewer.Contracts.Models.Scan;
+﻿using MarketViewer.Contracts.Models.ScanV2;
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;

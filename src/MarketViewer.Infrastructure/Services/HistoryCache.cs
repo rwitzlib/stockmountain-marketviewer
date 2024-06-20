@@ -11,7 +11,7 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using System.IO;
 using MarketViewer.Contracts.Enums;
-using MarketViewer.Contracts.Models.Scan;
+using MarketViewer.Contracts.Models.ScanV2;
 
 namespace MarketViewer.Infrastructure.Services;
 

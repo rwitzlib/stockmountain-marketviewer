@@ -5,8 +5,8 @@ using System.Linq;
 using MarketViewer.Contracts.Responses;
 using Microsoft.Extensions.Caching.Memory;
 using Polygon.Client.Models;
-using MarketViewer.Contracts.Models.Scan;
 using Timespan = MarketViewer.Contracts.Enums.Timespan;
+using MarketViewer.Contracts.Models.ScanV2;
 
 namespace MarketViewer.Infrastructure.Services
 {
