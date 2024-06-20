@@ -2,10 +2,10 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
-namespace MarketViewer.Contracts.Models.Scan;
+namespace MarketViewer.Contracts.Models.ScanV2;
 
 [ExcludeFromCodeCoverage]
-public class PriceActionOperand : IScanOperand
+public class StudyOperand : IScanOperand
 {
     [JsonRequired]
     [JsonConverter(typeof(JsonStringEnumConverter))]
@@ -13,7 +13,10 @@ public class PriceActionOperand : IScanOperand
 
     [JsonRequired]
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public PriceActionType Type { get; set; }
+    public StudyType Type { get; set; }
+
+    [JsonRequired]
+    public string[] Parameters { get; set; }
 
     [JsonRequired]
     public int Multiplier { get; set; }
@@ -28,21 +31,3 @@ public class PriceActionOperand : IScanOperand
         return true;
     }
 }
-
-public enum PriceActionType
-{
-    Open,
-    Close,
-    High,
-    Low,
-    Vwap,
-    Volume
-}
-
-public enum Modifier
-{
-    Value,
-    Slope
-}
-
-

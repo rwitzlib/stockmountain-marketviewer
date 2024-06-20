@@ -3,7 +3,7 @@ using MarketViewer.Contracts.Responses;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MarketViewer.Contracts.Models.Scan;
+namespace MarketViewer.Contracts.Models.ScanV2;
 
 [ExcludeFromCodeCoverage]
 public class StocksResponseCollection
