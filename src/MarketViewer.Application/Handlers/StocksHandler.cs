@@ -10,6 +10,7 @@ using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Requests;
 using MarketViewer.Studies;
 using System.Linq;
+using MarketViewer.Contracts.Models.Study;
 
 namespace MarketViewer.Application.Handlers
 {

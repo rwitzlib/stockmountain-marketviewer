@@ -4,7 +4,6 @@ using Xunit;
 using FluentAssertions;
 using MarketViewer.Contracts.Responses;
 using MarketViewer.Application.Handlers;
-using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Requests;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Infrastructure.Services;
@@ -14,6 +13,7 @@ using System.Net;
 using Microsoft.Extensions.Logging.Abstractions;
 using MarketViewer.Core.Scanner;
 using MarketViewer.Core.ScanV2;
+using MarketViewer.Contracts.Models.Scan;
 
 namespace MarketViewer.Application.UnitTests.Handlers
 {

@@ -1,4 +1,4 @@
-﻿using MarketViewer.Contracts.Models;
+﻿using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Core.Scanner.Filters;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;

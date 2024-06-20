@@ -1,4 +1,5 @@
-﻿using MarketViewer.Contracts.Models;
+﻿using MarketViewer.Contracts.Models.Backtest;
+using MarketViewer.Contracts.Models.Scan;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;

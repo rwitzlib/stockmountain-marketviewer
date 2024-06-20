@@ -1,10 +1,13 @@
 ﻿@page "/backtest"
 
-@inherits ComponentBase;
-@using FilterOperator = MarketViewer.Contracts.Models.FilterOperator
+@using FilterOperator = MarketViewer.Contracts.Models.Scan.FilterOperator
+@using MarketViewer.Contracts.Models.Backtest
 @using MarketViewer.Contracts.Requests
-@inject Services.BacktestService BacktestService;
 @using System.Collections.Generic;
+
+@inherits ComponentBase;
+
+@inject Services.BacktestService BacktestService;
 
 <PageTitle>Backtest</PageTitle>
 

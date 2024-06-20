@@ -2,7 +2,7 @@
 using System.Text.Json.Serialization;
 using MarketViewer.Contracts.Enums;
 
-namespace MarketViewer.Contracts.Models
+namespace MarketViewer.Contracts.Models.Scan
 {
     [ExcludeFromCodeCoverage]
     public class Filter

@@ -1,10 +1,9 @@
 ﻿using MarketViewer.Contracts.Converters;
-using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Models.Scan;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
-namespace MarketViewer.Core.ScanV2;
+namespace MarketViewer.Contracts.Models.ScanV2;
 
 [ExcludeFromCodeCoverage]
 public class FilterV2

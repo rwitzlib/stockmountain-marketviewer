@@ -1,9 +1,9 @@
-using MarketViewer.Contracts.Models;
 using MarketViewer.Web.Contracts.Studies;
 using Microsoft.JSInterop;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using MarketViewer.Contracts.Responses;
+using MarketViewer.Contracts.Models.Study;
 
 namespace MarketViewer.Web.Studies
 {

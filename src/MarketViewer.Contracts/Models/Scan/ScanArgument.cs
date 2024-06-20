@@ -1,4 +1,4 @@
-﻿using MarketViewer.Core.ScanV2;
+﻿using MarketViewer.Contracts.Models.ScanV2;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MarketViewer.Contracts.Models.Scan;

@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json.Nodes;
 using MarketViewer.Contracts.Enums;
-using MarketViewer.Contracts.Models;
+using MarketViewer.Contracts.Models.Study;
 using MarketViewer.Contracts.Requests;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 

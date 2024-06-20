@@ -1,4 +1,6 @@
 ﻿using MarketViewer.Contracts.Models;
+using MarketViewer.Contracts.Models.Backtest;
+using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Responses;
 using MediatR;
 using System;

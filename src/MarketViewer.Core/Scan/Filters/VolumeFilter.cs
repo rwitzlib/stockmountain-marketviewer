@@ -1,10 +1,10 @@
-﻿using MarketViewer.Contracts.Models;
+﻿using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Responses;
 using Microsoft.Extensions.Logging;
 
 namespace MarketViewer.Core.Scanner.Filters
 {
-    public class VwapFilter(ILogger<VwapFilter> logger) : IFilter
+    public class VolumeFilter(ILogger<VolumeFilter> logger) : IFilter
     {
         public bool ApplyFilter(Filter filter, StocksResponse response)
         {
@@ -21,7 +21,6 @@ namespace MarketViewer.Core.Scanner.Filters
                         return filter.Modifier switch
                         {
                             FilterTypeModifier.Value => FilterByValue(filter, response),
-                            FilterTypeModifier.Slope => FilterBySlope(filter, response),
                             _ => false
                         };
 
@@ -30,21 +29,27 @@ namespace MarketViewer.Core.Scanner.Filters
                 };
                 return false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                logger.LogError($"Error filtering by VWAP on {response.Ticker}: {ex.Message}");
+                logger.LogError($"Error filtering by Volume on {response.Ticker}: {ex.Message}");
                 return false;
             }
         }
         
         protected static bool FilterByValue(Filter filter, StocksResponse response)
         {
-            return true;
-        }
+            var candleData = response.Results;
 
-        protected static bool FilterBySlope(Filter filter, StocksResponse response)
-        {
-            return true;
+            var totalVolume = candleData.TakeLast(filter.Multiplier).Sum(q => q.Volume);
+
+            return filter.Operator switch
+            {
+                FilterOperator.gt => totalVolume > filter.Value,
+                FilterOperator.ge => totalVolume >= filter.Value,
+                FilterOperator.lt => totalVolume < filter.Value,
+                FilterOperator.le => totalVolume <= filter.Value,
+                _ => false
+            };
         }
     }
 }
