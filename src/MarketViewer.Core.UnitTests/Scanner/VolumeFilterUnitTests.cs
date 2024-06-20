@@ -1,6 +1,6 @@
 ﻿using FluentAssertions;
 using MarketViewer.Contracts.Enums;
-using MarketViewer.Contracts.Models;
+using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Responses;
 using MarketViewer.Core.Scanner.Filters;
 using Microsoft.Extensions.Logging.Abstractions;

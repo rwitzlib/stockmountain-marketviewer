@@ -1,5 +1,5 @@
-﻿using MarketViewer.Contracts.Models;
-using MarketViewer.Contracts.Models.Scan;
+﻿using MarketViewer.Contracts.Models.Scan;
+using MarketViewer.Contracts.Models.ScanV2;
 using MarketViewer.Contracts.Responses;
 
 namespace MarketViewer.Core.ScanV2.Filters;

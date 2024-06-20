@@ -10,8 +10,8 @@ using System.Text.Json;
 using MarketViewer.Contracts.Requests;
 using MarketViewer.Web.Contracts.Studies;
 using MarketViewer.Contracts.Enums;
-using MarketViewer.Contracts.Models;
 using MarketViewer.Web.Enums;
+using MarketViewer.Contracts.Models.Study;
 
 namespace MarketViewer.Web.Components
 {

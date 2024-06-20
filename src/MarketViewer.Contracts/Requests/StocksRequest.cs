@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models;
+using MarketViewer.Contracts.Models.Study;
 using MarketViewer.Contracts.Responses;
 using MediatR;
 

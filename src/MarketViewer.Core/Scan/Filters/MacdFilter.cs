@@ -1,4 +1,4 @@
-﻿using MarketViewer.Contracts.Models;
+﻿using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Responses;
 using MarketViewer.Studies;
 using Microsoft.Extensions.Logging;
