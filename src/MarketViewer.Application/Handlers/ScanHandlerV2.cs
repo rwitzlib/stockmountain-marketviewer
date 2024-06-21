@@ -44,13 +44,12 @@ public class ScanHandlerV2(
                 stocksResponseCollection = await backtestingCache.GetStocksResponses(request.Timestamp, timespans);
             }
 
-            //logger.LogInformation("Total StocksResponses found: {count}", stocksResponseCollection.Count());
-
             var items = await ApplyScanToArgument(request.Argument, stocksResponseCollection);
 
             sp.Stop();
 
-            //logger.LogInformation("Total StocksResponses after filtering: {count}", results.Count(result => result is not null));
+            logger.LogInformation("Scan results after filtering: {count}", items.Count());
+
             return new OperationResult<ScanResponse>
             {
                 Status = HttpStatusCode.OK,

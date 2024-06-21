@@ -2,6 +2,7 @@
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Responses;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Diagnostics.CodeAnalysis;
 
