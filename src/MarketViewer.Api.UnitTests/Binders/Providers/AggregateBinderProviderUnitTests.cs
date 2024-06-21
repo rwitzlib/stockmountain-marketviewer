@@ -1,7 +1,6 @@
 ﻿using AutoFixture;
 using FluentAssertions;
 using MarketViewer.Api.Binders;
-using MarketViewer.Api.Binders.Providers;
 using MarketViewer.Contracts.Requests;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
@@ -19,14 +18,14 @@ namespace MarketViewer.Api.UnitTests.Binders.Providers
     {
         private readonly IFixture _autoFixture;
         private readonly AutoMocker _autoMocker;
-        private readonly AggregateBinderProvider _classUnderTest;
+        private readonly BinderProvider _classUnderTest;
 
         public AggregateBinderProviderUnitTests()
         {
             _autoFixture = new Fixture();
             _autoMocker = new AutoMocker();
 
-            _classUnderTest = new AggregateBinderProvider();
+            _classUnderTest = new BinderProvider();
         }
 
         [Fact]

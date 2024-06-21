@@ -2,7 +2,6 @@ using MarketViewer.Application.DependencyInjection;
 using MarketViewer.Infrastructure.DependencyInjection;
 using MarketViewer.Api.Hubs;
 using System.Diagnostics.CodeAnalysis;
-using MarketViewer.Api.Binders.Providers;
 using MarketViewer.Infrastructure.Mapping;
 using MarketViewer.Application.Mapping;
 using MarketViewer.Core.DependencyInjection;
@@ -12,6 +11,7 @@ using MarketViewer.Api.Jobs;
 using MarketDataProvider.Api.Jobs;
 using MarketViewer.Application.Handlers;
 using MarketViewer.Contracts.Converters;
+using MarketViewer.Api.Binders;
 
 namespace MarketViewer.Api;
 
@@ -78,7 +78,7 @@ public class Program
 
         builder.Services.AddControllers(options =>
         {
-            options.ModelBinderProviders.Insert(0, new AggregateBinderProvider());
+            options.ModelBinderProviders.Insert(0, new BinderProvider());
         }).AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new ScanOperandConverter()));
 
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
