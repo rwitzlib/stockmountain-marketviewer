@@ -10,7 +10,13 @@ public class StudyFilter : IFilterV2
     {
         var studyOperand = operand as StudyOperand;
 
-        var studyResponse = StudyService.ComputeStudy(studyOperand.Type, studyOperand.Parameters, stocksResponse.Results.ToArray());
+        var parameters = studyOperand.Parameters.Split(',');
+        var studyResponse = StudyService.ComputeStudy(studyOperand.Type, parameters, stocksResponse.Results.ToArray());
+
+        if (studyResponse is null || studyResponse.Results.Count == 0)
+        {
+            return [];
+        }
 
         var results = studyResponse.Results.First().Select(entry => entry.Value);
 

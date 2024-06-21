@@ -2,10 +2,10 @@
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MarketViewer.Api.Binders.Providers;
+namespace MarketViewer.Api.Binders;
 
 [ExcludeFromCodeCoverage]
-public class AggregateBinderProvider : IModelBinderProvider
+public class BinderProvider : IModelBinderProvider
 {
     public IModelBinder GetBinder(ModelBinderProviderContext context)
     {

@@ -113,19 +113,19 @@ namespace MarketViewer.Api.Binders
         {
             var json = jsonElement.GetRawText();
 
-            if (typeof(PriceActionOperand).GetProperties()
-                .Select(q => q.Name)
-                .All(prop => jsonElement.TryGetProperty(prop, out var result) == true))
-            {
-                var operand = JsonSerializer.Deserialize<PriceActionOperand>(json);
-                return operand;
-            }
-
             if (typeof(StudyOperand).GetProperties()
                 .Select(q => q.Name)
                 .All(prop => jsonElement.TryGetProperty(prop, out var result) == true))
             {
                 var operand = JsonSerializer.Deserialize<StudyOperand>(json);
+                return operand;
+            }
+
+            if (typeof(PriceActionOperand).GetProperties()
+                .Select(q => q.Name)
+                .All(prop => jsonElement.TryGetProperty(prop, out var result) == true))
+            {
+                var operand = JsonSerializer.Deserialize<PriceActionOperand>(json);
                 return operand;
             }
 
