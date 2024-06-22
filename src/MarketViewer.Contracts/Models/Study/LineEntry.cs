@@ -1,10 +1,10 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace MarketViewer.Contracts.Models;
+namespace MarketViewer.Contracts.Models.Study;
 
 [ExcludeFromCodeCoverage]
-public class StudyData
+public class LineEntry
 {
-    public float Value { get; set; }
     public long Timestamp { get; set; }
+    public float Value { get; set; }
 }

@@ -3,7 +3,7 @@
     public enum Timespan
     {
         minute,
-        hour,
+        hour = 60,
         day,
         week,
         month,

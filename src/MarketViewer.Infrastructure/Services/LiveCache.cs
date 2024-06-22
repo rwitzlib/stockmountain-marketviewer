@@ -2,10 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MarketViewer.Contracts.Requests;
 using MarketViewer.Contracts.Responses;
 using Microsoft.Extensions.Caching.Memory;
 using Polygon.Client.Models;
+using Timespan = MarketViewer.Contracts.Enums.Timespan;
+using MarketViewer.Contracts.Models.ScanV2;
 
 namespace MarketViewer.Infrastructure.Services
 {
@@ -16,9 +17,9 @@ namespace MarketViewer.Infrastructure.Services
         private const int MINIMUM_REQUIRED_CANDLES = 60;
         private const int CANDLES_TO_TAKE = 120;
 
-        public IEnumerable<StocksResponse> GetStocksResponses(ScanRequest request)
+        public IEnumerable<StocksResponse> GetStocksResponses(DateTimeOffset timestamp)
         {
-            if (request.Timestamp.DayOfWeek is DayOfWeek.Saturday || request.Timestamp.DayOfWeek is DayOfWeek.Sunday)
+            if (timestamp.DayOfWeek is DayOfWeek.Saturday || timestamp.DayOfWeek is DayOfWeek.Sunday)
             {
                 return [];
             }
@@ -27,8 +28,8 @@ namespace MarketViewer.Infrastructure.Services
 
             var tickers = memoryCache.Get<IEnumerable<string>>("Tickers");
 
-            logger.LogInformation("Removing candles outside of {timestamp}.", request.Timestamp);
-            var time = request.Timestamp.ToUnixTimeMilliseconds();
+            logger.LogInformation("Removing candles outside of {timestamp}.", timestamp);
+            var time = timestamp.ToUnixTimeMilliseconds();
 
             foreach (var ticker in tickers)
             {
@@ -52,8 +53,12 @@ namespace MarketViewer.Infrastructure.Services
             }
 
             logger.LogInformation("Returning {count} total aggregates.", stocksResponses.Count);
-
             return stocksResponses;
+        }
+
+        public StocksResponseCollection GetStocksResponses(DateTimeOffset timestamp, IEnumerable<Timespan> timespans)
+        {
+            return null;
         }
     }
 }

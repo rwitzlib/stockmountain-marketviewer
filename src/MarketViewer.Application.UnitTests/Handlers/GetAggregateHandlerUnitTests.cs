@@ -6,10 +6,10 @@ using FluentAssertions;
 using MarketViewer.Contracts.Responses;
 using MarketViewer.Application.Handlers;
 using MarketViewer.Contracts.Interfaces;
-using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Requests;
 using MarketViewer.Contracts.Enums;
 using Polygon.Client.Models;
+using MarketViewer.Contracts.Models.Study;
 
 namespace MarketViewer.Application.UnitTests.Handlers
 {

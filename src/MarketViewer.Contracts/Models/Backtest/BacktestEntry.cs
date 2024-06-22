@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MarketViewer.Contracts.Responses
+namespace MarketViewer.Contracts.Models.Backtest
 {
     [ExcludeFromCodeCoverage]
     public class BacktestEntry

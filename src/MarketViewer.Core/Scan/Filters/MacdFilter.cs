@@ -1,4 +1,4 @@
-﻿using MarketViewer.Contracts.Models;
+﻿using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Responses;
 using MarketViewer.Studies;
 using Microsoft.Extensions.Logging;
@@ -6,18 +6,11 @@ using Polly;
 
 namespace MarketViewer.Core.Scanner.Filters
 {
-    public class MacdFilter : IFilter
+    public class MacdFilter(ILogger<MacdFilter> logger) : IFilter
     {
-        private readonly ILogger<MacdFilter> _logger;
-        private readonly Policy<bool> _retryPolicy;
-
-        public MacdFilter(ILogger<MacdFilter> logger)
-        {
-            _logger = logger;
-            _retryPolicy = Policy<bool>
+        private readonly Policy<bool> _retryPolicy = Policy<bool>
                .Handle<ArgumentOutOfRangeException>()
                .RetryForever();
-        }
 
         public bool ApplyFilter(Filter filter, StocksResponse response)
         {
@@ -45,7 +38,7 @@ namespace MarketViewer.Core.Scanner.Filters
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error applying MACD Filter for {response.Ticker}: {ex.Message}");
+                logger.LogError($"Error applying MACD Filter for {response.Ticker}: {ex.Message}");
                 return false;
             }
         }

@@ -1,16 +1,18 @@
 ﻿@page "/scanner"
+
 @using MarketViewer.Contracts.Enums;
+@using MarketViewer.Contracts.Models.Study
 @using MarketViewer.Contracts.Requests;
 @inject Services.ScannerService ScannerService;
 @inject Services.ChartService AggregateService;
 @inject IJSRuntime JsRuntime;
 @inherits ComponentBase;
-@using FilterOperator = MarketViewer.Contracts.Models.FilterOperator;
+@using FilterOperator = MarketViewer.Contracts.Models.Scan.FilterOperator;
 @using Timespan = System.TimeSpan;
 
 <PageTitle>Scanner</PageTitle>
 
-<div class="d-flex justify-center align-center pa-2">
+<div id="scannerSettings" class="d-flex justify-center align-center pa-2">
     <FilterListComponent @ref="FilterList" />
 </div>
 <MudPaper Id="scannerTable" Style="overflow-y: scroll;">

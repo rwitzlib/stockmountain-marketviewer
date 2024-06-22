@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using MarketViewer.Contracts.Models;
+using MarketViewer.Contracts.Models.Scan;
 
 namespace MarketViewer.Web.Models
 {
