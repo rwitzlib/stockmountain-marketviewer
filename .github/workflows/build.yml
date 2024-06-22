@@ -1,11 +1,18 @@
 name: .NET Container Deployment
 
-on: push
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: string
+        default: dev
 
 jobs:
   deploy:
     uses: rwitzlib/github-action-templates/.github/workflows/container-deployment.yml@master
     with:
+      environment: ${{ inputs.environment || 'dev' }}
       ecr_repository: 100008144700.dkr.ecr.us-east-2.amazonaws.com
       image_name: lad-dev-stockmountain-marketviewer
       dockerfile: ./src/MarketViewer.Api.Dockerfile
