@@ -1,5 +1,5 @@
 using MarketViewer.Contracts.Enums;
-using MarketViewer.Contracts.Models;
+using MarketViewer.Contracts.Models.Study;
 using MarketViewer.Contracts.Responses;
 using MarketViewer.Studies;
 using MarketViewer.Web.Contracts.Studies;

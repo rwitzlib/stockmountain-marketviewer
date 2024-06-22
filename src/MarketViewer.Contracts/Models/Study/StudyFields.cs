@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using MarketViewer.Contracts.Enums;
 
-namespace MarketViewer.Contracts.Models;
+namespace MarketViewer.Contracts.Models.Study;
 
 [ExcludeFromCodeCoverage]
 public class StudyFields

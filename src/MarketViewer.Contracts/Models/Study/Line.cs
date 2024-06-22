@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MarketViewer.Contracts.Models
+namespace MarketViewer.Contracts.Models.Study
 {
     [ExcludeFromCodeCoverage]
     public class Line

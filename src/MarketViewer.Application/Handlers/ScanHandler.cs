@@ -13,6 +13,8 @@ using MarketViewer.Contracts.Requests;
 using Microsoft.Extensions.Logging;
 using MarketViewer.Core.Scanner;
 using System.Net;
+using MarketViewer.Core.ScanV2;
+using MarketViewer.Contracts.Models.Scan;
 
 namespace MarketViewer.Application.Handlers;
 
@@ -45,11 +47,11 @@ public class ScanHandler(
 
             if (IsDateTimeToday(request.Timestamp))
             {
-                stocksResponses = liveCache.GetStocksResponses(request);
+                stocksResponses = liveCache.GetStocksResponses(request.Timestamp);
             }
             else
             {
-                stocksResponses = await backtestingCache.GetStocksResponses(request);
+                stocksResponses = await backtestingCache.GetStocksResponses(request.Timestamp);
             }
             logger.LogInformation("Total StocksResponses found: {count}", stocksResponses.Count());
 

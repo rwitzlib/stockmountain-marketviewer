@@ -40,7 +40,7 @@ namespace MarketViewer.Api.Jobs
 
         private Task AddBarToCache(string ticker, Bar bar)
         {
-            var aggregate = memoryCache.Get<StocksResponse>($"Stock_{ticker}_{DateTime.Now:yyyyMMdd}");
+            var aggregate = memoryCache.Get<StocksResponse>($"Stocks/{ticker}/minute/{DateTime.Now:yyyyMMdd}");
 
             aggregate?.Results.Add(bar);
 

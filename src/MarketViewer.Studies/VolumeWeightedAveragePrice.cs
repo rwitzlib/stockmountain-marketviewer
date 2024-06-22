@@ -1,5 +1,4 @@
-using MarketDataProvider.Contracts.Models;
-using MarketViewer.Contracts.Models;
+using MarketViewer.Contracts.Models.Study;
 using Polygon.Client.Models;
 
 namespace MarketViewer.Studies;

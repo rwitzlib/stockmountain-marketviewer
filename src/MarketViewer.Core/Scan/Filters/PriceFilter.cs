@@ -1,19 +1,12 @@
-using MarketViewer.Contracts.Models;
+using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Responses;
 using MarketViewer.Studies;
 using Microsoft.Extensions.Logging;
 
 namespace MarketViewer.Core.Scanner.Filters
 {
-    public class PriceFilter : IFilter
+    public class PriceFilter(ILogger<PriceFilter> logger) : IFilter
     {
-        private readonly ILogger<PriceFilter> _logger;
-
-        public PriceFilter(ILogger<PriceFilter> logger)
-        {
-            _logger = logger;
-        }
-
         public bool ApplyFilter(Filter filter, StocksResponse response)
         {
             try
@@ -37,7 +30,7 @@ namespace MarketViewer.Core.Scanner.Filters
             }
             catch(Exception ex)
             {
-                _logger.LogError($"Error filtering by Price on {response.Ticker}: {ex.Message}");
+                logger.LogError($"Error filtering by Price on {response.Ticker}: {ex.Message}");
                 return false;
             }
         }

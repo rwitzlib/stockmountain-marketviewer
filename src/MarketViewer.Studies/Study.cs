@@ -1,4 +1,4 @@
-using MarketViewer.Contracts.Models;
+using MarketViewer.Contracts.Models.Study;
 using Polygon.Client.Models;
 
 namespace MarketViewer.Studies;
@@ -6,7 +6,7 @@ namespace MarketViewer.Studies;
 public abstract class Study<T> where T : Study<T>, new()
 {
     public List<List<LineEntry>> Lines { get; set; }
-    public readonly List<string> ErrorMessages = new();
+    public readonly List<string> ErrorMessages = [];
 
     public static T Compute(Bar[] candleData, params object[] parameters)
     {
