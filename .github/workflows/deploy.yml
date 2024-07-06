@@ -1,0 +1,32 @@
+name: Deploy
+
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: string
+        default: dev
+
+jobs:
+  marketviewer:
+    uses: rwitzlib/github-action-templates/.github/workflows/dotnet-docker-terraform-validate.yml@master
+    with:
+      environment: ${{ inputs.environment || 'dev'}}
+      ecr_repo: lad-${{ inputs.environment || 'dev'}}-marketviewer
+      dockerfile: ./src/MarketViewer.Api.Dockerfile
+      context: ./src
+      project_directory: ./src
+      global_json_file: ./src/global.json
+      private_nuget_registry: https://gitlab.com/api/v4/groups/66690872/-/packages/nuget/index.json
+      terraform_directory: ./tf
+    secrets: inherit
+
+  deploy:
+    needs:
+      - marketviewer
+    uses: rwitzlib/github-action-templates/.github/workflows/terraform-deploy.yml@master
+    with:
+      environment: ${{ inputs.environment || 'dev'}}
+      terraform_directory: ./tf
+    secrets: inherit
