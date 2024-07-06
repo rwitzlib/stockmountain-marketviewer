@@ -30,3 +30,4 @@ jobs:
       environment: ${{ inputs.environment || 'dev'}}
       terraform_directory: ./tf
     secrets: inherit
+    
