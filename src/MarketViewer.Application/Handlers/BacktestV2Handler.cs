@@ -50,9 +50,11 @@ public class BacktestV2Handler(
                 Timestamp = day.Date,
                 ExitType = request.ExitType,
                 ExitStrategy = request.ExitStrategy,
-                Candles = request.Candles,
+                PositionSize = request.PositionSize,
+                Multiplier = request.Multiplier,
+                Timespan = request.Timespan,
                 Argument = request.Argument,
-                PositionSize = request.PositionSize
+                Features = request.Features,
             };
             tasks.Add(Task.Run(async () => await BacktestDay(backtesterLambdaRequest)));
         }

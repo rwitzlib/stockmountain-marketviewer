@@ -1,4 +1,5 @@
-﻿using MarketViewer.Contracts.Models.Backtest;
+﻿using MarketViewer.Contracts.Enums;
+using MarketViewer.Contracts.Models.Backtest;
 using MarketViewer.Contracts.Models.Scan;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,8 @@ public class BacktesterLambdaV2Request
     public string ExitStrategy { get; set; }
     public string ExitType { get; set; }
     public float PositionSize { get; set; }
-    public int Candles { get; set; }
+    public Timespan Timespan { get; set; }
+    public int Multiplier { get; set; }
     public ScanArgument Argument { get; set; }
     public IEnumerable<Feature> Features { get; set; }
 }

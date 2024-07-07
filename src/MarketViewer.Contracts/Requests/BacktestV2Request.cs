@@ -1,4 +1,5 @@
 ﻿using MarketViewer.Contracts.Converters;
+using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Models.Backtest;
 using MarketViewer.Contracts.Models.Scan;
@@ -19,9 +20,8 @@ public class BacktestV2Request : IRequest<OperationResult<BacktestResponse>>
     public string ExitStrategy { get; set; }
     public string ExitType { get; set; }
     public float PositionSize { get; set; }
-    public int Candles { get; set; }
-
-    [JsonConverter(typeof(ScanArgumentConverter))]
+    public Timespan Timespan { get; set; }
+    public int Multiplier { get; set; }
     public ScanArgument Argument { get; set; }
     public IEnumerable<Feature> Features { get; set; }
 }
