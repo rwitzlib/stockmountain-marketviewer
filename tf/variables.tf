@@ -19,3 +19,8 @@ variable "service_name" {
   type    = string
   default = "marketviewer"
 }
+
+variable "team" {
+  type    = string
+  default = "lad"
+}
