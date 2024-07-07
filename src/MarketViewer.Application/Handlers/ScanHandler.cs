@@ -7,13 +7,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MarketViewer.Contracts.Interfaces;
 using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Requests;
 using Microsoft.Extensions.Logging;
 using MarketViewer.Core.Scanner;
 using System.Net;
-using MarketViewer.Core.ScanV2;
 using MarketViewer.Contracts.Models.Scan;
 
 namespace MarketViewer.Application.Handlers;
@@ -22,12 +20,9 @@ public class ScanHandler(
     LiveCache liveCache,
     HistoryCache backtestingCache,
     ScanFilterFactory scanFilterFactory,
-    ILogger<ScanHandler> logger) : IScanInteraction, IRequestHandler<ScanRequest, OperationResult<ScanResponse>>
+    ILogger<ScanHandler> logger) : IRequestHandler<ScanRequest, OperationResult<ScanResponse>>
 {
-    public Task<OperationResult<ScanResponse>> Handle(ScanRequest request, CancellationToken cancellationToken)
-        => ScanAsync(request);
-
-    public async Task<OperationResult<ScanResponse>> ScanAsync(ScanRequest request)
+    public async Task<OperationResult<ScanResponse>> Handle(ScanRequest request, CancellationToken cancellationToken)
     {
         try
         {
@@ -81,7 +76,7 @@ public class ScanHandler(
             return new OperationResult<ScanResponse>
             {
                 Status = HttpStatusCode.InternalServerError,
-                ErrorMessages = [ "Internal Error." ]
+                ErrorMessages = ["Internal Error."]
             };
         }
     }
@@ -89,7 +84,7 @@ public class ScanHandler(
     #region Private Methods
     private static bool ValidateScanRequest(ScanRequest request, out List<string> errorMessages)
     {
-        errorMessages = new List<string>();
+        errorMessages = [];
 
         if (request.Filters is null || !request.Filters.Any())
         {

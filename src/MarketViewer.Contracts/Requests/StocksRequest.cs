@@ -31,7 +31,6 @@ public class StocksRequest : IRequest<OperationResult<StocksResponse>>
     /// The size of the time window.
     /// </summary>
     [Required]
-    [JsonConverter(typeof(JsonStringEnumConverter))]
     public Timespan Timespan { get; set; }
 
     /// <summary>
