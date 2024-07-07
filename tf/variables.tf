@@ -14,3 +14,8 @@ variable "region" {
   type    = string
   default = "us-east-2"
 }
+
+variable "service_name" {
+  type    = string
+  default = "marketviewer"
+}
