@@ -10,13 +10,11 @@ public class FilterV2
 {
     public string CollectionModifier { get; set; }
 
-    [JsonConverter(typeof(ScanOperandConverter))]
     public IScanOperand FirstOperand { get; set; }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public FilterOperator Operator { get; set; }
 
-    [JsonConverter(typeof(ScanOperandConverter))]
     public IScanOperand SecondOperand { get; set; }
     public Timeframe Timeframe { get; set; }
 }

@@ -18,10 +18,6 @@ public class BinderProvider : IModelBinderProvider
         {
             return new AggregateModelBinder();
         }
-        else if (context.Metadata.ModelType == typeof(ScanRequestV2))
-        {
-            return new ScanRequestBinder();
-        }
 
         return null;
     }

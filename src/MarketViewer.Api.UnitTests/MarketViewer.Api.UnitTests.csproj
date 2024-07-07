@@ -29,10 +29,6 @@
     <ProjectReference Include="..\MarketViewer.Api\MarketViewer.Api.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Providers\" />
-  </ItemGroup>
-
   <PropertyGroup>
 	<CollectCoverage>true</CollectCoverage>
 	<CoverletOutput>../TestResults/</CoverletOutput>
