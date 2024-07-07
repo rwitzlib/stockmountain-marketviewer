@@ -12,7 +12,7 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="13.0.1" />
     <PackageReference Include="AWSSDK.S3" Version="3.7.305.28" />
-    <PackageReference Include="MarketDataProvider.Clients" Version="1.0.0-1235497891-rc" />
+    <PackageReference Include="MarketDataProvider.Clients" Version="1.0.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
