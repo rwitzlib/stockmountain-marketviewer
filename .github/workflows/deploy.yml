@@ -9,7 +9,7 @@ on:
         default: dev
 
 jobs:
-  marketviewer:
+  build:
     uses: rwitzlib/github-action-templates/.github/workflows/dotnet-docker-terraform-validate.yml@master
     with:
       environment: ${{ inputs.environment || 'dev'}}
@@ -18,13 +18,12 @@ jobs:
       context: ./src
       project_directory: ./src
       global_json_file: ./src/global.json
-      private_nuget_registry: https://gitlab.com/api/v4/groups/66690872/-/packages/nuget/index.json
       terraform_directory: ./tf
     secrets: inherit
 
   deploy:
     needs:
-      - marketviewer
+      - build
     uses: rwitzlib/github-action-templates/.github/workflows/terraform-deploy.yml@master
     with:
       environment: ${{ inputs.environment || 'dev'}}
