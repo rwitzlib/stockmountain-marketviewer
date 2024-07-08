@@ -9,12 +9,24 @@ on:
         default: dev
 
 jobs:
-  build:
+  api:
     uses: rwitzlib/github-action-templates/.github/workflows/dotnet-docker-terraform-validate.yml@master
     with:
       environment: ${{ inputs.environment || 'dev'}}
-      ecr_repo: lad-${{ inputs.environment || 'dev'}}-marketviewer
+      ecr_repo: lad-${{ inputs.environment || 'dev'}}-marketviewer-api
       dockerfile: ./src/MarketViewer.Api.Dockerfile
+      context: ./src
+      project_directory: ./src
+      global_json_file: ./src/global.json
+      terraform_directory: ./tf
+    secrets: inherit
+
+  web:
+    uses: rwitzlib/github-action-templates/.github/workflows/dotnet-docker-terraform-validate.yml@master
+    with:
+      environment: ${{ inputs.environment || 'dev'}}
+      ecr_repo: lad-${{ inputs.environment || 'dev'}}-marketviewer-web
+      dockerfile: ./src/MarketViewer.Web.Dockerfile
       context: ./src
       project_directory: ./src
       global_json_file: ./src/global.json
@@ -23,7 +35,8 @@ jobs:
 
   deploy:
     needs:
-      - build
+      - api
+      - web
     uses: rwitzlib/github-action-templates/.github/workflows/terraform-deploy.yml@master
     with:
       environment: ${{ inputs.environment || 'dev'}}
