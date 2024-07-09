@@ -1,263 +1,84 @@
 ﻿@page "/scannerV2"
 
-@using MarketViewer.Contracts.Enums;
-@using MarketViewer.Contracts.Models.Study
-@using MarketViewer.Contracts.Requests;
-@inject Services.ScannerService ScannerService;
-@inject Services.ChartService AggregateService;
-@inject IJSRuntime JsRuntime;
 @inherits ComponentBase;
-@using FilterOperator = MarketViewer.Contracts.Models.Scan.FilterOperator;
-@using Timespan = System.TimeSpan;
+@inject IJSRuntime JS
 
-<PageTitle>Scanner</PageTitle>
+<PageTitle>Scanner V2</PageTitle>
 
-<div id="scannerSettings" class="d-flex justify-center align-center pa-2">
-    <FilterListComponent @ref="FilterList" />
+<div id="no-drop" class="drag-drop"> #no-drop </div>
+
+<div id="yes-drop" class="drag-drop">
+    #yes-drop
 </div>
-<MudPaper Id="scannerTable" Style="overflow-y: scroll;">
-    <MudTable Items="@ScannerEntries" FixedHeader="true" Virtualize="true" FixedFooter="true" RowClassFunc="@(SetRowDecayColor)" Loading="@(IsScannerEnabled && !ScannerEntries.Any())">
-        <ToolBarContent>
-            @if (IsScannerEnabled)
-            {
-                <MudButton Class="ma-2" Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.Stop" @onclick="() => IsScannerEnabled = false">Stop Scanning</MudButton>
-            }
-            else
-            {
-                <MudButton Class="ma-2" Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.PlayArrow" @onclick="StartScanning">Start Scanning</MudButton>
-            }
-            <MudSelect @bind-Value="@RefreshRate" Class="ma-2" Style="flex: none;" T="int" Label="RefreshRate" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
-                <MudSelectItem T="int" Value="5">5 seconds</MudSelectItem>
-                <MudSelectItem T="int" Value="10">10 seconds</MudSelectItem>
-                <MudSelectItem T="int" Value="15">15 seconds</MudSelectItem>
-                <MudSelectItem T="int" Value="30">30 seconds</MudSelectItem>
-                <MudSelectItem T="int" Value="60">1 minute</MudSelectItem>
-            </MudSelect>
-            <MudButton Class="ma-2" Style="flex: none;" Variant="Variant.Outlined" Color="Color.Warning" StartIcon="@Icons.Material.Filled.Clear" @onclick="() => ScannerEntries.RemoveAll(q => q.Decayed)">
-                Remove Old Entries
-            </MudButton>
-            <MudButton Class="ma-2" Style="flex: none;" Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.Clear" @onclick="() => ScannerEntries.Clear()">
-                Remove All Entries
-            </MudButton>
-        </ToolBarContent>
-        <HeaderContent>
-            <MudTh Style="z-index: 1500;"><MudTableSortLabel SortBy="new Func<ScannerDisplayItem, object>(x => x.Item.Ticker)">Ticker</MudTableSortLabel></MudTh>
-            <MudTh Style="z-index: 1500;">Chart</MudTh>
-            <MudTh Style="z-index: 1500;"><MudTableSortLabel SortBy="new Func<ScannerDisplayItem, object>(x => x.Item.Price)">Price</MudTableSortLabel></MudTh>
-            <MudTh Style="z-index: 1500;"><MudTableSortLabel SortBy="new Func<ScannerDisplayItem, object>(x => x.Item.Volume)">Volume</MudTableSortLabel></MudTh>
-            <MudTh Style="z-index: 1500;"><MudTableSortLabel SortBy="new Func<ScannerDisplayItem, object>(x => x.Item.Float)">Float</MudTableSortLabel></MudTh>
-            <MudTh Style="z-index: 1500;"><MudTableSortLabel SortBy="new Func<ScannerDisplayItem, object>(x => x.Timestamp)" InitialDirection="SortDirection.Descending">Timestamp</MudTableSortLabel></MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="Ticker">@context.Item.Ticker</MudTd>
-            <MudTd DataLabel="Chart">
-                <MudButton OnClick="@(async () => await RemoveChartOnButtonHide(context))"
-                            Variant="Variant.Outlined"
-                            Size="Size.Small">
-                    @(context.Displayed ? "Hide" : "Show") Chart
-                </MudButton>
-            </MudTd>
 
-            <MudTd DataLabel="Price">@context.Item.Price</MudTd>
-            <MudTd DataLabel="Volume">@context.Item.Volume</MudTd>
-            <MudTd DataLabel="Float">@context.Item.Float</MudTd>
-            <MudTd DataLabel="Timestamp">@context.Timestamp.ToString("hh:mm:ss")</MudTd>
-        </RowTemplate>
-        <ChildRowContent>
-            @if (context.Displayed)
-            {
-                const int height = 400;
-                const int padding = 2;
-                <MudTr>
-                    <td colspan="6">
-                        <MudPaper Elevation="2" Class=@($"pa-{padding}") Height=@($"calc({height} - 38 - ({padding * 8}))px") Width="800px">
-                            <ChartComponent DisplayParameters="false" StocksRequest="@context.Request" @ref="@context.ChartComponent" Id="@context.Id" Height="100%" Width="100%" EnableScroll="false"></ChartComponent>
-                        </MudPaper>
-                    </td>
-                </MudTr>
-            }
-        </ChildRowContent>
-        <FooterContent>
-            <MudTd>Ticker</MudTd>
-            <MudTd>Chart</MudTd>
-            <MudTd>Price</MudTd>
-            <MudTd>Volume</MudTd>
-            <MudTd>Float</MudTd>
-            <MudTd>Timestamp</MudTd>
-        </FooterContent>
-    </MudTable>
-</MudPaper>
-
-<style>
-    .decay-0 {
-        background-color: #00E676 !important
-    }
-
-    .decay-1 {
-        background-color: #FFF176 !important
-    }
-
-    .decay-2 {
-        background-color: #FF9E80 !important
-    }
-</style>
+@if (_argument is not null)
+{
+    <button class="btn btn-danger m-2" @onclick="RemoveArgument"><i class="fa-solid fa-trash"></i></button>
+    <ScanArgumentComponent Argument="_argument"></ScanArgumentComponent>
+}
+else
+{
+    <button class="btn btn-primary btn-sm" @onclick="AddArgument">Add Argument</button>
+}
 
 @code {
-    #region Private Fields
-    private bool IsScannerEnabled { get; set; } = false;
-
-    private int RefreshRate { get; set; } = 10;
-
-    private FilterListComponent FilterList { get; set; } = new();
-    private List<ScannerDisplayItem> ScannerEntries { get; set; } = new();
-
-    MudExpansionPanel _settingsPanel;
-    #endregion
-
-    [CascadingParameter] ClockComponent clockComponent { get; set; }
-
-    #region Protected Methods
+    private ScanArgumentZone _argument;
+    
     protected override void OnInitialized()
     {
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private void AddArgument()
     {
-        await JsRuntime.InvokeVoidAsync("AddScannerResize");
-    }
-    #endregion
-
-    #region Private Methods
-    private string SetRowDecayColor(ScannerDisplayItem item, int row)
-    {
-        var currentTime = clockComponent.GetTime();
-
-        if (item.Decayed && item.Timestamp.AddMinutes(5) < currentTime)
+        _argument = new ScanArgumentZone
         {
-            return "decay-2";
-        }
-        if (item.Decayed)
-        {
-            return "decay-1";
-        }
-        return "decay-0";
-    }
-
-    private void UpdateAggregates()
-    {
-        var enabledCharts = ScannerEntries.Where(q => q.Displayed);
-        foreach (var entry in enabledCharts)
-        {
-            var request = GenerateRequest(entry.Item.Ticker);
-            entry.Request = request;
-        }
-        StateHasChanged();
-    }
-
-    private StocksRequest GenerateRequest(string ticker)
-    {
-        var currentTime = clockComponent.GetTime();
-
-        var request = new StocksRequest
-        {
-            Ticker = ticker,
-            Multiplier = 1,
-            Timespan = FilterList.Entries.Where(q => q.Enabled).Select(q => q.Filter).Min(q => q.Timespan),
-            From = currentTime.AddHours(-6),
-            To = currentTime,
-            Studies = new List<StudyFields>
-            {
-                new ()
-                {
-                    Type = StudyType.vwap
-                },
-                new ()
-                {
-                    Type = StudyType.macd,
-                    Parameters = new [] {"12", "26", "9", $"{StudyType.ema}"}
-                }
-            }
+            Id = Guid.NewGuid().ToString(),
+            Operator = "AND",
+            Filters = new List<FilterItem>()
         };
-
-        return request;
     }
 
-    private async void StartScanning()
+    private void RemoveArgument()
     {
-        IsScannerEnabled = true;
-
-        while (IsScannerEnabled)
-        {
-            var currentTime = clockComponent.GetTime();
-            var filters = FilterList.Entries.Where(q => q.Enabled == true).Select(q => q.Filter).ToArray();
-            var request = new ScanRequest
-            {
-                Filters = filters,
-                Timestamp = currentTime
-            };
-
-            var response = await ScannerService.ScanAsync(request);
-
-            foreach (var item in response.Items)
-            {
-                var existingItem = ScannerEntries.FirstOrDefault(q => q.Item.Ticker.Equals(item.Ticker));
-                if (existingItem is not null)
-                {
-                    existingItem.Item.Price = item.Price;
-                    existingItem.Item.Volume = item.Volume;
-                    existingItem.Item.Float = item.Float;
-                    if (existingItem.Decayed)
-                    {
-                        existingItem.Decayed = false;
-                        existingItem.Timestamp = request.Timestamp;
-                    }
-                }
-                else
-                {
-                    ScannerEntries.Add(new ScannerDisplayItem
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        Displayed = false,
-                        Decayed = false,
-                        Item = item,
-                        Timestamp = request.Timestamp.LocalDateTime
-                    });
-                }
-            }
-
-            var tickers = response.Items.Select(item => item.Ticker);
-            foreach (var entry in ScannerEntries)
-            {
-                if (!tickers.Contains(entry.Item.Ticker))
-                {
-                    entry.Decayed = true;
-                }
-            }
-
-            ScannerEntries.RemoveAll(q => !q.Timestamp.ToString("yyyy-MM-dd").Equals(currentTime.ToString("yyyy-MM-dd")));
-            ScannerEntries.RemoveAll(q => q.Timestamp.AddMinutes(60) < currentTime);
-
-            StateHasChanged();
-
-            await Task.Delay(RefreshRate * 1000);
-
-            UpdateAggregates();
-        }
+        _argument = null;
     }
-
-    private async Task RemoveChartOnButtonHide(ScannerDisplayItem item)
-    {
-        item.Displayed = !item.Displayed;
-        if (!item.Displayed)
-        {
-            await JsRuntime.InvokeVoidAsync("RemoveChart", item.Id);
-            item.ChartComponent = null;
-            item.Request = null;
-        }
-        else
-        {
-            item.Request = GenerateRequest(item.Item.Ticker);
-        }
-    }
-    #endregion
 }
+
+<style>
+    .dropzone {
+        background-color: #bfe4ff;
+        border: dashed 4px transparent;
+        border-radius: 4px;
+        margin: 10px auto 30px;
+        padding: 10px;
+        transition: background-color 0.3s;
+    }
+
+    .drop-active {
+        border-color: #aaa;
+    }
+
+    .drop-target {
+        background-color: #29e;
+        border-color: #fff;
+        border-style: solid;
+    }
+
+    .drag-drop {
+        display: inline-block;
+        min-width: 40px;
+        padding: 2em 0.5em;
+        margin: 1rem 0 0 1rem;
+        color: #fff;
+        background-color: #29e;
+        border: solid 2px #fff;
+        touch-action: none;
+        transform: translate(0px, 0px);
+        transition: background-color 0.3s;
+    }
+
+    .drag-drop.can-drop {
+        color: #000;
+        background-color: #4e4;
+    }
+</style>
