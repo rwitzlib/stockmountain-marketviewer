@@ -1,4 +1,4 @@
-﻿<MudPaper Elevation="Argument.Depth" Class="ma-2" Width="95%" id="outer-dropzone">
+﻿<MudPaper Elevation="Argument.Depth" Class="ma-4" id="outer-dropzone">
     @if(Argument.Argument is null)
     {
         <button class="btn btn-primary m-2" style="width: 150px" @onclick="AddArgument">Add Argument</button>
@@ -14,20 +14,28 @@
             <option value="2">OR</option>
         </select>
     </div>
-    <div class="card dropzone">
-        <button class="btn btn-success m-2" @onclick="AddFilter"><i class="fa-solid fa-plus"></i></button>
-        <ul class="list-group">
-            @foreach (var filter in Argument.Filters)
-            {
-                <li class="list-group-item drag-drop filter">@filter.Name</li>                
-            }
-        </ul>
+    <div id="@Argument.Id" class="card dropzone">
+        <button class="btn btn-success m-2" style="width: 150px" @onclick="AddFilter">Add Filter@* <i class="fa-solid fa-plus"></i> *@</button>
+        @foreach (var filter in Argument.Filters)
+        {
+            <MudPaper id="@filter.Id" Class="drag-drop filter">@filter.Name</MudPaper>
+        }
+        <MudPaper Class="drag-drop filter">asdf</MudPaper>
     </div>
 </MudPaper>
 
 @code {
     [Parameter] public ScanArgumentZone Argument { get; set; }
 
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+
+        }
+
+        return Task.CompletedTask;
+    }
 
     private void AddArgument()
     {
@@ -46,9 +54,6 @@
 
     private void AddFilter()
     {
-        Argument.Filters.Add(new FilterItem
-        {
-            Name = $"Filter {Guid.NewGuid().ToString()}"
-        });
+        Argument.Filters.Add(new FilterItem());
     }
 }
