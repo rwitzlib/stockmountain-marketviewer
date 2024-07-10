@@ -1,7 +1,7 @@
 ﻿@page "/scannerV2"
 
 @inherits ComponentBase;
-@inject IJSRuntime JS
+@inject IJSRuntime JsRuntime;
 
 <PageTitle>Scanner V2</PageTitle>
 
@@ -11,10 +11,10 @@
     #yes-drop
 </div>
 
-@if (_argument is not null)
+@if (Argument is not null)
 {
     <button class="btn btn-danger m-2" @onclick="RemoveArgument"><i class="fa-solid fa-trash"></i></button>
-    <ScanArgumentComponent Argument="_argument"></ScanArgumentComponent>
+    <ScanArgumentComponent Argument="Argument"></ScanArgumentComponent>
 }
 else
 {
@@ -22,25 +22,50 @@ else
 }
 
 @code {
-    private ScanArgumentZone _argument;
-    
+    private string PageId = Guid.NewGuid().ToString();
+    private ScanArgumentZone Argument;
+    private IJSInProcessRuntime JsInProcessRuntime;
+
     protected override void OnInitialized()
     {
+        JsInProcessRuntime = (IJSInProcessRuntime)JsRuntime;
+
+        JsInProcessRuntime.InvokeVoid("initializeArgumentsForPage", PageId);
     }
 
     private void AddArgument()
     {
-        _argument = new ScanArgumentZone
+        Argument = new ScanArgumentZone
         {
             Id = Guid.NewGuid().ToString(),
             Operator = "AND",
             Filters = new List<FilterItem>()
         };
+        JsInProcessRuntime.InvokeVoid("addArgument", PageId, Argument.Id);
     }
 
     private void RemoveArgument()
     {
-        _argument = null;
+        Argument = null;
+    }
+
+    [JSInvokable]
+    public void TogglePopover(bool isPopoverOpen, string drawingId = null)
+    {
+        // IsPopoverOpen = isPopoverOpen;
+
+        // if (!IsPopoverOpen)
+        // {
+        //     StateHasChanged();
+        //     return;
+        // }
+
+        // if (drawingId is not null)
+        // {
+        //     ClickedDrawingId = drawingId;
+        // }
+
+        StateHasChanged();
     }
 }
 

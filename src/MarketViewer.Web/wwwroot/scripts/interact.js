@@ -1,3 +1,34 @@
+const argumentsForPage = {};
+
+function initializeArgumentsForPage(id) {
+    let page = {
+        arguments = {}
+    };
+    argumentsForPage[id] = page;
+}
+
+function addArgument(pageId, argumentId) {
+    argumentsForPage[pageId].arguments[argumentId] = {
+        fitlers = {}
+    };
+}
+
+function removeArgument(pageId, argumentId) {
+
+}
+
+function addFilter(pageId, argumentId, filterId) {
+
+}
+
+function moveFilter(pageId, sourceArgumentId, destinationArgumentId, filterId) {
+
+}
+
+function removeFilter(pageId, argumentId, filterId) {
+
+}
+
 // target elements with the "draggable" class
 interact('.draggable')
     .draggable({
