@@ -1,0 +1,59 @@
+﻿<MudPaper Elevation="Argument.Depth" Class="ma-4" id="outer-dropzone">
+    @if(Argument.Argument is null)
+    {
+        <button class="btn btn-primary m-2" style="width: 150px" @onclick="AddArgument">Add Argument</button>
+    }
+    else
+    {
+        <button class="btn btn-danger m-2" @onclick="RemoveArgument"><i class="fa-solid fa-trash"></i></button>
+        <ScanArgumentComponent Argument="Argument.Argument"></ScanArgumentComponent>
+    }
+    <div class="dropdown">
+        <select class="form-select m-2" style="width: 150px">
+            <option selected value="1">AND</option>
+            <option value="2">OR</option>
+        </select>
+    </div>
+    <div id="@Argument.Id" class="card dropzone">
+        <button class="btn btn-success m-2" style="width: 150px" @onclick="AddFilter">Add Filter@* <i class="fa-solid fa-plus"></i> *@</button>
+        @foreach (var filter in Argument.Filters)
+        {
+            <MudPaper id="@filter.Id" Class="drag-drop filter">@filter.Name</MudPaper>
+        }
+        <MudPaper Class="drag-drop filter">asdf</MudPaper>
+    </div>
+</MudPaper>
+
+@code {
+    [Parameter] public ScanArgumentZone Argument { get; set; }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private void AddArgument()
+    {
+        Argument.Argument = new ScanArgumentZone
+        {
+            Id = Guid.NewGuid().ToString(),
+            Depth = Argument.Depth + 2,
+            Filters = new List<FilterItem>()
+        };
+    }
+
+    private void RemoveArgument()
+    {
+        Argument.Argument = null;
+    }
+
+    private void AddFilter()
+    {
+        Argument.Filters.Add(new FilterItem());
+    }
+}

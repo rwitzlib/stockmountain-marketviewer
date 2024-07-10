@@ -1,8 +1,16 @@
-﻿namespace MarketViewer.Web.Models
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace MarketViewer.Web.Models;
+
+[ExcludeFromCodeCoverage]
+public class FilterItem
 {
-    public class FilterItem
+    public string Id { get; set; }
+    public string Name { get; set; }
+
+    public FilterItem()
     {
-        public string ArgumentId { get; set; }
-        public string Name { get; set; }
+        Id = Guid.NewGuid().ToString();
+        Name = $"Filter {Name}";
     }
 }
