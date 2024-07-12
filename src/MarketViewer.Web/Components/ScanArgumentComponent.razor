@@ -1,4 +1,6 @@
-﻿<MudPaper Elevation="Argument.Depth" Class="ma-4" id="outer-dropzone">
+﻿@inject IJSRuntime JsRuntime;
+
+<MudPaper Elevation="Argument.Depth" Class="ma-4" id="outer-dropzone">
     @if(Argument.Argument is null)
     {
         <button class="btn btn-primary m-2" style="width: 150px" @onclick="AddArgument">Add Argument</button>
@@ -15,26 +17,28 @@
         </select>
     </div>
     <div id="@Argument.Id" class="card dropzone">
+        @Argument.Id
         <button class="btn btn-success m-2" style="width: 150px" @onclick="AddFilter">Add Filter@* <i class="fa-solid fa-plus"></i> *@</button>
         @foreach (var filter in Argument.Filters)
         {
-            <MudPaper id="@filter.Id" Class="drag-drop filter">@filter.Name</MudPaper>
+            <MudPaper id="@filter.Id" Class="drag-drop filter">@filter.Id</MudPaper>
         }
         <MudPaper Class="drag-drop filter">asdf</MudPaper>
     </div>
 </MudPaper>
 
 @code {
+    [CascadingParameter] public string PageId { get; set; }
     [Parameter] public ScanArgumentZone Argument { get; set; }
 
-    protected override Task OnAfterRenderAsync(bool firstRender)
+    private IJSInProcessRuntime JsInProcessRuntime;
+
+    protected override void OnAfterRender(bool firstRender)
     {
         if (firstRender)
         {
-
+            JsInProcessRuntime = (IJSInProcessRuntime)JsRuntime;
         }
-
-        return Task.CompletedTask;
     }
 
     private void AddArgument()
@@ -45,15 +49,24 @@
             Depth = Argument.Depth + 2,
             Filters = new List<FilterItem>()
         };
+        JsInProcessRuntime.InvokeVoid("addArgumentToArgument", PageId, Argument.Id, Argument.Argument.Id);
     }
 
     private void RemoveArgument()
     {
         Argument.Argument = null;
-    }
+        JsInProcessRuntime.InvokeVoid("removeArgumentFromArgument", PageId, Argument.Id);
+    }   
 
     private void AddFilter()
     {
-        Argument.Filters.Add(new FilterItem());
+        var filter = new FilterItem();
+        Argument.Filters.Add(filter);
+        JsInProcessRuntime.InvokeVoid("addFilterToArgument", PageId, Argument.Id, filter.Id);
+    }
+
+    private void RemoveFilter(FilterItem filterItem)
+    {
+        JsInProcessRuntime.InvokeVoid("removeFilterFromArgument", PageId, Argument.Id, filterItem.Id);
     }
 }
