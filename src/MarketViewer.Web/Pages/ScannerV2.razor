@@ -5,26 +5,34 @@
 
 <PageTitle>Scanner V2</PageTitle>
 
-@if (Argument is not null)
-{
-    <button class="btn btn-danger m-2" @onclick="RemoveArgument"><i class="fa-solid fa-trash"></i></button>
-    <ScanArgumentComponent Argument="Argument"></ScanArgumentComponent>
-}
-else
-{
-    <button class="btn btn-primary btn-sm" @onclick="AddArgument">Add Argument</button>
-}
+<CascadingValue Value="@PageId" IsFixed="true" >
+    @if (Argument is not null)
+    {
+        <button class="btn btn-danger m-2" @onclick="RemoveArgument"><i class="fa-solid fa-trash"></i></button>
+        <ScanArgumentComponent Argument="Argument"></ScanArgumentComponent>
+    
+    }
+    else
+    {
+        <button class="btn btn-primary btn-sm" @onclick="AddArgument">Add Argument</button>
+    }
+</CascadingValue>
+
 
 @code {
-    private string PageId = Guid.NewGuid().ToString();
+    public string PageId = Guid.NewGuid().ToString();
     private ScanArgumentZone Argument;
+    private DotNetObjectReference<ScannerV2> ObjectReference;
     private IJSInProcessRuntime JsInProcessRuntime;
 
-    protected override void OnInitialized()
+    protected override void OnAfterRender(bool firstRender)
     {
-        JsInProcessRuntime = (IJSInProcessRuntime)JsRuntime;
-
-        JsInProcessRuntime.InvokeVoid("initializeArgumentsForPage", PageId);
+        if (firstRender)
+        {
+            JsInProcessRuntime = (IJSInProcessRuntime)JsRuntime;
+            ObjectReference = DotNetObjectReference.Create(this);
+            JsInProcessRuntime.InvokeVoid("initializePage", PageId, ObjectReference);
+        }
     }
 
     private void AddArgument()
@@ -35,7 +43,7 @@ else
             Operator = "AND",
             Filters = new List<FilterItem>()
         };
-        JsInProcessRuntime.InvokeVoid("addArgument", PageId, Argument.Id);
+        JsInProcessRuntime.InvokeVoid("addInitialArgument", PageId, Argument.Id);
     }
 
     private void RemoveArgument()
