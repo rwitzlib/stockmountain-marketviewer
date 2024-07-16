@@ -1,0 +1,36 @@
+﻿@* @inject IJSRuntime JsRuntime;
+
+<MudPaper Elevation="10" Class="ma-4">
+    
+</MudPaper>
+
+@code {
+    private IJSInProcessRuntime JsInProcessRuntime;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            JsInProcessRuntime = (IJSInProcessRuntime)JsRuntime;
+        }
+    }  
+
+    private void AddFilter()
+    {
+        var filter = new FilterItem();
+        Argument.Filters.Add(filter);
+        JsInProcessRuntime.InvokeVoid("addFilterToArgument", PageId, Argument.Id, filter.Id);
+
+        if (Parent is not null)
+        {
+            Parent.asdf();
+        }
+    }
+
+    private void RemoveFilter(FilterItem filterItem)
+    {
+        Argument.Filters.Remove(filterItem);
+        JsInProcessRuntime.InvokeVoid("removeFilterFromArgument", PageId, Argument.Id, filterItem.Id);
+    }
+}
+ *@
