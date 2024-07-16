@@ -3,7 +3,7 @@
 namespace MarketViewer.Web.Models;
 
 [ExcludeFromCodeCoverage]
-public class FilterItem
+public class FilterItem : IDisposable
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -12,5 +12,10 @@ public class FilterItem
     {
         Id = Guid.NewGuid().ToString();
         Name = $"Filter {Name}";
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
     }
 }

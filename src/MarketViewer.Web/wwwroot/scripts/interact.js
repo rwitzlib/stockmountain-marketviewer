@@ -2,7 +2,7 @@ const pages = {};
 
 function initializePage(pageId, dotnetObjectReference) {
     let page = {
-        dotnetReference: dotnetObjectReference
+        dotnetObjectReference: dotnetObjectReference
     };
     pages[pageId] = page;
 }
@@ -32,6 +32,10 @@ function addInitialArgument(pageId, argumentId) {
         id: argumentId,
         filters: {}
     }
+}
+
+function removeInitialArgument(pageId) {
+    delete pages[pageId].argument;
 }
 
 function addArgumentToArgument(pageId, outerArgumentId, innerArgumentId) {
@@ -83,7 +87,7 @@ function removeArgumentFromArgument(pageId, outerArgumentId) {
         return;
     }
 
-    argument.argument = undefined;
+    delete argument.argument
 }
 
 function addFilterToArgument(pageId, argumentId, filterId) {
@@ -100,9 +104,22 @@ function addFilterToArgument(pageId, argumentId, filterId) {
 }
 
 function moveFilter(pageId, sourceArgumentId, destinationArgumentId, filterId) {
-    // Reset parents
+    addFilterToArgument(pageId, destinationArgumentId, filterId);
+    removeFilterFromArgument(pageId, sourceArgumentId, filterId);
 
-    // Call js invoke to move filter on c# side as well
+    let destinationElement = document.getElementById(destinationArgumentId);
+    let filterElement = document.getElementById(filterId);
+
+    destinationElement.appendChild(filterElement);
+
+    filterElement.style.transform = 'translate(0px, 0px)';
+
+    filterElement.setAttribute('data-x', 0);
+    filterElement.setAttribute('data-y', 0);
+
+    pages[pageId].dotnetObjectReference.invokeMethod("MoveFilter", sourceArgumentId, destinationArgumentId, filterId);
+
+    return;
 }
 
 function removeFilterFromArgument(pageId, argumentId, filterId) {
@@ -115,22 +132,13 @@ function removeFilterFromArgument(pageId, argumentId, filterId) {
         return;
     }
 
-    argument.filters[filterId] = undefined;
+    delete argument.filters[filterId];
 }
 
-// target elements with the "draggable" class
 interact('.draggable')
     .draggable({
-        // enable inertial throwing
         inertia: true,
-        // keep the element within the area of it's parent
-        modifiers: [
-            //interact.modifiers.restrictRect({
-            //    restriction: 'parent',
-            //    endOnly: true
-            //})
-        ],
-        // enable autoScroll
+        modifiers: [],
         autoScroll: true,
 
         listeners: {
@@ -182,9 +190,10 @@ interact('.dropzone').dropzone({
         var draggableElement = event.relatedTarget
         var dropzoneElement = event.target
 
-        if (draggableElement.parentElement.id != dropzoneElement.id) {
-            event.target.classList.add('drop-active')
-        }
+        event.target.classList.add('drop-active')
+
+        //if (draggableElement.parentElement.id != dropzoneElement.id) {
+        //}
     },
     ondragenter: function (event) {
         // feedback the possibility of a drop
@@ -192,10 +201,12 @@ interact('.dropzone').dropzone({
         var draggableElement = event.relatedTarget
         var dropzoneElement = event.target
 
-        if (event.relatedTarget.parentElement.id != dropzoneElement.id) {
-            dropzoneElement.classList.add('drop-target')
-            draggableElement.classList.add('can-drop')
-        }
+        dropzoneElement.classList.add('drop-target')
+        draggableElement.classList.add('can-drop')
+
+        //if (event.relatedTarget.parentElement.id != dropzoneElement.id) {
+            
+        //}
 
     },
     ondragleave: function (event) {
@@ -226,10 +237,6 @@ interact('.drag-drop')
     .draggable({
         inertia: true,
         modifiers: [
-            //interact.modifiers.restrictRect({
-            //    restriction: 'parent',
-            //    endOnly: true
-            //})
         ],
         autoScroll: true,
         // dragMoveListener from the dragging demo above

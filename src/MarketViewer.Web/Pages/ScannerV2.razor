@@ -8,16 +8,15 @@
 <CascadingValue Value="@PageId" IsFixed="true" >
     @if (Argument is not null)
     {
-        <button class="btn btn-danger m-2" @onclick="RemoveArgument"><i class="fa-solid fa-trash"></i></button>
+        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="RemoveArgument">Delete</MudButton>
         <ScanArgumentComponent Argument="Argument"></ScanArgumentComponent>
     
     }
     else
     {
-        <button class="btn btn-primary btn-sm" @onclick="AddArgument">Add Argument</button>
+        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" OnClick="AddArgument">Add Argument</MudButton>
     }
 </CascadingValue>
-
 
 @code {
     public string PageId = Guid.NewGuid().ToString();
@@ -49,25 +48,46 @@
     private void RemoveArgument()
     {
         Argument = null;
+        JsInProcessRuntime.InvokeVoidAsync("removeInitialArgument", PageId);
     }
 
     [JSInvokable]
-    public void TogglePopover(bool isPopoverOpen, string drawingId = null)
+    public void MoveFilter(string sourceArgumentId, string destinationArgumentId, string filterId)
     {
-        // IsPopoverOpen = isPopoverOpen;
+        var sourceArgument = FindArgument(Argument, sourceArgumentId);
+        var destinationArgument = FindArgument(Argument, destinationArgumentId);
 
-        // if (!IsPopoverOpen)
-        // {
-        //     StateHasChanged();
-        //     return;
-        // }
+        if (sourceArgument is null || destinationArgument is null)
+        {
+            return;
+        }
 
-        // if (drawingId is not null)
-        // {
-        //     ClickedDrawingId = drawingId;
-        // }
+        var filter = sourceArgument.Filters.Find(filter => filter.Id == filterId);
+
+        sourceArgument.Filters.Remove(filter);
+        destinationArgument.Filters.Add(filter);
 
         StateHasChanged();
+    }
+
+    private ScanArgumentZone FindArgument(ScanArgumentZone argument, string argumentId)
+    {
+        if (argument.Id is null)
+        {
+            return null;
+        }
+        
+        if (argument.Id == argumentId)
+        {
+            return argument;
+        }
+
+        if (argument.Argument is null)
+        {
+            return null;
+        }
+
+        return FindArgument(argument.Argument, argumentId);
     }
 }
 
@@ -78,6 +98,7 @@
         border-radius: 4px;
         margin: 10px auto 30px;
         padding: 10px;
+        user-select: none;
         transition: background-color 0.3s;
     }
 
@@ -102,10 +123,10 @@
         touch-action: none;
         transform: translate(0px, 0px);
         transition: background-color 0.3s;
+        z-index: 100;
     }
 
     .drag-drop.can-drop {
         color: #000;
-        background-color: #4e4;
     }
 </style>
