@@ -1,11 +1,113 @@
-﻿@* @inject IJSRuntime JsRuntime;
+﻿@using MarketViewer.Contracts.Enums
+@using MarketViewer.Contracts.Models.ScanV2
+@inject IJSRuntime JsRuntime;
 
-<MudPaper Elevation="10" Class="ma-4">
-    
+<MudPaper Elevation="10" id="@Filter.Id" Class="d-flex drag-drop filter justify-space-between">
+    @Filter.Id
+
+    <MudSelect @bind-Value="Filter.CollectionModifier" T="string" Label="CollectionModifier" AnchorOrigin="Origin.BottomCenter">
+        <MudSelectItem Value="@("All")" />
+        <MudSelectItem Value="@("Any")" />
+    </MudSelect>
+
+    <MudSelect T="OperandType" Label="First Operand Type" AnchorOrigin="Origin.BottomCenter" ValueChanged="AddFirstOperand">
+        @foreach (OperandType type in Enum.GetValues(typeof(OperandType)))
+        {
+            <MudSelectItem Value="@type">@type</MudSelectItem>
+        }
+    </MudSelect>
+
+    @if (Filter.FirstOperandType is OperandType.PriceAction)
+    {
+        
+    }
+    else if (Filter.FirstOperandType is OperandType.Study)
+    {
+        
+    }
+    else if (Filter.FirstOperandType is OperandType.Custom)
+    {
+
+    }
+
+    <MudSelect @bind-Value="Filter.SecondOperandType" T="OperandType" Label="Second Operand Type" AnchorOrigin="Origin.BottomCenter">
+        @foreach (OperandType type in Enum.GetValues(typeof(OperandType)))
+        {
+            <MudSelectItem Value="@type">@type</MudSelectItem>
+        }
+    </MudSelect>
+
+    @if (Filter.SecondOperandType is OperandType.PriceAction)
+    {
+
+    }
+    else if (Filter.SecondOperandType is OperandType.Study)
+    {
+
+    }
+    else if (Filter.SecondOperandType is OperandType.Custom)
+    {
+
+    }
+
+    <MudNumericField @bind-Value="Filter.Timeframe.Multiplier" Label="Multiplier" Variant="Variant.Text" Min="0" Max="60" />
+
+    <MudSelect @bind-Value="Filter.Timeframe.Timespan" T="Timespan" Label="Timespan" AnchorOrigin="Origin.BottomCenter">
+        @foreach (Timespan type in Enum.GetValues(typeof(Timespan)))
+        {
+            <MudSelectItem Value="@type">@type</MudSelectItem>
+        }
+    </MudSelect>
+
+    <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => Argument.RemoveFilter(Filter)">Delete</MudButton>
 </MudPaper>
 
 @code {
+    [Parameter] public ScanArgumentComponent Argument { get; set; }
+    [Parameter] public FilterItem Filter { get; set; }
+
     private IJSInProcessRuntime JsInProcessRuntime;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+
+    private void AddFirstOperand(OperandType type)
+    {
+        Filter.FirstOperandType = type;
+        if (type is OperandType.PriceAction)
+        {
+            Filter.FirstOperand = new PriceActionOperand();
+        }
+        else if (type is OperandType.Study)
+        {
+            Filter.FirstOperand = new StudyOperand();
+
+        }
+        else if (type is OperandType.Custom)
+        {
+            Filter.FirstOperand = new ValueOperand();
+        }
+    }
+
+    private void AddSecondOperand(OperandType type)
+    {
+        Filter.SecondOperandType = type;
+        if (type is OperandType.PriceAction)
+        {
+            Filter.SecondOperand = new PriceActionOperand();
+        }
+        else if (type is OperandType.Study)
+        {
+            Filter.SecondOperand = new StudyOperand();
+
+        }
+        else if (type is OperandType.Custom)
+        {
+            Filter.SecondOperand = new ValueOperand();
+        }
+    }
 
     protected override void OnAfterRender(bool firstRender)
     {
@@ -13,24 +115,5 @@
         {
             JsInProcessRuntime = (IJSInProcessRuntime)JsRuntime;
         }
-    }  
-
-    private void AddFilter()
-    {
-        var filter = new FilterItem();
-        Argument.Filters.Add(filter);
-        JsInProcessRuntime.InvokeVoid("addFilterToArgument", PageId, Argument.Id, filter.Id);
-
-        if (Parent is not null)
-        {
-            Parent.asdf();
-        }
-    }
-
-    private void RemoveFilter(FilterItem filterItem)
-    {
-        Argument.Filters.Remove(filterItem);
-        JsInProcessRuntime.InvokeVoid("removeFilterFromArgument", PageId, Argument.Id, filterItem.Id);
     }
 }
- *@
