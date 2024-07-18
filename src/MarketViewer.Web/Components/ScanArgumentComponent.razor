@@ -8,7 +8,7 @@
     else
     {
         <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="RemoveInnerArgument">Delete</MudButton>
-        <ScanArgumentComponent Parent="@this" Argument="Argument.Argument"></ScanArgumentComponent>
+        <ScanArgumentComponent PageId="PageId" Parent="this" Argument="Argument.Argument"></ScanArgumentComponent>
     }
     <div class="dropdown">
         <select class="form-select m-2" style="width: 150px">
