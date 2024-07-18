@@ -1,4 +1,5 @@
-﻿using MarketViewer.Contracts.Models.ScanV2;
+﻿using MarketViewer.Contracts.Enums;
+using MarketViewer.Contracts.Models.ScanV2;
 using MarketViewer.Contracts.Responses;
 
 namespace MarketViewer.Core.ScanV2.Filters;
@@ -20,10 +21,10 @@ public class PriceActionFilter : IFilterV2
             _ => [],
         };
 
-        var values = priceActionOperand.ValueType switch
+        var values = priceActionOperand.Modifier switch
         {
-            Modifier.Value => candles,
-            Modifier.Slope => GetSlope(candles.ToArray()),
+            OperandModifier.Value => candles,
+            OperandModifier.Slope => GetSlope(candles.ToArray()),
             _ => []
         };
 

@@ -1,4 +1,5 @@
-﻿using MarketViewer.Contracts.Models.ScanV2;
+﻿using MarketViewer.Contracts.Enums;
+using MarketViewer.Contracts.Models.ScanV2;
 using MarketViewer.Contracts.Responses;
 using MarketViewer.Studies;
 
@@ -20,10 +21,10 @@ public class StudyFilter : IFilterV2
 
         var results = studyResponse.Results.First().Select(entry => entry.Value);
 
-        var values = studyOperand.ValueType switch
+        var values = studyOperand.Modifier switch
         {
-            Modifier.Value => results,
-            Modifier.Slope => GetSlope(results.ToArray()),
+            OperandModifier.Value => results,
+            OperandModifier.Slope => GetSlope(results.ToArray()),
             _ => []
         };
 

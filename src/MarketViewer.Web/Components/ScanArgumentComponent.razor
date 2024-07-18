@@ -17,7 +17,6 @@
         </select>
     </div>
     <div id="@Argument.Id" class="card dropzone">
-        @Argument.Id
         <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" OnClick="AddFilter">Add Filter</MudButton>
         @foreach (var filter in Argument.Filters)
         {
@@ -78,7 +77,6 @@
     public void RemoveFilter(FilterItem filterItem)
     {
         Argument.Filters.Remove(filterItem);
-        filterItem.Dispose();
         JsInProcessRuntime.InvokeVoid("removeFilterFromArgument", PageId, Argument.Id, filterItem.Id);
         StateHasChanged();
     }

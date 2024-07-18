@@ -1,0 +1,31 @@
+﻿@using MarketViewer.Contracts.Enums
+@using MarketViewer.Contracts.Models.ScanV2
+
+<MudPaper Elevation="11" Class="d-flex gap-4 pa-2" Style="width: 400px">
+    <MudSelect @bind-Value="Operand.Modifier" T="OperandModifier" Label="Modifier" AnchorOrigin="Origin.BottomCenter">
+        @foreach (OperandModifier type in Enum.GetValues(typeof(OperandModifier)))
+        {
+            <MudSelectItem Value="@type">@type</MudSelectItem>
+        }
+    </MudSelect>
+
+    <MudSelect @bind-Value="Operand.Type" T="PriceActionType" Label="Value Type" AnchorOrigin="Origin.BottomCenter">
+        @foreach (PriceActionType type in Enum.GetValues(typeof(PriceActionType)))
+        {
+            <MudSelectItem Value="@type">@type</MudSelectItem>
+        }
+    </MudSelect>
+
+    <MudNumericField Style="width: 40px" @bind-Value="Operand.Multiplier" Label="Multiplier" Variant="Variant.Text" Min="1" Max="60"/>
+
+    <MudSelect @bind-Value="Operand.Timespan" T="Timespan" Label="Timespan" AnchorOrigin="Origin.BottomCenter">
+        @foreach (Timespan type in Enum.GetValues(typeof(Timespan)))
+        {
+            <MudSelectItem Value="@type">@type</MudSelectItem>
+        }
+    </MudSelect>
+</MudPaper>
+
+@code {
+    [Parameter] public PriceActionOperand Operand { get; set; }
+}

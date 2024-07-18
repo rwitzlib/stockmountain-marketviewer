@@ -3,5 +3,5 @@
     None,
     PriceAction,
     Study,
-    Custom
+    Value
 }

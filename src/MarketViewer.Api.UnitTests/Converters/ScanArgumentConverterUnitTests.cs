@@ -43,7 +43,7 @@ public class ScanArgumentConverterUnitTests
         argument.Filters.Length.Should().Be(2);
 
         var firstOperand = argument.Filters[0].FirstOperand.Should().BeOfType<PriceActionOperand>().Subject;
-        firstOperand.ValueType.Should().Be(Modifier.Value);
+        firstOperand.Modifier.Should().Be(OperandModifier.Value);
         firstOperand.Type.Should().Be(PriceActionType.Close);
         firstOperand.Multiplier.Should().Be(1);
         firstOperand.Timespan.Should().Be(Timespan.minute);
@@ -67,7 +67,7 @@ public class ScanArgumentConverterUnitTests
         argument.Filters.Length.Should().Be(2);
 
         var firstOperand = argument.Filters[0].FirstOperand.Should().BeOfType<PriceActionOperand>().Subject;
-        firstOperand.ValueType.Should().Be(Modifier.Value);
+        firstOperand.Modifier.Should().Be(OperandModifier.Value);
         firstOperand.Type.Should().Be(PriceActionType.Close);
         firstOperand.Multiplier.Should().Be(1);
         firstOperand.Timespan.Should().Be(Timespan.minute);
