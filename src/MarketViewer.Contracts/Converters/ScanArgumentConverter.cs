@@ -2,8 +2,6 @@
 using MarketViewer.Contracts.Models.ScanV2;
 using Newtonsoft.Json;
 using System;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using System.Text.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 

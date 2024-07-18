@@ -5,17 +5,15 @@
 
 <PageTitle>Scanner V2</PageTitle>
 
-<CascadingValue Value="@PageId" IsFixed="true" >
-    @if (Argument is not null)
-    {
-        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="RemoveArgument">Delete</MudButton>
-        <ScanArgumentComponent Argument="Argument"></ScanArgumentComponent>
-    }
-    else
-    {
-        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" OnClick="AddArgument">Add Argument</MudButton>
-    }
-</CascadingValue>
+@if (Argument is not null)
+{
+    <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="RemoveArgument">Delete</MudButton>
+    <ScanArgumentComponent PageId="PageId" Argument="Argument"></ScanArgumentComponent>
+}
+else
+{
+    <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" OnClick="AddArgument">Add Argument</MudButton>
+}
 
 @code {
     public string PageId = Guid.NewGuid().ToString();
@@ -117,7 +115,6 @@
         padding: 2em 0.5em;
         margin: 1rem 0 0 1rem;
         color: #fff;
-        /* background-color: #29e; */
         border: solid 2px #fff;
         touch-action: none;
         transform: translate(0px, 0px);
