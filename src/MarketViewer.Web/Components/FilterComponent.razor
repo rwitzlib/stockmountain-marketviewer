@@ -1,16 +1,16 @@
 ﻿@using MarketViewer.Contracts.Enums
 @using MarketViewer.Contracts.Models.ScanV2
+@using FilterOperator = MarketViewer.Contracts.Models.Scan.FilterOperator;
+
 @inject IJSRuntime JsRuntime;
 
-<MudPaper Elevation="10" id="@Filter.Id" Class="d-flex drag-drop filter justify-space-between">
-    @Filter.Id
-
-    <MudSelect @bind-Value="Filter.CollectionModifier" T="string" Label="CollectionModifier" AnchorOrigin="Origin.BottomCenter">
+<MudPaper Elevation="10" id="@Filter.Id" Class="d-flex flex-grow-1 gap-4 justify-content-center drag-drop filter">
+    <MudSelect @bind-Value="Filter.CollectionModifier" T="string" Label="Collection" AnchorOrigin="Origin.BottomCenter">
         <MudSelectItem Value="@("All")" />
         <MudSelectItem Value="@("Any")" />
     </MudSelect>
 
-    <MudSelect T="OperandType" Label="First Operand Type" AnchorOrigin="Origin.BottomCenter" ValueChanged="AddFirstOperand">
+    <MudSelect T="OperandType" Label="First Operand" AnchorOrigin="Origin.BottomCenter" ValueChanged="AddFirstOperand">
         @foreach (OperandType type in Enum.GetValues(typeof(OperandType)))
         {
             <MudSelectItem Value="@type">@type</MudSelectItem>
@@ -19,18 +19,26 @@
 
     @if (Filter.FirstOperandType is OperandType.PriceAction)
     {
-        
+        <PriceActionOperandComponent Operand="Filter.FirstOperand as PriceActionOperand" ></PriceActionOperandComponent>
     }
     else if (Filter.FirstOperandType is OperandType.Study)
     {
-        
+        <StudyOperandComponent Operand="Filter.FirstOperand as StudyOperand"></StudyOperandComponent>
     }
-    else if (Filter.FirstOperandType is OperandType.Custom)
+    else if (Filter.FirstOperandType is OperandType.Value)
     {
-
+        <ValueOperandComponent Operand="Filter.FirstOperand as ValueOperand"></ValueOperandComponent>
     }
 
-    <MudSelect @bind-Value="Filter.SecondOperandType" T="OperandType" Label="Second Operand Type" AnchorOrigin="Origin.BottomCenter">
+    <MudSelect @bind-Value="Filter.Operator" T="FilterOperator" Label="Operator" AnchorOrigin="Origin.BottomCenter">
+        <MudSelectItem Value="FilterOperator.gt">@(">")</MudSelectItem>
+        <MudSelectItem Value="FilterOperator.ge">@(">=")</MudSelectItem>
+        <MudSelectItem Value="FilterOperator.eq">@("==")</MudSelectItem>
+        <MudSelectItem Value="FilterOperator.le">@("<=")</MudSelectItem>
+        <MudSelectItem Value="FilterOperator.lt">@("<")</MudSelectItem>
+    </MudSelect>
+
+    <MudSelect T="OperandType" Label="Second Operand" AnchorOrigin="Origin.BottomCenter" ValueChanged="AddSecondOperand">
         @foreach (OperandType type in Enum.GetValues(typeof(OperandType)))
         {
             <MudSelectItem Value="@type">@type</MudSelectItem>
@@ -39,18 +47,18 @@
 
     @if (Filter.SecondOperandType is OperandType.PriceAction)
     {
-
+        <PriceActionOperandComponent Operand="Filter.SecondOperand as PriceActionOperand"></PriceActionOperandComponent>
     }
     else if (Filter.SecondOperandType is OperandType.Study)
     {
-
+        <StudyOperandComponent Operand="Filter.SecondOperand as StudyOperand"></StudyOperandComponent>
     }
-    else if (Filter.SecondOperandType is OperandType.Custom)
+    else if (Filter.SecondOperandType is OperandType.Value)
     {
-
+        <ValueOperandComponent Operand="Filter.SecondOperand as ValueOperand"></ValueOperandComponent>
     }
 
-    <MudNumericField @bind-Value="Filter.Timeframe.Multiplier" Label="Multiplier" Variant="Variant.Text" Min="0" Max="60" />
+    <MudNumericField @bind-Value="Filter.Timeframe.Multiplier" Label="Multiplier" Variant="Variant.Text" Min="1" Max="60" />
 
     <MudSelect @bind-Value="Filter.Timeframe.Timespan" T="Timespan" Label="Timespan" AnchorOrigin="Origin.BottomCenter">
         @foreach (Timespan type in Enum.GetValues(typeof(Timespan)))
@@ -85,7 +93,7 @@
             Filter.FirstOperand = new StudyOperand();
 
         }
-        else if (type is OperandType.Custom)
+        else if (type is OperandType.Value)
         {
             Filter.FirstOperand = new ValueOperand();
         }
@@ -103,7 +111,7 @@
             Filter.SecondOperand = new StudyOperand();
 
         }
-        else if (type is OperandType.Custom)
+        else if (type is OperandType.Value)
         {
             Filter.SecondOperand = new ValueOperand();
         }
