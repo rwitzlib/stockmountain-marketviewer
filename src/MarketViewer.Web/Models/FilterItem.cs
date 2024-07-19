@@ -1,16 +1,18 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using MarketViewer.Contracts.Models.Scan;
+using MarketViewer.Contracts.Models.ScanV2;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MarketViewer.Web.Models;
 
 [ExcludeFromCodeCoverage]
 public class FilterItem
 {
-    public string Id { get; set; }
-    public string Name { get; set; }
-
-    public FilterItem()
-    {
-        Id = Guid.NewGuid().ToString();
-        Name = $"Filter {Name}";
-    }
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+    public string CollectionModifier { get; set; }
+    public OperandType FirstOperandType { get; set; }
+    public IScanOperand FirstOperand { get; set; }
+    public FilterOperator Operator { get; set; }
+    public OperandType SecondOperandType { get; set; }
+    public IScanOperand SecondOperand { get; set; }
+    public Timeframe Timeframe { get; set; } = new();
 }

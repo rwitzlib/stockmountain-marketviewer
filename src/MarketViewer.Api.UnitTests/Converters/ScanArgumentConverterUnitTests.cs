@@ -29,7 +29,7 @@ public class ScanArgumentConverterUnitTests
     public void Serialize()
     {
         // Arrange
-        var json = "{\r\n    \"Operator\": \"AND\",\r\n    \"Filters\": [\r\n      {\r\n        \"CollectionModifier\": \"ALL\",\r\n        \"FirstOperand\": {\r\n          \"ValueType\": \"Value\",\r\n          \"Type\": \"Close\",\r\n          \"Multiplier\": 1,\r\n          \"Timespan\": \"minute\"\r\n        },\r\n        \"Operator\": \"gt\",\r\n        \"SecondOperand\": {\r\n          \"Value\": 5\r\n        },\r\n        \"Timeframe\": {\r\n          \"Multiplier\": 5,\r\n          \"Timespan\": \"minute\"\r\n        }\r\n      },\r\n      {\r\n        \"CollectionModifier\": \"ALL\",\r\n        \"FirstOperand\": {\r\n          \"ValueType\": \"Value\",\r\n          \"Type\": \"macd\",\r\n          \"Parameters\": \"12,26,9,EMA\",\r\n          \"Multiplier\": 1,\r\n          \"Timespan\": \"minute\"\r\n        },\r\n        \"Operator\": \"lt\",\r\n        \"SecondOperand\": {\r\n          \"Value\": 0\r\n        },\r\n        \"Timeframe\": {\r\n          \"Multiplier\": 5,\r\n          \"Timespan\": \"minute\"\r\n        }\r\n      }\r\n      \r\n    ],\r\n    \"Argument\": {\r\n      \"Operator\": \"AND\",\r\n      \"Filters\": [\r\n        {\r\n          \"CollectionModifier\": \"ALL\",\r\n          \"FirstOperand\": {\r\n            \"ValueType\": \"Value\",\r\n            \"Type\": \"Close\",\r\n            \"Multiplier\": 1,\r\n            \"Timespan\": \"minute\"\r\n          },\r\n          \"Operator\": \"lt\",\r\n          \"SecondOperand\": {\r\n            \"Value\": 10      \r\n          },\r\n          \"Timeframe\": {\r\n            \"Multiplier\": 5,\r\n            \"Timespan\": \"minute\"\r\n          }\r\n        }\r\n      ]\r\n    }\r\n  }";
+        var json = "{\r\n    \"Operator\": \"AND\",\r\n    \"Filters\": [\r\n      {\r\n        \"CollectionModifier\": \"ALL\",\r\n        \"FirstOperand\": {\r\n          \"Name\": \"PriceAction\",\r\n          \"Modifier\": \"Value\",\r\n          \"Type\": \"Close\",\r\n          \"Multiplier\": 1,\r\n          \"Timespan\": \"minute\"\r\n        },\r\n        \"Operator\": \"gt\",\r\n        \"SecondOperand\": {\r\n          \"Name\": \"Value\",\r\n          \"Value\": 5\r\n        },\r\n        \"Timeframe\": {\r\n          \"Multiplier\": 5,\r\n          \"Timespan\": \"minute\"\r\n        }\r\n      },\r\n      {\r\n        \"CollectionModifier\": \"ALL\",\r\n        \"FirstOperand\": {\r\n          \"Name\": \"Study\",\r\n          \"Modifier\": \"Value\",\r\n          \"Type\": \"macd\",\r\n          \"Parameters\": \"12,26,9,EMA\",\r\n          \"Multiplier\": 1,\r\n          \"Timespan\": \"minute\"\r\n        },\r\n        \"Operator\": \"lt\",\r\n        \"SecondOperand\": {\r\n          \"Name\": \"Value\",\r\n          \"Value\": 0\r\n        },\r\n        \"Timeframe\": {\r\n          \"Multiplier\": 5,\r\n          \"Timespan\": \"minute\"\r\n        }\r\n      }\r\n      \r\n    ],\r\n    \"Argument\": {\r\n      \"Operator\": \"AND\",\r\n      \"Filters\": [\r\n        {\r\n          \"CollectionModifier\": \"ALL\",\r\n          \"FirstOperand\": {\r\n            \"Name\": \"PriceAction\",\r\n            \"ValueType\": \"Value\",\r\n            \"Type\": \"Close\",\r\n            \"Multiplier\": 1,\r\n            \"Timespan\": \"minute\"\r\n          },\r\n          \"Operator\": \"lt\",\r\n          \"SecondOperand\": {\r\n            \"Name\": \"Value\",\r\n            \"Value\": 10      \r\n          },\r\n          \"Timeframe\": {\r\n            \"Multiplier\": 5,\r\n            \"Timespan\": \"minute\"\r\n          }\r\n        }\r\n      ]\r\n    }\r\n  }";
         var deserialized = JsonSerializer.Deserialize<ScanArgument>(json, _options);
         var serialized = JsonSerializer.Serialize(deserialized, _options);
 
@@ -40,10 +40,10 @@ public class ScanArgumentConverterUnitTests
         argument.Operator.Should().Be("AND");
 
         argument.Filters.Should().NotBeNull();
-        argument.Filters.Length.Should().Be(2);
+        argument.Filters.Count.Should().Be(2);
 
         var firstOperand = argument.Filters[0].FirstOperand.Should().BeOfType<PriceActionOperand>().Subject;
-        firstOperand.ValueType.Should().Be(Modifier.Value);
+        firstOperand.Modifier.Should().Be(OperandModifier.Value);
         firstOperand.Type.Should().Be(PriceActionType.Close);
         firstOperand.Multiplier.Should().Be(1);
         firstOperand.Timespan.Should().Be(Timespan.minute);
@@ -55,8 +55,8 @@ public class ScanArgumentConverterUnitTests
     public void Deserialization()
     {
         // Arrange
-        var json = "{\r\n    \"Operator\": \"AND\",\r\n    \"Filters\": [\r\n      {\r\n        \"CollectionModifier\": \"ALL\",\r\n        \"FirstOperand\": {\r\n          \"ValueType\": \"Value\",\r\n          \"Type\": \"Close\",\r\n          \"Multiplier\": 1,\r\n          \"Timespan\": \"minute\"\r\n        },\r\n        \"Operator\": \"gt\",\r\n        \"SecondOperand\": {\r\n          \"Value\": 5\r\n        },\r\n        \"Timeframe\": {\r\n          \"Multiplier\": 5,\r\n          \"Timespan\": \"minute\"\r\n        }\r\n      },\r\n      {\r\n        \"CollectionModifier\": \"ALL\",\r\n        \"FirstOperand\": {\r\n          \"ValueType\": \"Value\",\r\n          \"Type\": \"macd\",\r\n          \"Parameters\": \"12,26,9,EMA\",\r\n          \"Multiplier\": 1,\r\n          \"Timespan\": \"minute\"\r\n        },\r\n        \"Operator\": \"lt\",\r\n        \"SecondOperand\": {\r\n          \"Value\": 0\r\n        },\r\n        \"Timeframe\": {\r\n          \"Multiplier\": 5,\r\n          \"Timespan\": \"minute\"\r\n        }\r\n      }\r\n      \r\n    ],\r\n    \"Argument\": {\r\n      \"Operator\": \"AND\",\r\n      \"Filters\": [\r\n        {\r\n          \"CollectionModifier\": \"ALL\",\r\n          \"FirstOperand\": {\r\n            \"ValueType\": \"Value\",\r\n            \"Type\": \"Close\",\r\n            \"Multiplier\": 1,\r\n            \"Timespan\": \"minute\"\r\n          },\r\n          \"Operator\": \"lt\",\r\n          \"SecondOperand\": {\r\n            \"Value\": 10      \r\n          },\r\n          \"Timeframe\": {\r\n            \"Multiplier\": 5,\r\n            \"Timespan\": \"minute\"\r\n          }\r\n        }\r\n      ]\r\n    }\r\n  }";
-        
+        var json = "{\r\n    \"Operator\": \"AND\",\r\n    \"Filters\": [\r\n      {\r\n        \"CollectionModifier\": \"ALL\",\r\n        \"FirstOperand\": {\r\n          \"Name\": \"PriceAction\",\r\n          \"Modifier\": \"Value\",\r\n          \"Type\": \"Close\",\r\n          \"Multiplier\": 1,\r\n          \"Timespan\": \"minute\"\r\n        },\r\n        \"Operator\": \"gt\",\r\n        \"SecondOperand\": {\r\n          \"Name\": \"Value\",\r\n          \"Value\": 5\r\n        },\r\n        \"Timeframe\": {\r\n          \"Multiplier\": 5,\r\n          \"Timespan\": \"minute\"\r\n        }\r\n      },\r\n      {\r\n        \"CollectionModifier\": \"ALL\",\r\n        \"FirstOperand\": {\r\n          \"Name\": \"Study\",\r\n          \"Modifier\": \"Value\",\r\n          \"Type\": \"macd\",\r\n          \"Parameters\": \"12,26,9,EMA\",\r\n          \"Multiplier\": 1,\r\n          \"Timespan\": \"minute\"\r\n        },\r\n        \"Operator\": \"lt\",\r\n        \"SecondOperand\": {\r\n          \"Name\": \"Value\",\r\n          \"Value\": 0\r\n        },\r\n        \"Timeframe\": {\r\n          \"Multiplier\": 5,\r\n          \"Timespan\": \"minute\"\r\n        }\r\n      }\r\n      \r\n    ],\r\n    \"Argument\": {\r\n      \"Operator\": \"AND\",\r\n      \"Filters\": [\r\n        {\r\n          \"CollectionModifier\": \"ALL\",\r\n          \"FirstOperand\": {\r\n            \"Name\": \"PriceAction\",\r\n            \"ValueType\": \"Value\",\r\n            \"Type\": \"Close\",\r\n            \"Multiplier\": 1,\r\n            \"Timespan\": \"minute\"\r\n          },\r\n          \"Operator\": \"lt\",\r\n          \"SecondOperand\": {\r\n            \"Name\": \"Value\",\r\n            \"Value\": 10      \r\n          },\r\n          \"Timeframe\": {\r\n            \"Multiplier\": 5,\r\n            \"Timespan\": \"minute\"\r\n          }\r\n        }\r\n      ]\r\n    }\r\n  }";
+
         // Act
         var argument = JsonSerializer.Deserialize<ScanArgument>(json, _options);
 
@@ -64,10 +64,10 @@ public class ScanArgumentConverterUnitTests
         argument.Operator.Should().Be("AND");
 
         argument.Filters.Should().NotBeNull();
-        argument.Filters.Length.Should().Be(2);
+        argument.Filters.Count.Should().Be(2);
 
         var firstOperand = argument.Filters[0].FirstOperand.Should().BeOfType<PriceActionOperand>().Subject;
-        firstOperand.ValueType.Should().Be(Modifier.Value);
+        firstOperand.Modifier.Should().Be(OperandModifier.Value);
         firstOperand.Type.Should().Be(PriceActionType.Close);
         firstOperand.Multiplier.Should().Be(1);
         firstOperand.Timespan.Should().Be(Timespan.minute);

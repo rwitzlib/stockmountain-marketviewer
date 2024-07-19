@@ -2,7 +2,7 @@
 using MarketViewer.Contracts.Models.ScanV2;
 using Newtonsoft.Json;
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Text.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -60,11 +60,11 @@ public class ScanArgumentConverter : System.Text.Json.Serialization.JsonConverte
 
             var count = filters.GetArrayLength();
 
-            scanArgument.Filters = new FilterV2[count];
+            scanArgument.Filters = [];
             for (int i = 0; i < count; i++)
             {
                 enumerator.MoveNext();
-                scanArgument.Filters[i] = ParseFilter(enumerator.Current);
+                scanArgument.Filters.Add(ParseFilter(enumerator.Current));
             }
         }
 
@@ -107,28 +107,15 @@ public class ScanArgumentConverter : System.Text.Json.Serialization.JsonConverte
     {
         var json = jsonElement.GetRawText();
 
-        if (typeof(StudyOperand).GetProperties()
-            .Select(q => q.Name)
-            .All(prop => jsonElement.TryGetProperty(prop, out var result) == true))
+        if (jsonElement.TryGetProperty("Name", out var name))
         {
-            var operand = JsonSerializer.Deserialize<StudyOperand>(json);
-            return operand;
-        }
-
-        if (typeof(PriceActionOperand).GetProperties()
-            .Select(q => q.Name)
-            .All(prop => jsonElement.TryGetProperty(prop, out var result) == true))
-        {
-            var operand = JsonSerializer.Deserialize<PriceActionOperand>(json);
-            return operand;
-        }
-
-        if (typeof(ValueOperand).GetProperties()
-            .Select(q => q.Name)
-            .All(prop => jsonElement.TryGetProperty(prop, out var result) == true))
-        {
-            var operand = JsonSerializer.Deserialize<ValueOperand>(json);
-            return operand;
+            return name.ToString() switch
+            {
+                "PriceAction" => JsonSerializer.Deserialize<PriceActionOperand>(json),
+                "Study" => JsonSerializer.Deserialize<StudyOperand>(json),
+                "Value" => JsonSerializer.Deserialize<ValueOperand>(json),
+                _ => throw new NotImplementedException()
+            };
         }
 
         throw new NotImplementedException();

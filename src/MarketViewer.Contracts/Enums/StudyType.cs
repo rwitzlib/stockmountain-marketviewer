@@ -1,7 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using Newtonsoft.Json.Converters;
-
-namespace MarketViewer.Contracts.Enums;
+﻿namespace MarketViewer.Contracts.Enums;
 
 public enum StudyType
 {

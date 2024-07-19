@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace MarketViewer.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/scan")]
     public class ScanController(ILogger<ScanController> logger, IMediator mediator) : ControllerBase
     {
         [HttpPost]

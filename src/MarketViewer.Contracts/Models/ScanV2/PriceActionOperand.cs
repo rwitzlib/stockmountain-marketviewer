@@ -7,8 +7,10 @@ namespace MarketViewer.Contracts.Models.ScanV2;
 [ExcludeFromCodeCoverage]
 public class PriceActionOperand : IScanOperand
 {
+    public string Name { get; } = "PriceAction";
+
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public Modifier ValueType { get; set; }
+    public OperandModifier Modifier { get; set; }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public PriceActionType Type { get; set; }
@@ -34,11 +36,3 @@ public enum PriceActionType
     Vwap,
     Volume
 }
-
-public enum Modifier
-{
-    Value,
-    Slope
-}
-
-
