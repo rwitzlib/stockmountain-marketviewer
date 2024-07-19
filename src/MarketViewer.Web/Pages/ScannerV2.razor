@@ -1,27 +1,130 @@
 ﻿@page "/scannerV2"
+@using MarketViewer.Contracts.Enums
+@using MarketViewer.Contracts.Models.Scan
+@using MarketViewer.Contracts.Models.ScanV2
+@using MarketViewer.Contracts.Models.Study
+@using MarketViewer.Contracts.Requests
 
 @inherits ComponentBase;
+
 @inject IJSRuntime JsRuntime;
+@inject Services.ScannerService ScannerService;
 
 <PageTitle>Scanner V2</PageTitle>
 
-@if (Argument is not null)
-{
-    <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="RemoveArgument">Delete</MudButton>
-    <ScanArgumentComponent PageId="PageId" Argument="Argument"></ScanArgumentComponent>
-}
-else
-{
-    <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" OnClick="AddArgument">Add Argument</MudButton>
-}
+<div id="scannerSettings" class="pa-2">
+    <MudExpansionPanels MultiExpansion="true">
+        <MudExpansionPanel IsInitiallyExpanded="true" HideIcon="true">
+            <TitleContent>
+                <div class="d-flex align-center">
+                    <MudText><strong>Filters</strong></MudText>
+                    <MudBadge Color="Color.Primary" Overlap="true" Class="d-flex ml-auto">
+                        <MudIcon Icon="@Icons.Material.Filled.FilterAlt" Size="Size.Large"></MudIcon>
+                    </MudBadge>
+                </div>
+            </TitleContent>
+            <ChildContent>
+                @if (Argument is not null)
+                {
+                    <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="RemoveArgument">Delete</MudButton>
+                    <ScanArgumentComponent PageId="@PageId" Argument="@Argument"></ScanArgumentComponent>
+                }
+                else
+                {
+                    <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" OnClick="AddArgument">Add Argument</MudButton>
+                }
+            </ChildContent>
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+</div>
+
+<MudPaper Id="scannerTable" Style="overflow-y: scroll;">
+    <MudTable Items="@ScannerEntries" FixedHeader="true" Virtualize="true" FixedFooter="true" RowClassFunc="@(SetRowDecayColor)" Loading="@(IsScannerEnabled && !ScannerEntries.Any())">
+        <ToolBarContent>
+            @if (IsScannerEnabled)
+            {
+                <MudButton Class="ma-2" Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.Stop" @onclick="() => IsScannerEnabled = false">Stop Scanning</MudButton>
+            }
+            else
+            {
+                <MudButton Class="ma-2" Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.PlayArrow" @onclick="StartScanning">Start Scanning</MudButton>
+            }
+            <MudSelect @bind-Value="@RefreshRate" Class="ma-2" Style="flex: none;" T="int" Label="RefreshRate" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
+                <MudSelectItem T="int" Value="5">5 seconds</MudSelectItem>
+                <MudSelectItem T="int" Value="10">10 seconds</MudSelectItem>
+                <MudSelectItem T="int" Value="15">15 seconds</MudSelectItem>
+                <MudSelectItem T="int" Value="30">30 seconds</MudSelectItem>
+                <MudSelectItem T="int" Value="60">1 minute</MudSelectItem>
+            </MudSelect>
+            <MudButton Class="ma-2" Style="flex: none;" Variant="Variant.Outlined" Color="Color.Warning" StartIcon="@Icons.Material.Filled.Clear" @onclick="() => ScannerEntries.RemoveAll(q => q.Decayed)">
+                Remove Old Entries
+            </MudButton>
+            <MudButton Class="ma-2" Style="flex: none;" Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.Clear" @onclick="() => ScannerEntries.Clear()">
+                Remove All Entries
+            </MudButton>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh Style="z-index: 1500;"><MudTableSortLabel SortBy="new Func<ScannerDisplayItem, object>(x => x.Item.Ticker)">Ticker</MudTableSortLabel></MudTh>
+            <MudTh Style="z-index: 1500;">Chart</MudTh>
+            <MudTh Style="z-index: 1500;"><MudTableSortLabel SortBy="new Func<ScannerDisplayItem, object>(x => x.Item.Price)">Price</MudTableSortLabel></MudTh>
+            <MudTh Style="z-index: 1500;"><MudTableSortLabel SortBy="new Func<ScannerDisplayItem, object>(x => x.Item.Volume)">Volume</MudTableSortLabel></MudTh>
+            <MudTh Style="z-index: 1500;"><MudTableSortLabel SortBy="new Func<ScannerDisplayItem, object>(x => x.Item.Float)">Float</MudTableSortLabel></MudTh>
+            <MudTh Style="z-index: 1500;"><MudTableSortLabel SortBy="new Func<ScannerDisplayItem, object>(x => x.Timestamp)" InitialDirection="SortDirection.Descending">Timestamp</MudTableSortLabel></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Ticker">@context.Item.Ticker</MudTd>
+            <MudTd DataLabel="Chart">
+                <MudButton OnClick="@(async () => await RemoveChartOnButtonHide(context))"
+                           Variant="Variant.Outlined"
+                           Size="Size.Small">
+                    @(context.Displayed ? "Hide" : "Show") Chart
+                </MudButton>
+            </MudTd>
+
+            <MudTd DataLabel="Price">@context.Item.Price</MudTd>
+            <MudTd DataLabel="Volume">@context.Item.Volume</MudTd>
+            <MudTd DataLabel="Float">@context.Item.Float</MudTd>
+            <MudTd DataLabel="Timestamp">@context.Timestamp.ToString("hh:mm:ss")</MudTd>
+        </RowTemplate>
+        <ChildRowContent>
+            @if (context.Displayed)
+            {
+                const int height = 400;
+                const int padding = 2;
+                <MudTr>
+                    <td colspan="6">
+                        <MudPaper Elevation="2" Class=@($"pa-{padding}") Height=@($"calc({height} - 38 - ({padding * 8}))px") Width="800px">
+                            <ChartComponent DisplayParameters="false" StocksRequest="@context.Request" @ref="@context.ChartComponent" Id="@context.Id" Height="100%" Width="100%" EnableScroll="false"></ChartComponent>
+                        </MudPaper>
+                    </td>
+                </MudTr>
+            }
+        </ChildRowContent>
+        <FooterContent>
+            <MudTd>Ticker</MudTd>
+            <MudTd>Chart</MudTd>
+            <MudTd>Price</MudTd>
+            <MudTd>Volume</MudTd>
+            <MudTd>Float</MudTd>
+            <MudTd>Timestamp</MudTd>
+        </FooterContent>
+    </MudTable>
+</MudPaper>
 
 @code {
+    [CascadingParameter] ClockComponent clockComponent { get; set; }
+
     public string PageId = Guid.NewGuid().ToString();
+    private bool IsScannerEnabled { get; set; } = false;
+    private int RefreshRate { get; set; } = 10;
+
     private ScanArgumentZone Argument;
+    private List<ScannerDisplayItem> ScannerEntries { get; set; } = new();
+
     private DotNetObjectReference<ScannerV2> ObjectReference;
     private IJSInProcessRuntime JsInProcessRuntime;
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
@@ -29,6 +132,7 @@ else
             ObjectReference = DotNetObjectReference.Create(this);
             JsInProcessRuntime.InvokeVoid("initializePage", PageId, ObjectReference);
         }
+        await JsRuntime.InvokeVoidAsync("AddScannerResize");
     }
 
     private void AddArgument()
@@ -73,7 +177,7 @@ else
         {
             return null;
         }
-        
+
         if (argument.Id == argumentId)
         {
             return argument;
@@ -85,6 +189,182 @@ else
         }
 
         return FindArgument(argument.Argument, argumentId);
+    }
+
+    private string SetRowDecayColor(ScannerDisplayItem item, int row)
+    {
+        var currentTime = clockComponent.GetTime();
+
+        if (item.Decayed && item.Timestamp.AddMinutes(5) < currentTime)
+        {
+            return "decay-2";
+        }
+        if (item.Decayed)
+        {
+            return "decay-1";
+        }
+        return "decay-0";
+    }
+
+    private void UpdateAggregates()
+    {
+        var enabledCharts = ScannerEntries.Where(q => q.Displayed);
+        foreach (var entry in enabledCharts)
+        {
+            var request = GenerateRequest(entry.Item.Ticker);
+            entry.Request = request;
+        }
+        StateHasChanged();
+    }
+
+    private StocksRequest GenerateRequest(string ticker)
+    {
+        var currentTime = clockComponent.GetTime();
+
+        var request = new StocksRequest
+            {
+                Ticker = ticker,
+                Multiplier = 1,
+                Timespan = Timespan.minute,
+                From = currentTime.AddHours(-6),
+                To = currentTime,
+                Studies = new List<StudyFields>
+            {
+                new ()
+                {
+                    Type = StudyType.vwap
+                },
+                new ()
+                {
+                    Type = StudyType.macd,
+                    Parameters = new [] {"12", "26", "9", $"{StudyType.ema}"}
+                }
+            }
+            };
+
+        return request;
+    }
+
+    private ScanArgument ConvertArgument(ScanArgumentZone scanArgumentZone)
+    {
+        if (scanArgumentZone is null)
+        {
+            return null;
+        }
+
+        var argument = new ScanArgument
+            {
+                Operator = scanArgumentZone.Operator,
+                Filters = []
+            };
+
+        foreach (var filter in scanArgumentZone.Filters)
+        {
+            argument.Filters.Add(new FilterV2
+            {
+                CollectionModifier = filter.CollectionModifier,
+                FirstOperand = filter.FirstOperand,
+                Operator = filter.Operator,
+                SecondOperand = filter.SecondOperand,
+                Timeframe = filter.Timeframe
+            });
+        }
+
+        var innerArgument = ConvertArgument(scanArgumentZone.Argument);
+
+        if (innerArgument is not null)
+        {
+            argument.Argument = innerArgument;
+        }
+
+        return argument;
+    }
+
+    private async void StartScanning()
+    {
+        IsScannerEnabled = true;
+
+        while (IsScannerEnabled)
+        {
+            var currentTime = clockComponent.GetTime();
+
+            var argument = ConvertArgument(Argument);
+
+            if (argument is null)
+            {
+                IsScannerEnabled = false;
+                StateHasChanged();
+                return;
+            }
+
+            var request = new ScanRequestV2
+            {
+                Argument = argument,
+                Timestamp = currentTime
+            };
+
+            var response = await ScannerService.ScanV2Async(request);
+
+            foreach (var item in response.Items)
+            {
+                var existingItem = ScannerEntries.FirstOrDefault(q => q.Item.Ticker.Equals(item.Ticker));
+                if (existingItem is not null)
+                {
+                    existingItem.Item.Price = item.Price;
+                    existingItem.Item.Volume = item.Volume;
+                    existingItem.Item.Float = item.Float;
+                    if (existingItem.Decayed)
+                    {
+                        existingItem.Decayed = false;
+                        existingItem.Timestamp = request.Timestamp;
+                    }
+                }
+                else
+                {
+                    ScannerEntries.Add(new ScannerDisplayItem
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Displayed = false,
+                        Decayed = false,
+                        Item = item,
+                        Timestamp = request.Timestamp.LocalDateTime
+                    });
+                }
+            }
+
+            var tickers = response.Items.Select(item => item.Ticker);
+            foreach (var entry in ScannerEntries)
+            {
+                if (!tickers.Contains(entry.Item.Ticker))
+                {
+                    entry.Decayed = true;
+                }
+            }
+
+            ScannerEntries.RemoveAll(q => !q.Timestamp.ToString("yyyy-MM-dd").Equals(currentTime.ToString("yyyy-MM-dd")));
+            ScannerEntries.RemoveAll(q => q.Timestamp.AddMinutes(60) < currentTime);
+
+            StateHasChanged();
+
+            await Task.Delay(RefreshRate * 1000);
+
+            UpdateAggregates();
+        }
+    }
+
+    private async Task RemoveChartOnButtonHide(ScannerDisplayItem item)
+    {
+        item.Displayed = !item.Displayed;
+        if (!item.Displayed)
+        {
+            await JsRuntime.InvokeVoidAsync("RemoveChart", item.Id);
+            item.ChartComponent = null;
+            item.Request = null;
+        }
+        else
+        {
+            item.Request = GenerateRequest(item.Item.Ticker);
+        }
     }
 }
 
@@ -124,5 +404,17 @@ else
 
     .drag-drop.can-drop {
         color: #000;
+    }
+
+    .decay-0 {
+        background-color: #00E676 !important
+    }
+
+    .decay-1 {
+        background-color: #FFF176 !important
+    }
+
+    .decay-2 {
+        background-color: #FF9E80 !important
     }
 </style>

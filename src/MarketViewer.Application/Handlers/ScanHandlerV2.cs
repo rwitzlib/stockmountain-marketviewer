@@ -107,7 +107,7 @@ public class ScanHandlerV2(
 
     private async Task<IEnumerable<ScanResponse.Item>> ApplyScanToArgument(ScanArgument argument, StocksResponseCollection stocksResponseCollection)
     {
-        if (argument is null || (argument.Operator is not "AND" && argument.Operator is not "OR") || argument.Filters.Length == 0)
+        if (argument is null || (argument.Operator is not "AND" && argument.Operator is not "OR") || argument.Filters.Count == 0)
         {
             return [];
         }

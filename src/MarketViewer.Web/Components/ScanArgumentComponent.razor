@@ -1,27 +1,34 @@
 ﻿@inject IJSRuntime JsRuntime;
 
-<MudPaper Elevation="@(Argument.Depth * 2)" Class="ma-4" id="outer-dropzone">
-    @if(Argument.Argument is null)
-    {
-        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" OnClick="AddInnerArgument">Add Argument</MudButton>
-    }
-    else
-    {
-        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="RemoveInnerArgument">Delete</MudButton>
-        <ScanArgumentComponent PageId="PageId" Parent="this" Argument="Argument.Argument"></ScanArgumentComponent>
-    }
-    <div class="dropdown">
-        <select class="form-select m-2" style="width: 150px">
-            <option selected value="1">AND</option>
-            <option value="2">OR</option>
-        </select>
-    </div>
-    <div id="@Argument.Id" class="card dropzone">
-        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" OnClick="AddFilter">Add Filter</MudButton>
-        @foreach (var filter in Argument.Filters)
+<MudPaper Elevation="@(Argument.Depth * 2)" Class="ma-4 row" id="outer-dropzone">
+    <div class="col-1">
+        <MudSelect @bind-Value="Argument.Operator" T="string" Label="Operator" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
+            <MudSelectItem Value="@("AND")" />
+            <MudSelectItem Value="@("OR")" />
+        </MudSelect>
+
+        @if (Argument.Argument is not null)
         {
-            <FilterComponent Argument="this" Filter="filter"></FilterComponent>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="RemoveInnerArgument">Delete</MudButton>
         }
+    </div>
+    <div class="col-11">
+        @if (Argument.Argument is null)
+        {
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" OnClick="AddInnerArgument">Add Argument</MudButton>
+        }
+        else
+        {
+            <ScanArgumentComponent PageId="@PageId" Parent="this" Argument="Argument.Argument"></ScanArgumentComponent>
+        }
+
+        <div id="@Argument.Id" class="card dropzone">
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" OnClick="AddFilter">Add Filter</MudButton>
+            @foreach (var filter in Argument.Filters)
+            {
+                <FilterComponent Argument="this" Filter="filter"></FilterComponent>
+            }
+        </div>
     </div>
 </MudPaper>
 

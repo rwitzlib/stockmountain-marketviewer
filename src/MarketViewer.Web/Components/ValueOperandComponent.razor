@@ -1,8 +1,8 @@
 ﻿@using MarketViewer.Contracts.Enums
 @using MarketViewer.Contracts.Models.ScanV2
 
-<MudPaper Elevation="11" Class="d-flex gap-4 pa-2" Style="width: 100px">
-    <MudNumericField Style="width: 40px" @bind-Value="Operand.Value" Label="Value" Variant="Variant.Text" Min="1" Max="60" />
+<MudPaper Elevation="11" Class="d-flex gap-4 pa-2">
+    <MudNumericField @bind-Value="Operand.Value" Label="Value" Variant="Variant.Text" />
 </MudPaper>
 
 @code {
