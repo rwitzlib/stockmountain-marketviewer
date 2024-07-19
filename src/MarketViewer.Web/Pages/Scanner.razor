@@ -117,10 +117,6 @@
     [CascadingParameter] ClockComponent clockComponent { get; set; }
 
     #region Protected Methods
-    protected override void OnInitialized()
-    {
-    }
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await JsRuntime.InvokeVoidAsync("AddScannerResize");

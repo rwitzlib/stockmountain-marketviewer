@@ -2,6 +2,7 @@
 using MarketViewer.Contracts.Models.ScanV2;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -59,11 +60,11 @@ public class ScanArgumentConverter : System.Text.Json.Serialization.JsonConverte
 
             var count = filters.GetArrayLength();
 
-            scanArgument.Filters = new FilterV2[count];
+            scanArgument.Filters = [];
             for (int i = 0; i < count; i++)
             {
                 enumerator.MoveNext();
-                scanArgument.Filters[i] = ParseFilter(enumerator.Current);
+                scanArgument.Filters.Add(ParseFilter(enumerator.Current));
             }
         }
 
