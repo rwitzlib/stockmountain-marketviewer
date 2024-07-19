@@ -1,47 +1,144 @@
-const argumentsForPage = {};
+const pages = {};
 
-function initializeArgumentsForPage(id) {
+function initializePage(pageId, dotnetObjectReference) {
     let page = {
-        arguments = {}
+        dotnetObjectReference: dotnetObjectReference
     };
-    argumentsForPage[id] = page;
+    pages[pageId] = page;
 }
 
-function addArgument(pageId, argumentId) {
-    argumentsForPage[pageId].arguments[argumentId] = {
-        fitlers = {}
+function getPageIdFromArgumentId(argumentId) {
+    let pageIds = Object.keys(pages);
+
+    for (let i = 0; i < pageIds.length; i++) {
+        let pageId = pageIds[i];
+
+        let page = pages[pageId];
+
+        let initialArgument = page.argument;
+
+        let argument = findArgumentById(initialArgument, argumentId)
+
+        if (argument != undefined || argument != null) {
+            return pageId;
+        }
+    }
+    return null;
+}
+
+function addInitialArgument(pageId, argumentId) {
+    let page = pages[pageId];
+    page.argument = {
+        id: argumentId,
+        filters: {}
+    }
+}
+
+function removeInitialArgument(pageId) {
+    delete pages[pageId].argument;
+}
+
+function addArgumentToArgument(pageId, outerArgumentId, innerArgumentId) {
+    let initialArgument = pages[pageId].argument;
+
+    let argument = findArgumentById(initialArgument, outerArgumentId);
+
+    if (argument === null) {
+        // TODO throw error?
+        return;
+    }
+
+    argument.argument = {
+        id: innerArgumentId,
+        filters: {}
     };
 }
 
-function removeArgument(pageId, argumentId) {
+function findArgumentById(argument, argumentIdToFind) {
+    if (argument === undefined || argument.id === undefined) {
+        // TODO throw error?
+        return null;
+    }
 
+    if (argument.id === argumentIdToFind) {
+        return argument;
+    }
+
+    if (argument.argument === undefined || argument.argument.id === undefined) {
+        //TODO throw error?
+        return null;
+    }
+
+    
+    if (argument.argument.id === argumentIdToFind) {
+        return argument.argument;
+    }
+
+    return findArgumentById(argument.argument, argumentIdToFind);    
 }
 
-function addFilter(pageId, argumentId, filterId) {
+function removeArgumentFromArgument(pageId, outerArgumentId) {
+    let initialArgument = pages[pageId].argument;
 
+    let argument = findArgumentById(initialArgument, outerArgumentId);
+
+    if (argument === null) {
+        // TODO throw error?
+        return;
+    }
+
+    delete argument.argument
+}
+
+function addFilterToArgument(pageId, argumentId, filterId) {
+    let initialArgument = pages[pageId].argument;
+
+    let argument = findArgumentById(initialArgument, argumentId);
+
+    if (argument === null) {
+        // TODO throw error?
+        return;
+    }
+
+    argument.filters[filterId] = filterId;
 }
 
 function moveFilter(pageId, sourceArgumentId, destinationArgumentId, filterId) {
+    addFilterToArgument(pageId, destinationArgumentId, filterId);
+    removeFilterFromArgument(pageId, sourceArgumentId, filterId);
 
+    let destinationElement = document.getElementById(destinationArgumentId);
+    let filterElement = document.getElementById(filterId);
+
+    destinationElement.appendChild(filterElement);
+
+    filterElement.style.transform = 'translate(0px, 0px)';
+
+    filterElement.setAttribute('data-x', 0);
+    filterElement.setAttribute('data-y', 0);
+
+    pages[pageId].dotnetObjectReference.invokeMethod("MoveFilter", sourceArgumentId, destinationArgumentId, filterId);
+
+    return;
 }
 
-function removeFilter(pageId, argumentId, filterId) {
+function removeFilterFromArgument(pageId, argumentId, filterId) {
+    let initialArgument = pages[pageId].argument;
 
+    let argument = findArgumentById(initialArgument, argumentId);
+
+    if (argument === null) {
+        // TODO throw error?
+        return;
+    }
+
+    delete argument.filters[filterId];
 }
 
-// target elements with the "draggable" class
 interact('.draggable')
     .draggable({
-        // enable inertial throwing
         inertia: true,
-        // keep the element within the area of it's parent
-        modifiers: [
-            interact.modifiers.restrictRect({
-                restriction: 'parent',
-                endOnly: true
-            })
-        ],
-        // enable autoScroll
+        modifiers: [],
         autoScroll: true,
 
         listeners: {
@@ -89,25 +186,45 @@ interact('.dropzone').dropzone({
 
     ondropactivate: function (event) {
         // add active dropzone feedback
-        event.target.classList.add('drop-active')
-    },
-    ondragenter: function (event) {
+
         var draggableElement = event.relatedTarget
         var dropzoneElement = event.target
 
+        event.target.classList.add('drop-active')
+
+        //if (draggableElement.parentElement.id != dropzoneElement.id) {
+        //}
+    },
+    ondragenter: function (event) {
         // feedback the possibility of a drop
+
+        var draggableElement = event.relatedTarget
+        var dropzoneElement = event.target
+
         dropzoneElement.classList.add('drop-target')
         draggableElement.classList.add('can-drop')
-        //draggableElement.textContent = 'Dragged in'
+
+        //if (event.relatedTarget.parentElement.id != dropzoneElement.id) {
+            
+        //}
+
     },
     ondragleave: function (event) {
         // remove the drop feedback style
         event.target.classList.remove('drop-target')
         event.relatedTarget.classList.remove('can-drop')
-        //event.relatedTarget.textContent = 'Dragged out'
     },
     ondrop: function (event) {
-        //event.relatedTarget.textContent = 'Dropped'
+        var draggableElement = event.relatedTarget
+        var startDropZone = event.relatedTarget.parentElement
+        var endDropZone = event.target
+
+
+        if (event.relatedTarget.classList.contains("filter")) {
+            let pageId = getPageIdFromArgumentId(startDropZone.id);
+
+            moveFilter(pageId, startDropZone.id, endDropZone.id, draggableElement.id)
+        }
     },
     ondropdeactivate: function (event) {
         // remove active dropzone feedback
@@ -120,10 +237,6 @@ interact('.drag-drop')
     .draggable({
         inertia: true,
         modifiers: [
-            interact.modifiers.restrictRect({
-                restriction: 'parent',
-                endOnly: true
-            })
         ],
         autoScroll: true,
         // dragMoveListener from the dragging demo above

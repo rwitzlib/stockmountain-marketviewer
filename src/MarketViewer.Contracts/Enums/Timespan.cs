@@ -6,7 +6,7 @@ namespace MarketViewer.Contracts.Enums;
 public enum Timespan
 {
     minute,
-    hour = 60,
+    hour,
     day,
     week,
     month,

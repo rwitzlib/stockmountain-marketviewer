@@ -1,0 +1,127 @@
+﻿@using MarketViewer.Contracts.Enums
+@using MarketViewer.Contracts.Models.ScanV2
+@using FilterOperator = MarketViewer.Contracts.Models.Scan.FilterOperator;
+
+@inject IJSRuntime JsRuntime;
+
+<MudPaper Elevation="10" id="@Filter.Id" Class="d-flex flex-grow-1 gap-4 justify-content-center drag-drop filter">
+    <MudSelect @bind-Value="Filter.CollectionModifier" T="string" Label="Collection" AnchorOrigin="Origin.BottomCenter">
+        <MudSelectItem Value="@("All")" />
+        <MudSelectItem Value="@("Any")" />
+    </MudSelect>
+
+    <MudSelect T="OperandType" Label="First Operand" AnchorOrigin="Origin.BottomCenter" ValueChanged="AddFirstOperand">
+        @foreach (OperandType type in Enum.GetValues(typeof(OperandType)))
+        {
+            <MudSelectItem Value="@type">@type</MudSelectItem>
+        }
+    </MudSelect>
+
+    @if (Filter.FirstOperandType is OperandType.PriceAction)
+    {
+        <PriceActionOperandComponent Operand="Filter.FirstOperand as PriceActionOperand" ></PriceActionOperandComponent>
+    }
+    else if (Filter.FirstOperandType is OperandType.Study)
+    {
+        <StudyOperandComponent Operand="Filter.FirstOperand as StudyOperand"></StudyOperandComponent>
+    }
+    else if (Filter.FirstOperandType is OperandType.Value)
+    {
+        <ValueOperandComponent Operand="Filter.FirstOperand as ValueOperand"></ValueOperandComponent>
+    }
+
+    <MudSelect @bind-Value="Filter.Operator" T="FilterOperator" Label="Operator" AnchorOrigin="Origin.BottomCenter">
+        <MudSelectItem Value="FilterOperator.gt">@(">")</MudSelectItem>
+        <MudSelectItem Value="FilterOperator.ge">@(">=")</MudSelectItem>
+        <MudSelectItem Value="FilterOperator.eq">@("==")</MudSelectItem>
+        <MudSelectItem Value="FilterOperator.le">@("<=")</MudSelectItem>
+        <MudSelectItem Value="FilterOperator.lt">@("<")</MudSelectItem>
+    </MudSelect>
+
+    <MudSelect T="OperandType" Label="Second Operand" AnchorOrigin="Origin.BottomCenter" ValueChanged="AddSecondOperand">
+        @foreach (OperandType type in Enum.GetValues(typeof(OperandType)))
+        {
+            <MudSelectItem Value="@type">@type</MudSelectItem>
+        }
+    </MudSelect>
+
+    @if (Filter.SecondOperandType is OperandType.PriceAction)
+    {
+        <PriceActionOperandComponent Operand="Filter.SecondOperand as PriceActionOperand"></PriceActionOperandComponent>
+    }
+    else if (Filter.SecondOperandType is OperandType.Study)
+    {
+        <StudyOperandComponent Operand="Filter.SecondOperand as StudyOperand"></StudyOperandComponent>
+    }
+    else if (Filter.SecondOperandType is OperandType.Value)
+    {
+        <ValueOperandComponent Operand="Filter.SecondOperand as ValueOperand"></ValueOperandComponent>
+    }
+
+    <MudNumericField @bind-Value="Filter.Timeframe.Multiplier" Label="Multiplier" Variant="Variant.Text" Min="1" Max="60" />
+
+    <MudSelect @bind-Value="Filter.Timeframe.Timespan" T="Timespan" Label="Timespan" AnchorOrigin="Origin.BottomCenter">
+        @foreach (Timespan type in Enum.GetValues(typeof(Timespan)))
+        {
+            <MudSelectItem Value="@type">@type</MudSelectItem>
+        }
+    </MudSelect>
+
+    <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => Argument.RemoveFilter(Filter)">Delete</MudButton>
+</MudPaper>
+
+@code {
+    [Parameter] public ScanArgumentComponent Argument { get; set; }
+    [Parameter] public FilterItem Filter { get; set; }
+
+    private IJSInProcessRuntime JsInProcessRuntime;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+
+    private void AddFirstOperand(OperandType type)
+    {
+        Filter.FirstOperandType = type;
+        if (type is OperandType.PriceAction)
+        {
+            Filter.FirstOperand = new PriceActionOperand();
+        }
+        else if (type is OperandType.Study)
+        {
+            Filter.FirstOperand = new StudyOperand();
+
+        }
+        else if (type is OperandType.Value)
+        {
+            Filter.FirstOperand = new ValueOperand();
+        }
+    }
+
+    private void AddSecondOperand(OperandType type)
+    {
+        Filter.SecondOperandType = type;
+        if (type is OperandType.PriceAction)
+        {
+            Filter.SecondOperand = new PriceActionOperand();
+        }
+        else if (type is OperandType.Study)
+        {
+            Filter.SecondOperand = new StudyOperand();
+
+        }
+        else if (type is OperandType.Value)
+        {
+            Filter.SecondOperand = new ValueOperand();
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            JsInProcessRuntime = (IJSInProcessRuntime)JsRuntime;
+        }
+    }
+}
