@@ -2,6 +2,19 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PackageId>MarketViewer.Contracts</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Robert Witzlib</Authors>
+    <Description>
+      .NET project containing models, request and response contracts for MarketViewer.
+    </Description>
+    <Product>MarketDataProvider.Contracts</Product>
+    <PackageProjectUrl>https://github.com/rwitzlib/stockmountain-marketviewer</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/rwitzlib/stockmountain-marketviewer</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReleaseNotes>Publish initial contracts</PackageReleaseNotes>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
