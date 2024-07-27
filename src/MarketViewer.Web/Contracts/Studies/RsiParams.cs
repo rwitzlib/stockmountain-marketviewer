@@ -10,7 +10,7 @@ namespace MarketViewer.Web.Contracts.Studies
             OverboughtLevel = 70;
             OversoldLevel = 30;
             
-            Pane = 1;
+            Pane = 2;
         }
 
         public RsiParams(IReadOnlyList<string> parameters)
@@ -18,7 +18,7 @@ namespace MarketViewer.Web.Contracts.Studies
             OverboughtLevel = 70;
             OversoldLevel = 30;
             
-            Pane = 1;
+            Pane = 2;
         }
         
         // TODO: For profile-based creation

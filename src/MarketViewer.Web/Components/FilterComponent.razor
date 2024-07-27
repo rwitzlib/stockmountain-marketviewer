@@ -8,6 +8,7 @@
     <MudSelect @bind-Value="Filter.CollectionModifier" T="string" Label="Collection" AnchorOrigin="Origin.BottomCenter">
         <MudSelectItem Value="@("All")" />
         <MudSelectItem Value="@("Any")" />
+        <MudSelectItem Value="@("Average")" />
     </MudSelect>
 
     <MudSelect T="OperandType" Label="First Operand" AnchorOrigin="Origin.BottomCenter" ValueChanged="AddFirstOperand">

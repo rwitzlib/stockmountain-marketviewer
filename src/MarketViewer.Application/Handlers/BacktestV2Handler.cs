@@ -2,7 +2,7 @@
 using Amazon.Lambda.Model;
 using FluentValidation;
 using MarketViewer.Contracts.Models;
-using MarketViewer.Contracts.Models.Backtest;
+using MarketViewer.Contracts.Models.BacktestV2;
 using MarketViewer.Contracts.Requests;
 using MarketViewer.Contracts.Responses;
 using MediatR;
@@ -21,9 +21,9 @@ namespace MarketViewer.Application.Handlers;
 public class BacktestV2Handler(
     //IValidator<BacktestV2Request> validator,
     IAmazonLambda amazonLambda,
-    ILogger<BacktestV2Handler> logger) : IRequestHandler<BacktestV2Request, OperationResult<BacktestResponse>>
+    ILogger<BacktestV2Handler> logger) : IRequestHandler<BacktestV2Request, OperationResult<BacktestV2Response>>
 {
-    public async Task<OperationResult<BacktestResponse>> Handle(BacktestV2Request request, CancellationToken cancellationToken)
+    public async Task<OperationResult<BacktestV2Response>> Handle(BacktestV2Request request, CancellationToken cancellationToken)
     {
         //var validationResult = validator.Validate(request);
 
@@ -42,14 +42,13 @@ public class BacktestV2Handler(
             request.End.ToString("yyyy-MM-dd"),
             days.Count());
 
-        var tasks = new List<Task<BacktestEntry>>();
+        var tasks = new List<Task<BacktestEntryV2>>();
         foreach (var day in days)
         {
             var backtesterLambdaRequest = new BacktesterLambdaV2Request
             {
                 Timestamp = day.Date,
-                ExitType = request.ExitType,
-                ExitStrategy = request.ExitStrategy,
+                DetailedResponse = request.DetailedResponse,
                 PositionSize = request.PositionSize,
                 Multiplier = request.Multiplier,
                 Timespan = request.Timespan,
@@ -66,29 +65,42 @@ public class BacktestV2Handler(
             return GenerateErrorResponse(HttpStatusCode.NotFound, ["No results."]);
         }
 
-        var longAvg = Math.Truncate(validResults.Sum(entry => entry.LongRatio) / validResults.Count() * 100) / 100;
-        var shortAvg = Math.Truncate(validResults.Sum(entry => entry.ShortRatio) / validResults.Count() * 100) / 100;
-
-        var longPositionAvgChange = validResults.Sum(entry => entry.LongPositionChange) / validResults.Count();
-        var shortPositionAvgChange = validResults.Sum(entry => entry.ShortPositionChange) / validResults.Count();
-
-        return new OperationResult<BacktestResponse>
+        return new OperationResult<BacktestV2Response>
         {
             Status = HttpStatusCode.OK,
-            Data = new BacktestResponse
+            Data = new BacktestV2Response
             {
                 RequestId = Guid.NewGuid(),
-                Results = validResults,
-                ResultsCount = validResults.Count(),
-                LongRatioAvg = longAvg,
-                ShortRatioAvg = shortAvg,
-                LongPositionAvgChange = longPositionAvgChange,
-                ShortPositionAvgChange = shortPositionAvgChange
+                Hold = new BackTestEntryStats
+                {
+                    PositiveTrendRatio = validResults.Average(result => result.Hold.PositiveTrendRatio),
+                    HighPosition = validResults.Average(result => result.Hold.HighPosition),
+                    LowPosition = validResults.Average(result => result.Hold.LowPosition),
+                    AvgPosition = validResults.Average(result => result.Hold.AvgPosition),
+                    SumProfit = validResults.Average(result => result.Hold.SumProfit),
+                },
+                High = new BackTestEntryStats
+                {
+                    PositiveTrendRatio = validResults.Average(result => result.High.PositiveTrendRatio),
+                    HighPosition = validResults.Average(result => result.High.HighPosition),
+                    LowPosition = validResults.Average(result => result.High.LowPosition),
+                    AvgPosition = validResults.Average(result => result.High.AvgPosition),
+                    SumProfit = validResults.Average(result => result.High.SumProfit),
+                },
+                Average = new BackTestEntryStats
+                {
+                    PositiveTrendRatio = validResults.Average(result => result.Average.PositiveTrendRatio),
+                    HighPosition = validResults.Average(result => result.Average.HighPosition),
+                    LowPosition = validResults.Average(result => result.Average.LowPosition),
+                    AvgPosition = validResults.Average(result => result.Average.AvgPosition),
+                    SumProfit = validResults.Average(result => result.Average.SumProfit),
+                },
+                Results = validResults
             }
         };
     }
 
-    private async Task<BacktestEntry> BacktestDay(BacktesterLambdaV2Request request)
+    private async Task<BacktestEntryV2> BacktestDay(BacktesterLambdaV2Request request)
     {
         try
         {
@@ -111,7 +123,7 @@ public class BacktestV2Handler(
             var streamReader = new StreamReader(response.Payload);
             var result = streamReader.ReadToEnd();
 
-            var backtestEntry = JsonSerializer.Deserialize<BacktestEntry>(result);
+            var backtestEntry = JsonSerializer.Deserialize<BacktestEntryV2>(result);
 
             return backtestEntry;
         }
@@ -121,9 +133,9 @@ public class BacktestV2Handler(
         }
     }
 
-    private static OperationResult<BacktestResponse> GenerateErrorResponse(HttpStatusCode status, IEnumerable<string> errors)
+    private static OperationResult<BacktestV2Response> GenerateErrorResponse(HttpStatusCode status, IEnumerable<string> errors)
     {
-        return new OperationResult<BacktestResponse>
+        return new OperationResult<BacktestV2Response>
         {
             Status = status,
             ErrorMessages = errors

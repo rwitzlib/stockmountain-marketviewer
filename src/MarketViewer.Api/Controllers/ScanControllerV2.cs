@@ -14,7 +14,7 @@ namespace MarketViewer.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Scan([FromBody] ScanRequestV2 request)
+        public async Task<IActionResult> Scan([FromBody] ScanV2Request request)
         {
             try
             {

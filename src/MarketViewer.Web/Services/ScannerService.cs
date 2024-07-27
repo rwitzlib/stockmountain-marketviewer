@@ -40,7 +40,7 @@ namespace MarketViewer.Web.Services
             }
         }
 
-        public async Task<ScanResponse> ScanV2Async(ScanRequestV2 request)
+        public async Task<ScanResponse> ScanV2Async(ScanV2Request request)
         {
             try
             {
