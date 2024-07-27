@@ -11,8 +11,7 @@ namespace MarketViewer.Contracts.Requests;
 public class BacktesterLambdaV2Request
 {
     public DateTimeOffset Timestamp { get; set; }
-    public string ExitStrategy { get; set; }
-    public string ExitType { get; set; }
+    public bool DetailedResponse { get; set; } = false;
     public float PositionSize { get; set; }
     public Timespan Timespan { get; set; }
     public int Multiplier { get; set; }

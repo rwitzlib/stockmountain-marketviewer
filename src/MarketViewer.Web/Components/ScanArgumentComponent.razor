@@ -1,4 +1,7 @@
-﻿@inject IJSRuntime JsRuntime;
+﻿@using MarketViewer.Contracts.Enums
+@using MarketViewer.Contracts.Models.ScanV2
+@using FilterOperator = MarketViewer.Contracts.Models.Scan.FilterOperator;
+@inject IJSRuntime JsRuntime;
 
 <MudPaper Elevation="@(Argument.Depth * 2)" Class="ma-4 row" id="outer-dropzone">
     <div class="col-1">
@@ -44,6 +47,87 @@
         if (firstRender)
         {
             JsInProcessRuntime = (IJSInProcessRuntime)JsRuntime;
+            AddFilter();
+            var id1 = Argument.Filters[0].Id;
+            Argument.Filters[0] = new FilterItem
+            {
+                Id = id1,
+                CollectionModifier = "ALL",
+                FirstOperandType = OperandType.Study,
+                FirstOperand = new StudyOperand
+                {
+                    Modifier = OperandModifier.Slope,
+                    Type = StudyType.rsi,
+                    Parameters = null,
+                    Multiplier = 1,
+                    Timespan = Timespan.minute
+                },
+                Operator = FilterOperator.gt,
+                SecondOperandType = OperandType.Value,
+                SecondOperand = new ValueOperand
+                {
+                    Value = 3
+                },
+                Timeframe = new Timeframe
+                {
+                    Multiplier = 5,
+                    Timespan = Timespan.minute
+                }
+            };
+            AddFilter();
+            var id2 = Argument.Filters[0].Id;
+            Argument.Filters[1] = new FilterItem
+            {
+                Id = id2,
+                CollectionModifier = "ALL",
+                FirstOperandType = OperandType.Study,
+                FirstOperand = new StudyOperand
+                {
+                    Modifier = OperandModifier.Slope,
+                    Type = StudyType.macd,
+                    Parameters = "12,26,9,ema",
+                    Multiplier = 1,
+                    Timespan = Timespan.minute
+                },
+                Operator = FilterOperator.gt,
+                SecondOperandType = OperandType.Value,
+                SecondOperand = new ValueOperand
+                {
+                    Value = 0
+                },
+                Timeframe = new Timeframe
+                {
+                    Multiplier = 5,
+                    Timespan = Timespan.minute
+                }
+            };
+            AddFilter();
+            var id3 = Argument.Filters[0].Id;
+            Argument.Filters[2] = new FilterItem
+            {
+                Id = id3,
+                CollectionModifier = "ANY",
+                FirstOperandType = OperandType.Study,
+                FirstOperand = new StudyOperand
+                {
+                    Modifier = OperandModifier.Value,
+                    Type = StudyType.macd,
+                    Parameters = "12,26,9,ema",
+                    Multiplier = 1,
+                    Timespan = Timespan.minute
+                },
+                Operator = FilterOperator.le,
+                SecondOperandType = OperandType.Value,
+                SecondOperand = new ValueOperand
+                {
+                    Value = 0
+                },
+                Timeframe = new Timeframe
+                {
+                    Multiplier = 10,
+                    Timespan = Timespan.minute
+                }
+            };
         }
     }
 

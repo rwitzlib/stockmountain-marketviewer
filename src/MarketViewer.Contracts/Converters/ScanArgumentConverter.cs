@@ -3,6 +3,7 @@ using MarketViewer.Contracts.Models.ScanV2;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata.Ecma335;
 using System.Text.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -107,6 +108,7 @@ public class ScanArgumentConverter : System.Text.Json.Serialization.JsonConverte
     {
         var json = jsonElement.GetRawText();
 
+
         if (jsonElement.TryGetProperty("Name", out var name))
         {
             return name.ToString() switch
@@ -114,10 +116,10 @@ public class ScanArgumentConverter : System.Text.Json.Serialization.JsonConverte
                 "PriceAction" => JsonSerializer.Deserialize<PriceActionOperand>(json),
                 "Study" => JsonSerializer.Deserialize<StudyOperand>(json),
                 "Value" => JsonSerializer.Deserialize<ValueOperand>(json),
-                _ => throw new NotImplementedException()
+                _ => null
             };
         }
 
-        throw new NotImplementedException();
+        return null;
     }
 }

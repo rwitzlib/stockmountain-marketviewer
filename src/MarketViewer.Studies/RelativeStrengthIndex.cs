@@ -7,13 +7,13 @@ public class RelativeStrengthIndex : Study<RelativeStrengthIndex>
 {
     protected override bool ValidateParameters(IReadOnlyList<object> parameters)
     {
-        if (parameters is not null)
+        if (parameters is null ||  parameters.Count == 0)
         {
-            ErrorMessages.Add("Too many parameters.");
-            return false;
+            return true;
         }
-        
-        return true;
+
+        ErrorMessages.Add("Too many parameters.");
+        return false;
     }
     
     protected override List<List<LineEntry>> Initialize(Bar[] candleData)
@@ -22,6 +22,11 @@ public class RelativeStrengthIndex : Study<RelativeStrengthIndex>
 
         float previousAverageGain = 0;
         float previousAverageLoss = 0;
+
+        if (candleData.Length < 14)
+        {
+            return [series];
+        }
 
         for (var i = 1; i < 14; i++)
         {
@@ -36,11 +41,11 @@ public class RelativeStrengthIndex : Study<RelativeStrengthIndex>
             }
         }
 
-        for (var i = 14; i < candleData.Count(); i++)
+        for (var i = 14; i < candleData.Length; i++)
         {
             var currentChange = candleData[i].Close - candleData[i - 1].Close;
-            float averageGain = 0;
-            float averageLoss = 0;
+            float averageLoss;
+            float averageGain;
             if (currentChange > 0)
             {
                 averageGain = (previousAverageGain * 13 + currentChange) / 14;
@@ -66,9 +71,6 @@ public class RelativeStrengthIndex : Study<RelativeStrengthIndex>
             previousAverageLoss = averageLoss;
         }
 
-        return
-        [
-            series
-        ];
+        return [series];
     }
 }

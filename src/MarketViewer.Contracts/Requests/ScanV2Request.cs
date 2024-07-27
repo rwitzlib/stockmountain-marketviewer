@@ -9,7 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace MarketViewer.Contracts.Requests;
 
 [ExcludeFromCodeCoverage]
-public class ScanRequestV2 : IRequest<OperationResult<ScanResponse>>
+public class ScanV2Request : IRequest<OperationResult<ScanResponse>>
 {
     public ScanArgument Argument { get; set; }
     public DateTimeOffset Timestamp { get; set; }

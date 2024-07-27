@@ -23,9 +23,9 @@ public class ScanHandlerV2(
     LiveCache liveCache,
     HistoryCache backtestingCache,
     ScanFilterFactoryV2 scanFilterFactory,
-    ILogger<ScanHandlerV2> logger) : IRequestHandler<ScanRequestV2, OperationResult<ScanResponse>>
+    ILogger<ScanHandlerV2> logger) : IRequestHandler<ScanV2Request, OperationResult<ScanResponse>>
 {
-    public async Task<OperationResult<ScanResponse>> Handle(ScanRequestV2 request, CancellationToken cancellationToken)
+    public async Task<OperationResult<ScanResponse>> Handle(ScanV2Request request, CancellationToken cancellationToken)
     {
         try
         {
@@ -107,7 +107,7 @@ public class ScanHandlerV2(
 
     private async Task<IEnumerable<ScanResponse.Item>> ApplyScanToArgument(ScanArgument argument, StocksResponseCollection stocksResponseCollection)
     {
-        if (argument is null || (argument.Operator is not "AND" && argument.Operator is not "OR") || argument.Filters.Count == 0)
+        if (argument is null || (argument.Operator is not "AND" && argument.Operator is not "OR" && argument.Operator is not "AVERAGE") || argument.Filters.Count == 0)
         {
             return [];
         }
@@ -163,6 +163,11 @@ public class ScanHandlerV2(
 
         foreach (var stocksResponse in stocksResponses)
         {
+            List<string> debugTickers = [ "AI" ];
+            if (debugTickers.Contains(stocksResponse.Ticker))
+            {
+
+            }
             bool passesFilter = false;
 
             var firstFilter = scanFilterFactory.GetScanFilter(filter.FirstOperand);
@@ -238,6 +243,31 @@ public class ScanHandlerV2(
 
                         case FilterOperator.gt:
                             passesFilter = firstOperandResult.Zip(secondOperandResult, (x, y) => x > y).Any(result => result == true);
+                            break;
+                    }
+                    break;
+
+                case "average": 
+                    switch (filter.Operator)
+                    {
+                        case FilterOperator.lt:
+                            passesFilter = (firstOperandResult.Sum() / firstOperandResult.Length) < (secondOperandResult.Sum() / secondOperandResult.Length);
+                            break;
+
+                        case FilterOperator.le:
+                            passesFilter = (firstOperandResult.Sum() / firstOperandResult.Length) <= (secondOperandResult.Sum() / secondOperandResult.Length);
+                            break;
+
+                        case FilterOperator.eq:
+                            passesFilter = (firstOperandResult.Sum() / firstOperandResult.Length) == (secondOperandResult.Sum() / secondOperandResult.Length);
+                            break;
+
+                        case FilterOperator.ge:
+                            passesFilter = (firstOperandResult.Sum() / firstOperandResult.Length) >= (secondOperandResult.Sum() / secondOperandResult.Length);
+                            break;
+
+                        case FilterOperator.gt:
+                            passesFilter = (firstOperandResult.Sum() / firstOperandResult.Length) > (secondOperandResult.Sum() / secondOperandResult.Length);
                             break;
                     }
                     break;
