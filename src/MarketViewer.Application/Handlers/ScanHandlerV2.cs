@@ -48,8 +48,6 @@ public class ScanHandlerV2(
 
             sp.Stop();
 
-            logger.LogInformation("Scan results after filtering: {count}", items.Count());
-
             return new OperationResult<ScanResponse>
             {
                 Status = HttpStatusCode.OK,
