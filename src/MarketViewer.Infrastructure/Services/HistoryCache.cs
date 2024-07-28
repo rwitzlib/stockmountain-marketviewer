@@ -73,7 +73,7 @@ public class HistoryCache(
 
         var tickers = memoryCache.Get<IEnumerable<string>>($"Tickers/{timestamp.Date:yyyyMMdd}");
 
-        logger.LogInformation("Removing candles outside of {timestamp}.", timestamp);
+        //logger.LogInformation("Removing candles outside of {timestamp}.", timestamp);
         var time = timestamp.ToUnixTimeMilliseconds();
 
         foreach (var ticker in tickers)
@@ -96,7 +96,7 @@ public class HistoryCache(
             });
         }
 
-        logger.LogInformation("Returning {count} total aggregates.", stocksResponses.Count);
+        //logger.LogInformation("Returning {count} total aggregates.", stocksResponses.Count);
 
         return stocksResponses;
     }
@@ -110,7 +110,7 @@ public class HistoryCache(
 
         var tickers = memoryCache.Get<IEnumerable<string>>($"Tickers/{timestamp.Date:yyyyMMdd}");
 
-        logger.LogInformation("Removing candles outside of {timestamp}.", timestamp);
+        //logger.LogInformation("Removing candles outside of {timestamp}.", timestamp);
         var time = timestamp.ToUnixTimeMilliseconds();
 
         var stocksResponseCollection = new StocksResponseCollection();
