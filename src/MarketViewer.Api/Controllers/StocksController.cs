@@ -19,11 +19,6 @@ namespace MarketViewer.Api.Controllers
             {
                 var response = await mediator.Send(request);
 
-                foreach (var errorMessage in response.ErrorMessages)
-                {
-                    logger.LogInformation("Error: {error}", errorMessage);
-                }
-
                 return response.Status switch
                 {
                     HttpStatusCode.OK => Ok(response.Data),
