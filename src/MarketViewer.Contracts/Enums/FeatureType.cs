@@ -2,6 +2,7 @@
 
 public enum FeatureType
 {
-    Timeframe,
+    Ticker,
+    EntryTime,
     DayOfWeek
 }

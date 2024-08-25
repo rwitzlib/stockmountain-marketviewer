@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
 namespace MarketViewer.Contracts.Models.BacktestV2;
 
@@ -9,10 +10,9 @@ public class BacktestEntryV2
 {
     public Guid EntryId { get; set; }
     public DateTime Date { get; set; }
-    public double LongRatio { get; set; }
     public BackTestEntryStats Hold { get; set; }
     public BackTestEntryStats High { get; set; }
-    public BackTestEntryStats Average { get; set; }
+    public BackTestEntryStats Other { get; set; }
     public List<List<BackTestEntryResult>> Results { get; set; } 
 }
 
@@ -29,9 +29,18 @@ public class BackTestEntryResult
 {
     public string Name { get; set; }
     public string Ticker { get; set; }
-    public DateTimeOffset Timestamp { get; set; }
-    public float StartPrice { get; set; }
-    public float ExitPrice { get; set; }
-    public float Position { get; set; }
+    public DateTimeOffset Start { get; set; }
+    public DateTimeOffset End { get; set; }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public DayOfWeek Day { get; set; }
+    public float Price { get; set; }
+    public float Float { get; set; }
+    public float Volume { get; set; }
+    public float StartPosition { get; set; }
+    public float LowPosition { get; set; }
+    public float EndPosition { get; set; }
     public int Shares { get; set; }
+    public float Profit { get; set; }
+    public bool StoppedOut { get; set; }
 }

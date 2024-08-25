@@ -20,7 +20,7 @@ public class HistoryCache(
     IAmazonS3 amazonS3Client,
     ILogger<HistoryCache> logger)
 {
-    private const int MINIMUM_REQUIRED_CANDLES = 60;
+    private const int MINIMUM_REQUIRED_CANDLES = 30;
     private const int CANDLES_TO_TAKE = 120;
 
     private readonly JsonSerializerOptions Options = new()
@@ -28,12 +28,12 @@ public class HistoryCache(
         PropertyNameCaseInsensitive = true
     };
 
-    private async Task InitializeCache(DateTime date)
+    private async Task InitializeCache(DateTime date, int multiplier, Timespan timespan)
     {
         var s3Request = new GetObjectRequest
         {
             BucketName = "lad-dev-marketviewer",
-            Key = $"backtest/{date.Year}/{date.Month}/{date.Month}-{date.Day}.json"
+            Key = BuildS3Key(date, multiplier, timespan)
         };
 
         var s3Response = await amazonS3Client.GetObjectAsync(s3Request);
@@ -44,7 +44,7 @@ public class HistoryCache(
         var stocksResponses = JsonSerializer.Deserialize<IEnumerable<StocksResponse>>(json, Options);
         
         var tickers = stocksResponses.Select(stocksResponse => stocksResponse.Ticker);
-        memoryCache.GetOrCreate($"Tickers/{date:yyyyMMdd}", entry =>
+        memoryCache.GetOrCreate($"Tickers/{timespan}/{date:yyyyMMdd}", entry =>
         {
             entry.SetSlidingExpiration(TimeSpan.FromMinutes(5));
 
@@ -53,7 +53,7 @@ public class HistoryCache(
 
         foreach (var stocksResponse in stocksResponses)
         {
-            memoryCache.GetOrCreate($"Stocks/{stocksResponse.Ticker}/minute/{date:yyyyMMdd}", entry =>
+            memoryCache.GetOrCreate($"Stocks/{stocksResponse.Ticker}/{timespan}/{date:yyyyMMdd}", entry => //TODO add handling for multipliers
             {
                 entry.SetSlidingExpiration(TimeSpan.FromMinutes(5));
 
@@ -66,12 +66,12 @@ public class HistoryCache(
     {
         var stocksResponses = new List<StocksResponse>();
 
-        if (memoryCache.Get<IEnumerable<string>>($"Tickers/{timestamp.Date:yyyyMMdd}") is null)
+        if (memoryCache.Get<IEnumerable<string>>($"Tickers/minute/{timestamp.Date:yyyyMMdd}") is null)
         {
-            await InitializeCache(timestamp.Date);
+            await InitializeCache(timestamp.Date, 1, Timespan.minute);
         }
 
-        var tickers = memoryCache.Get<IEnumerable<string>>($"Tickers/{timestamp.Date:yyyyMMdd}");
+        var tickers = memoryCache.Get<IEnumerable<string>>($"Tickers/minute/{timestamp.Date:yyyyMMdd}");
 
         //logger.LogInformation("Removing candles outside of {timestamp}.", timestamp);
         var time = timestamp.ToUnixTimeMilliseconds();
@@ -101,23 +101,21 @@ public class HistoryCache(
         return stocksResponses;
     }
 
-    public async Task<StocksResponseCollection> GetStocksResponses(DateTimeOffset timestamp, IEnumerable<Timespan> timespans)
+    public async Task<StocksResponseCollection> GetStocksResponsesV2(DateTimeOffset timestamp, IEnumerable<Timespan> timespans)
     {
-        if (memoryCache.Get<IEnumerable<string>>($"Tickers/{timestamp.Date:yyyyMMdd}") is null)
-        {
-            await InitializeCache(timestamp.Date);
-        }
-
-        var tickers = memoryCache.Get<IEnumerable<string>>($"Tickers/{timestamp.Date:yyyyMMdd}");
-
-        //logger.LogInformation("Removing candles outside of {timestamp}.", timestamp);
-        var time = timestamp.ToUnixTimeMilliseconds();
-
         var stocksResponseCollection = new StocksResponseCollection();
 
         foreach (var timespan in timespans)
         {
-            
+            if (memoryCache.Get<IEnumerable<string>>($"Tickers/{timespan}/{timestamp.Date:yyyyMMdd}") is null)
+            {
+                await InitializeCache(timestamp.Date, 1, timespan); //TODO add multiplier input eventually
+            }
+
+            var tickers = memoryCache.Get<IEnumerable<string>>($"Tickers/{timespan}/{timestamp.Date:yyyyMMdd}");
+
+            var time = timestamp.ToUnixTimeMilliseconds();
+
             var stocksResponses = new List<StocksResponse>();
 
             foreach (var ticker in tickers)
@@ -147,5 +145,18 @@ public class HistoryCache(
         }
 
         return stocksResponseCollection;
+    }
+
+    private static string BuildS3Key(DateTimeOffset timestamp, int multiplier, Timespan timespan)
+    {
+        var month = timestamp.Date.Month < 10 ? $"0{timestamp.Date.Month}" : $"{timestamp.Date.Month}";
+        var day = timestamp.Date.Month < 10 ? $"0{timestamp.Date.Day}" : $"{timestamp.Date.Day}";
+
+        return timespan switch
+        {
+            Timespan.minute => $"backtest/{timestamp.Date.Year}/{month}/{day}/aggregate_{multiplier}_{timespan}",
+            Timespan.hour => $"backtest/{timestamp.Date.Year}/{month}/aggregate_{multiplier}_{timespan}",
+            _ => throw new NotImplementedException()
+        };
     }
 }
