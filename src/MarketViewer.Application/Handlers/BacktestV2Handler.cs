@@ -89,11 +89,11 @@ public class BacktestV2Handler(
                 },
                 Average = new BackTestEntryStats
                 {
-                    PositiveTrendRatio = validResults.Average(result => result.Average.PositiveTrendRatio),
-                    HighPosition = validResults.Average(result => result.Average.HighPosition),
-                    LowPosition = validResults.Average(result => result.Average.LowPosition),
-                    AvgPosition = validResults.Average(result => result.Average.AvgPosition),
-                    SumProfit = validResults.Average(result => result.Average.SumProfit),
+                    PositiveTrendRatio = validResults.Average(result => result.Other.PositiveTrendRatio),
+                    HighPosition = validResults.Average(result => result.Other.HighPosition),
+                    LowPosition = validResults.Average(result => result.Other.LowPosition),
+                    AvgPosition = validResults.Average(result => result.Other.AvgPosition),
+                    SumProfit = validResults.Average(result => result.Other.SumProfit),
                 },
                 Results = validResults
             }

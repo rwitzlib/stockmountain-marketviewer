@@ -15,6 +15,7 @@ public class BacktesterLambdaV2Request
     public float PositionSize { get; set; }
     public Timespan Timespan { get; set; }
     public int Multiplier { get; set; }
+    public IEnumerable<string> Tickers { get; set; }
     public ScanArgument Argument { get; set; }
     public IEnumerable<Feature> Features { get; set; }
 }

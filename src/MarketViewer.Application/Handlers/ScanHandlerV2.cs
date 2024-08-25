@@ -16,6 +16,7 @@ using MarketViewer.Contracts.Enums;
 using MarketViewer.Core.ScanV2;
 using MarketViewer.Contracts.Comparers;
 using MarketViewer.Contracts.Models.ScanV2;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MarketViewer.Application.Handlers;
 
@@ -35,13 +36,21 @@ public class ScanHandlerV2(
             StocksResponseCollection stocksResponseCollection;
             var timespans = GetTimespans(request.Argument);
 
-            if (IsDateTimeToday(request.Timestamp))
+            if (request.Timestamp.Date == DateTime.Now.Date)
             {
                 stocksResponseCollection = liveCache.GetStocksResponses(request.Timestamp, timespans);
             }
             else
             {
-                stocksResponseCollection = await backtestingCache.GetStocksResponses(request.Timestamp, timespans);
+                stocksResponseCollection = await backtestingCache.GetStocksResponsesV2(request.Timestamp, timespans);
+            }
+
+            if (stocksResponseCollection.Responses.Count == 0)
+            {
+                return new OperationResult<ScanResponse>
+                {
+                    Status = HttpStatusCode.NotFound
+                };
             }
 
             var items = await ApplyScanToArgument(request.Argument, stocksResponseCollection);
@@ -96,11 +105,6 @@ public class ScanHandlerV2(
         timespans.AddRange(timeSpansFromArgument);
 
         return timespans.Distinct();
-    }
-    
-    private static bool IsDateTimeToday(DateTimeOffset date)
-    {
-        return date.ToString("yyyy-MM-dd").Equals(DateTime.Now.ToString("yyyy-MM-dd"));
     }
 
     private async Task<IEnumerable<ScanResponse.Item>> ApplyScanToArgument(ScanArgument argument, StocksResponseCollection stocksResponseCollection)

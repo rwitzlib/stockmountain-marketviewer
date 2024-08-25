@@ -26,19 +26,17 @@
                         }
                     }
                 </select>
-                <select class="form-select" @onchange="SetDateFromRange">
-                    <option selected value="0">1D</option>
-                    <option value="1">2D</option>
-                    <option value="2">3D</option>
-                    <option value="4">1W</option>
-                    <option value="13">>2W</option>
-                    <option value="20">3W</option>
-                    <option value="29">1M</option>
-                    <option value="59">2M</option>
-                    <option value="89">3M</option>
-                    <option value="179">6M</option>
-                    <option value="364">1Y</option>
-                </select>
+                <MudSelect T="int" ValueChanged="SetDateFromRange">
+                    <MudSelectItem Value="1" selected>1D</MudSelectItem>
+                    <MudSelectItem Value="2">2D</MudSelectItem>
+                    <MudSelectItem Value="3">3D</MudSelectItem>
+                    <MudSelectItem Value="7">1W</MudSelectItem>
+                    <MudSelectItem Value="14">2W</MudSelectItem>
+                    <MudSelectItem Value="30">1M</MudSelectItem>
+                    <MudSelectItem Value="90">3M</MudSelectItem>
+                    <MudSelectItem Value="180">6M</MudSelectItem>
+                    <MudSelectItem Value="365">1Y</MudSelectItem>
+                </MudSelect>
                 <div class="btn-group me-2" role="group" aria-label="volume">
                     @if (IsVolumeEnabled)
                     {
