@@ -5,6 +5,7 @@ using AutoMapper;
 using Polygon.Client.Requests;
 using System.Diagnostics;
 using MarketViewer.Contracts.Responses;
+using MarketViewer.Contracts.Enums;
 
 namespace MarketDataProvider.Api.Jobs
 {
@@ -32,7 +33,7 @@ namespace MarketDataProvider.Api.Jobs
             var tasks = new List<Task>();
             foreach (var ticker in tickers)
             {
-                tasks.Add(Task.Run(() => PopulateStocksResponse(ticker)));
+                tasks.Add(Task.Run(() => PopulateStocksResponse(ticker, 1, Timespan.minute)));
             }
             await Task.WhenAll(tasks);
 
@@ -42,13 +43,13 @@ namespace MarketDataProvider.Api.Jobs
             logger.LogInformation("Stocks - Time elapsed: {elapsed}ms.", sp.ElapsedMilliseconds);
         }
 
-        private async Task PopulateStocksResponse(string ticker)
+        private async Task PopulateStocksResponse(string ticker, int multiplier, Timespan timespan)
         {
             var polygonAggregateRequest = new PolygonAggregateRequest
             {
                 Ticker = ticker,
-                Multiplier = 1,
-                Timespan = "minute",
+                Multiplier = multiplier,
+                Timespan = timespan.ToString(),
                 From = ((DateTimeOffset)DateTime.Now.Date).ToUnixTimeMilliseconds().ToString(),
                 To = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString()
             };
