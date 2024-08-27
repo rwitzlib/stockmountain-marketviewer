@@ -8,7 +8,6 @@ using MarketViewer.Core.DependencyInjection;
 using MarketViewer.Api.HostedServices;
 using Quartz;
 using MarketViewer.Api.Jobs;
-using MarketDataProvider.Api.Jobs;
 using MarketViewer.Application.Handlers;
 using MarketViewer.Contracts.Converters;
 using MarketViewer.Api.Binders;

@@ -1,6 +1,6 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
-using Microsoft.Extensions.Caching.Memory;
+using MarketViewer.Contracts.Caching;
 using Polygon.Client.Models;
 using System.Diagnostics;
 using System.Text.Json;
@@ -8,8 +8,8 @@ using System.Text.Json;
 namespace MarketViewer.Api.HostedServices;
 
 public class PopulateMarketData(
+    MarketCache _marketCache,
     IAmazonS3 amazonS3Client,
-    IMemoryCache memoryCache,
     ILogger<PopulateMarketData> logger) : IHostedLifecycleService
 {
     public async Task StartingAsync(CancellationToken cancellationToken)
@@ -31,14 +31,14 @@ public class PopulateMarketData(
             using var streamReader = new StreamReader(s3Response.ResponseStream);
             var json = await streamReader.ReadToEndAsync(cancellationToken);
 
-            var tickerDetails = JsonSerializer.Deserialize<IEnumerable<TickerDetails>>(json);
-            var tickers = tickerDetails.Select(tickerDetails => tickerDetails.Ticker);
+            var tickerDetailsList = JsonSerializer.Deserialize<IEnumerable<TickerDetails>>(json);
+            var tickers = tickerDetailsList.Select(tickerDetails => tickerDetails.Ticker);
 
-            memoryCache.Set("Tickers", tickers);
+            _marketCache.SetTickers(tickers);
 
-            foreach (var tickerDetail in tickerDetails)
+            foreach (var tickerDetails in tickerDetailsList)
             {
-                memoryCache.Set($"TickerDetails_{tickerDetail.Ticker}", tickerDetail);
+                _marketCache.SetTickerDetails(tickerDetails);
             }
         }
         catch (Exception ex)

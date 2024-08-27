@@ -42,7 +42,7 @@ public class ScanHandler(
 
             if (IsDateTimeToday(request.Timestamp))
             {
-                stocksResponses = liveCache.GetStocksResponses(request.Timestamp);
+                stocksResponses = await liveCache.GetStocksResponses(request.Timestamp);
             }
             else
             {
