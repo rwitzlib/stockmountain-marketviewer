@@ -13,12 +13,11 @@ using System.Text.Json.Serialization;
 namespace MarketViewer.Contracts.Requests;
 
 [ExcludeFromCodeCoverage]
-public class BacktestV2Request : IRequest<OperationResult<BacktestResponse>>
+public class BacktestV2Request : IRequest<OperationResult<BacktestV2Response>>
 {
     public DateTimeOffset Start { get; set; }
     public DateTimeOffset End { get; set; }
-    public string ExitStrategy { get; set; }
-    public string ExitType { get; set; }
+    public bool DetailedResponse { get; set; } = false;
     public float PositionSize { get; set; }
     public Timespan Timespan { get; set; }
     public int Multiplier { get; set; }

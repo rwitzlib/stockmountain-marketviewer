@@ -11,6 +11,7 @@ using StackExchange.Redis;
 using MarketDataProvider.Clients.Interfaces;
 using MarketDataProvider.Clients;
 using Polygon.Client.DependencyInjection;
+using MarketViewer.Contracts.Caching;
 
 namespace MarketViewer.Infrastructure.DependencyInjection;
 
@@ -31,6 +32,7 @@ public static class ServiceCollectionExtensions
             .AddPolygonClient(token)
             .AddSingleton<LiveCache>()
             .AddSingleton<HistoryCache>()
+            .AddSingleton<MarketCache>()
             .AddSingleton<IMarketCacheClient, MarketCacheClient>();
 
         services.AddHttpClient("marketdataprovider", client =>

@@ -35,7 +35,6 @@ namespace MarketViewer.Infrastructure.Services
             {
                 //var tasks = new List<Task>();
                 var aggregateRequest = mapper.Map<StocksRequest, AggregateRequest>(request);
-                aggregateRequest.To = aggregateRequest.To.AddDays(1).AddMinutes(-1);
 
                 var response = await GetStockDataFromPolygon(aggregateRequest);
 
@@ -117,7 +116,7 @@ namespace MarketViewer.Infrastructure.Services
             try
             {
                 var polygonRequest = mapper.Map<AggregateRequest, PolygonAggregateRequest>(request);
-                //polygonRequest.To = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
+                polygonRequest.Limit = 50000;
 
                 var polygonResponse = await polygonClient.GetAggregates(polygonRequest);
 

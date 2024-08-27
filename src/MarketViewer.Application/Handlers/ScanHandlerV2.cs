@@ -23,9 +23,9 @@ public class ScanHandlerV2(
     LiveCache liveCache,
     HistoryCache backtestingCache,
     ScanFilterFactoryV2 scanFilterFactory,
-    ILogger<ScanHandlerV2> logger) : IRequestHandler<ScanRequestV2, OperationResult<ScanResponse>>
+    ILogger<ScanHandlerV2> logger) : IRequestHandler<ScanV2Request, OperationResult<ScanResponse>>
 {
-    public async Task<OperationResult<ScanResponse>> Handle(ScanRequestV2 request, CancellationToken cancellationToken)
+    public async Task<OperationResult<ScanResponse>> Handle(ScanV2Request request, CancellationToken cancellationToken)
     {
         try
         {
@@ -35,20 +35,29 @@ public class ScanHandlerV2(
             StocksResponseCollection stocksResponseCollection;
             var timespans = GetTimespans(request.Argument);
 
-            if (IsDateTimeToday(request.Timestamp))
+            if (request.Timestamp.Date == DateTime.Now.Date)
             {
-                stocksResponseCollection = liveCache.GetStocksResponses(request.Timestamp, timespans);
+                stocksResponseCollection = await liveCache.GetStocksResponses(request.Timestamp, timespans);
             }
             else
             {
-                stocksResponseCollection = await backtestingCache.GetStocksResponses(request.Timestamp, timespans);
+                stocksResponseCollection = await backtestingCache.GetStocksResponsesV2(request.Timestamp, timespans);
+            }
+
+            if (stocksResponseCollection.Responses.Count == 0)
+            {
+                return new OperationResult<ScanResponse>
+                {
+                    Status = HttpStatusCode.NotFound,
+                    ErrorMessages = [
+                        "No results found."
+                    ]
+                };
             }
 
             var items = await ApplyScanToArgument(request.Argument, stocksResponseCollection);
 
             sp.Stop();
-
-            logger.LogInformation("Scan results after filtering: {count}", items.Count());
 
             return new OperationResult<ScanResponse>
             {
@@ -99,15 +108,10 @@ public class ScanHandlerV2(
 
         return timespans.Distinct();
     }
-    
-    private static bool IsDateTimeToday(DateTimeOffset date)
-    {
-        return date.ToString("yyyy-MM-dd").Equals(DateTime.Now.ToString("yyyy-MM-dd"));
-    }
 
     private async Task<IEnumerable<ScanResponse.Item>> ApplyScanToArgument(ScanArgument argument, StocksResponseCollection stocksResponseCollection)
     {
-        if (argument is null || (argument.Operator is not "AND" && argument.Operator is not "OR") || argument.Filters.Count == 0)
+        if (argument is null || (argument.Operator is not "AND" && argument.Operator is not "OR" && argument.Operator is not "AVERAGE") || argument.Filters.Count == 0)
         {
             return [];
         }
@@ -163,6 +167,11 @@ public class ScanHandlerV2(
 
         foreach (var stocksResponse in stocksResponses)
         {
+            List<string> debugTickers = [ "AI" ];
+            if (debugTickers.Contains(stocksResponse.Ticker))
+            {
+
+            }
             bool passesFilter = false;
 
             var firstFilter = scanFilterFactory.GetScanFilter(filter.FirstOperand);
@@ -242,6 +251,31 @@ public class ScanHandlerV2(
                     }
                     break;
 
+                case "average": 
+                    switch (filter.Operator)
+                    {
+                        case FilterOperator.lt:
+                            passesFilter = (firstOperandResult.Sum() / firstOperandResult.Length) < (secondOperandResult.Sum() / secondOperandResult.Length);
+                            break;
+
+                        case FilterOperator.le:
+                            passesFilter = (firstOperandResult.Sum() / firstOperandResult.Length) <= (secondOperandResult.Sum() / secondOperandResult.Length);
+                            break;
+
+                        case FilterOperator.eq:
+                            passesFilter = (firstOperandResult.Sum() / firstOperandResult.Length) == (secondOperandResult.Sum() / secondOperandResult.Length);
+                            break;
+
+                        case FilterOperator.ge:
+                            passesFilter = (firstOperandResult.Sum() / firstOperandResult.Length) >= (secondOperandResult.Sum() / secondOperandResult.Length);
+                            break;
+
+                        case FilterOperator.gt:
+                            passesFilter = (firstOperandResult.Sum() / firstOperandResult.Length) > (secondOperandResult.Sum() / secondOperandResult.Length);
+                            break;
+                    }
+                    break;
+
                 default:
                     switch (filter.Operator)
                     {
@@ -274,8 +308,8 @@ public class ScanHandlerV2(
                 {
                     Ticker = stocksResponse.Ticker,
                     Price = stocksResponse.Results.Last().Close,
-                    Volume = stocksResponse.Results.TakeLast(filter.Timeframe.Multiplier).Select(q => q.Volume).Sum()
-                    //Float = stocksResponse.TickerDetails.Float
+                    Volume = stocksResponse.Results.TakeLast(filter.Timeframe.Multiplier).Select(q => q.Volume).Sum(),
+                    Float = stocksResponse.TickerDetails?.Float
                 });
             }
         }
