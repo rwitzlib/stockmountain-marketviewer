@@ -14,6 +14,7 @@
 <div class="d-flex justify-center align-center pa-2">
     <FilterListComponent @ref="_filterList" />
 </div>
+
 <MudPaper Style="overflow-y: scroll;">
     <MudTable Items="@_backtestEntries" FixedHeader="true" Virtualize="true" FixedFooter="true" Loading="@(!_backtestEntries.Any())">
         <ToolBarContent>
@@ -42,6 +43,7 @@
         </RowTemplate>
     </MudTable>
 </MudPaper>
+
 @code {
     private DateRange _dateRange { get; set; } = new DateRange(DateTime.Parse("2024-03-05"), DateTime.Parse("2024-03-05"));
     private DateTime _minDate = DateTime.Now.Date.AddYears(-1);

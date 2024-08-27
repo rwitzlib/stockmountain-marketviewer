@@ -8,7 +8,6 @@ using MarketViewer.Core.DependencyInjection;
 using MarketViewer.Api.HostedServices;
 using Quartz;
 using MarketViewer.Api.Jobs;
-using MarketDataProvider.Api.Jobs;
 using MarketViewer.Application.Handlers;
 using MarketViewer.Contracts.Converters;
 using MarketViewer.Api.Binders;
@@ -79,7 +78,11 @@ public class Program
         builder.Services.AddControllers(options =>
         {
             options.ModelBinderProviders.Insert(0, new BinderProvider());
-        }).AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new ScanArgumentConverter()));
+        }).AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+            options.JsonSerializerOptions.Converters.Add(new ScanArgumentConverter());
+        });
 
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();

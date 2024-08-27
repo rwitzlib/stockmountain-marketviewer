@@ -93,7 +93,7 @@ namespace MarketViewer.Web.Components
         protected async void GetChartData()
         {
             var timestamp = ClockComponent.GetTime();
-            SetTimeOnRequest(timestamp);
+            StocksRequest.To = new DateTimeOffset(StocksRequest.To.Year, StocksRequest.To.Month, StocksRequest.To.Day, timestamp.Hour, timestamp.Minute, timestamp.Second, StocksRequest.To.Offset);
             try
             {
 
@@ -169,17 +169,8 @@ namespace MarketViewer.Web.Components
             }
         }
 
-        protected void SetTimeOnRequest(DateTimeOffset timestamp)
+        protected void SetDateFromRange(int days)
         {
-            var days = (int)(StocksRequest.To - StocksRequest.From).TotalDays;
-
-            StocksRequest.From = new DateTimeOffset(timestamp.Year, timestamp.Month, timestamp.AddDays(-days).Day, 0, 0, 0, timestamp.Offset);
-            StocksRequest.To = timestamp;
-        }
-
-        protected void SetDateFromRange(ChangeEventArgs eventArgs)
-        {
-            var days = int.Parse(eventArgs.Value?.ToString() ?? string.Empty);
             var end = StocksRequest.To.AddDays(-days);
 
             StocksRequest.From = new DateTimeOffset(end.Year, end.Month, end.Day, 0, 0, 0, end.Offset);

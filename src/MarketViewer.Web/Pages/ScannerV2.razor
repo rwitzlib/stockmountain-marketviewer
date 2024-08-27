@@ -1,9 +1,10 @@
-﻿@page "/scannerV2"
+﻿@page "/scanner/v2"
 @using MarketViewer.Contracts.Enums
 @using MarketViewer.Contracts.Models.Scan
 @using MarketViewer.Contracts.Models.ScanV2
 @using MarketViewer.Contracts.Models.Study
 @using MarketViewer.Contracts.Requests
+@using FilterOperator = MarketViewer.Contracts.Models.Scan.FilterOperator;
 
 @inherits ComponentBase;
 
@@ -229,17 +230,21 @@
                 From = currentTime.AddHours(-6),
                 To = currentTime,
                 Studies = new List<StudyFields>
-            {
-                new ()
                 {
-                    Type = StudyType.vwap
-                },
-                new ()
-                {
-                    Type = StudyType.macd,
-                    Parameters = new [] {"12", "26", "9", $"{StudyType.ema}"}
+                    new ()
+                    {
+                        Type = StudyType.vwap
+                    },
+                    new ()
+                    {
+                        Type = StudyType.macd,
+                        Parameters = new [] {"12", "26", "9", $"{StudyType.ema}"}
+                    },
+                    new ()
+                    {
+                        Type = StudyType.rsi
+                    }
                 }
-            }
             };
 
         return request;
@@ -297,7 +302,7 @@
                 return;
             }
 
-            var request = new ScanRequestV2
+            var request = new ScanV2Request
             {
                 Argument = argument,
                 Timestamp = currentTime

@@ -1,84 +1,40 @@
-﻿using System;
+﻿using Amazon.Runtime.Internal.Util;
+using MarketViewer.Contracts.Caching;
+using MarketViewer.Contracts.Enums;
+using MarketViewer.Contracts.Models.ScanV2;
+using MarketViewer.Contracts.Responses;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using MarketViewer.Contracts.Responses;
-using System.Text.Json;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
-using Polygon.Client.Models;
-using Amazon.S3;
-using Amazon.S3.Model;
-using System.IO;
-using MarketViewer.Contracts.Enums;
-using MarketViewer.Contracts.Models.ScanV2;
 
 namespace MarketViewer.Infrastructure.Services;
 
 public class HistoryCache(
-    IMemoryCache memoryCache,
-    IAmazonS3 amazonS3Client,
-    ILogger<HistoryCache> logger)
+    MarketCache _marketCache,
+    ILogger<HistoryCache> _logger)
 {
-    private const int MINIMUM_REQUIRED_CANDLES = 60;
+    private const int MINIMUM_REQUIRED_CANDLES = 30;
     private const int CANDLES_TO_TAKE = 120;
 
-    private readonly JsonSerializerOptions Options = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
-
-    private async Task InitializeCache(DateTime date)
-    {
-        var s3Request = new GetObjectRequest
-        {
-            BucketName = "lad-dev-marketviewer",
-            Key = $"backtest/{date.Year}/{date.Month}/{date.Month}-{date.Day}.json"
-        };
-
-        var s3Response = await amazonS3Client.GetObjectAsync(s3Request);
-
-        using var streamReader = new StreamReader(s3Response.ResponseStream);
-        var json = await streamReader.ReadToEndAsync();
-
-        var stocksResponses = JsonSerializer.Deserialize<IEnumerable<StocksResponse>>(json, Options);
-        
-        var tickers = stocksResponses.Select(stocksResponse => stocksResponse.Ticker);
-        memoryCache.GetOrCreate($"Tickers/{date:yyyyMMdd}", entry =>
-        {
-            entry.SetSlidingExpiration(TimeSpan.FromMinutes(5));
-
-            return tickers;
-        });
-
-        foreach (var stocksResponse in stocksResponses)
-        {
-            memoryCache.GetOrCreate($"Stocks/{stocksResponse.Ticker}/minute/{date:yyyyMMdd}", entry =>
-            {
-                entry.SetSlidingExpiration(TimeSpan.FromMinutes(5));
-
-                return stocksResponse;
-            });
-        }
-    }
-
-    public async Task<IEnumerable<StocksResponse>> GetStocksResponses(DateTimeOffset timestamp)
+    public async Task<IEnumerable<StocksResponse>> GetStocksResponses(DateTimeOffset date)
     {
         var stocksResponses = new List<StocksResponse>();
 
-        if (memoryCache.Get<IEnumerable<string>>($"Tickers/{timestamp.Date:yyyyMMdd}") is null)
+        if (_marketCache.GetTickersByTimespan(Timespan.minute, date) is null)
         {
-            await InitializeCache(timestamp.Date);
+            await _marketCache.Initialize(date.Date, 1, Timespan.minute);
         }
 
-        var tickers = memoryCache.Get<IEnumerable<string>>($"Tickers/{timestamp.Date:yyyyMMdd}");
+        var tickers = _marketCache.GetTickersByTimespan(Timespan.minute, date);
 
-        logger.LogInformation("Removing candles outside of {timestamp}.", timestamp);
-        var time = timestamp.ToUnixTimeMilliseconds();
+        _logger.LogInformation("Removing candles outside of {timestamp}.", date);
+        var time = date.ToUnixTimeMilliseconds();
 
         foreach (var ticker in tickers)
         {
-            var stocksResponse = memoryCache.Get<StocksResponse>($"Stocks/{ticker}/minute/{timestamp.Date:yyyyMMdd}");
+            var stocksResponse = _marketCache.GetStocksResponse(ticker, Timespan.minute, date);
 
             if (stocksResponse.Results is null || stocksResponse.Results.Count < MINIMUM_REQUIRED_CANDLES)
             {
@@ -87,7 +43,7 @@ public class HistoryCache(
 
             var candles = stocksResponse.Results.Where(candle => candle.Timestamp <= time).TakeLast(CANDLES_TO_TAKE);
 
-            var tickerDetails = memoryCache.Get<TickerDetails>($"TickerDetails/{ticker}");
+            var tickerDetails = _marketCache.GetTickerDetails(ticker);
             stocksResponses.Add(new StocksResponse
             {
                 Ticker = ticker,
@@ -96,33 +52,31 @@ public class HistoryCache(
             });
         }
 
-        logger.LogInformation("Returning {count} total aggregates.", stocksResponses.Count);
-
+        _logger.LogInformation("Returning {count} total aggregates.", stocksResponses.Count);
         return stocksResponses;
     }
 
-    public async Task<StocksResponseCollection> GetStocksResponses(DateTimeOffset timestamp, IEnumerable<Timespan> timespans)
+    public async Task<StocksResponseCollection> GetStocksResponsesV2(DateTimeOffset date, IEnumerable<Timespan> timespans)
     {
-        if (memoryCache.Get<IEnumerable<string>>($"Tickers/{timestamp.Date:yyyyMMdd}") is null)
-        {
-            await InitializeCache(timestamp.Date);
-        }
-
-        var tickers = memoryCache.Get<IEnumerable<string>>($"Tickers/{timestamp.Date:yyyyMMdd}");
-
-        logger.LogInformation("Removing candles outside of {timestamp}.", timestamp);
-        var time = timestamp.ToUnixTimeMilliseconds();
-
         var stocksResponseCollection = new StocksResponseCollection();
 
         foreach (var timespan in timespans)
         {
-            
+            if (_marketCache.GetTickersByTimespan(timespan, date) is null)
+            {
+                await _marketCache.Initialize(date, 1, timespan); //TODO add multiplier input eventually
+            }
+
+            var tickers = _marketCache.GetTickersByTimespan(timespan, date);
+
+            _logger.LogInformation("Removing candles outside of {timestamp}.", date);
+            var time = date.ToUnixTimeMilliseconds();
+
             var stocksResponses = new List<StocksResponse>();
 
             foreach (var ticker in tickers)
             {
-                var stocksResponse = memoryCache.Get<StocksResponse>($"Stocks/{ticker}/{timespan}/{timestamp.Date:yyyyMMdd}");
+                var stocksResponse = _marketCache.GetStocksResponse(ticker, timespan, date);
 
                 if (stocksResponse.Results is null || stocksResponse.Results.Count < MINIMUM_REQUIRED_CANDLES)
                 {
@@ -131,7 +85,7 @@ public class HistoryCache(
 
                 var candles = stocksResponse.Results.Where(candle => candle.Timestamp <= time).TakeLast(CANDLES_TO_TAKE);
 
-                var tickerDetails = memoryCache.Get<TickerDetails>($"TickerDetails/{ticker}");
+                var tickerDetails = _marketCache.GetTickerDetails(ticker);
                 stocksResponses.Add(new StocksResponse
                 {
                     Ticker = ticker,
@@ -146,6 +100,7 @@ public class HistoryCache(
             }
         }
 
+        _logger.LogInformation("Returning {count} total aggregates.", stocksResponseCollection.Responses.Select(q => q.Value.Select(w => w.Results.Count)));
         return stocksResponseCollection;
     }
 }

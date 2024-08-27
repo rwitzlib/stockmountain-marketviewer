@@ -14,7 +14,7 @@ namespace MarketViewer.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Scan([FromBody] ScanRequestV2 request)
+        public async Task<IActionResult> Scan([FromBody] ScanV2Request request)
         {
             try
             {
@@ -24,6 +24,7 @@ namespace MarketViewer.Api.Controllers
                 {
                     HttpStatusCode.OK => Ok(response.Data),
                     HttpStatusCode.BadRequest => BadRequest(response.ErrorMessages),
+                    HttpStatusCode.NotFound => NotFound(response.ErrorMessages),
                     _ => StatusCode(StatusCodes.Status500InternalServerError, response.ErrorMessages)
                 };
             }
