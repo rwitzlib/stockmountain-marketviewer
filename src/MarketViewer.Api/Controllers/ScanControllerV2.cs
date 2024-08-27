@@ -24,6 +24,7 @@ namespace MarketViewer.Api.Controllers
                 {
                     HttpStatusCode.OK => Ok(response.Data),
                     HttpStatusCode.BadRequest => BadRequest(response.ErrorMessages),
+                    HttpStatusCode.NotFound => NotFound(response.ErrorMessages),
                     _ => StatusCode(StatusCodes.Status500InternalServerError, response.ErrorMessages)
                 };
             }

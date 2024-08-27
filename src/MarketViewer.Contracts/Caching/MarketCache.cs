@@ -3,18 +3,10 @@ using Amazon.S3.Model;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Responses;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Options;
-using NRedisStack.DataTypes;
 using Polygon.Client.Models;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
-namespace MarketViewer.Infrastructure.Services;
+namespace MarketViewer.Contracts.Caching;
 
 public class MarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3)
 {
@@ -40,7 +32,7 @@ public class MarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3)
 
         var tickers = stocksResponses.Select(stocksResponse => stocksResponse.Ticker);
 
-        SetTickers(date, timespan, tickers); //TODO use multiplier in cache key eventually?
+        SetTickersByTimespan(date, timespan, tickers); //TODO use multiplier in cache key eventually?
 
         foreach (var stocksResponse in stocksResponses)
         {
@@ -48,12 +40,22 @@ public class MarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3)
         }
     }
 
-    public IEnumerable<string> GetTickers(Timespan timespan, DateTimeOffset timestamp)
+    public IEnumerable<string> GetTickers()
+    {
+        return _memoryCache.Get<IEnumerable<string>>("Tickers");
+    }
+
+    public void SetTickers(IEnumerable<string> tickers)
+    {
+        _memoryCache.Set("Tickers", tickers);
+    }
+
+    public IEnumerable<string> GetTickersByTimespan(Timespan timespan, DateTimeOffset timestamp)
     {
         return _memoryCache.Get<IEnumerable<string>>($"Tickers/{timespan}/{timestamp.Date:yyyyMMdd}");
     }
 
-    public void SetTickers(DateTimeOffset date, Timespan timespan, IEnumerable<string> tickers)
+    public void SetTickersByTimespan(DateTimeOffset date, Timespan timespan, IEnumerable<string> tickers)
     {
         _memoryCache.GetOrCreate($"Tickers/{timespan}/{date.Date:yyyyMMdd}", entry =>
         {
@@ -69,6 +71,11 @@ public class MarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3)
 
     public void SetStocksResponse(StocksResponse stocksResponse, Timespan timespan, DateTimeOffset date)
     {
+        if (stocksResponse is null)
+        {
+            return;
+        }
+
         _memoryCache.GetOrCreate($"Stocks/{stocksResponse.Ticker}/{timespan}/{date.Date:yyyyMMdd}", entry => //TODO add handling for multipliers
         {
             entry.SetSlidingExpiration(TimeSpan.FromMinutes(60));
@@ -80,6 +87,11 @@ public class MarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3)
     public TickerDetails GetTickerDetails(string ticker)
     {
         return _memoryCache.Get<TickerDetails>($"TickerDetails/{ticker}");
+    }
+
+    public void SetTickerDetails(TickerDetails tickerDetails)
+    {
+        _memoryCache.Set($"TickerDetails/{tickerDetails.Ticker}", tickerDetails);
     }
 
     private static string BuildS3Key(DateTimeOffset timestamp, int multiplier, Timespan timespan)

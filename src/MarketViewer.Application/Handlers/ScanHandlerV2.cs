@@ -16,7 +16,6 @@ using MarketViewer.Contracts.Enums;
 using MarketViewer.Core.ScanV2;
 using MarketViewer.Contracts.Comparers;
 using MarketViewer.Contracts.Models.ScanV2;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MarketViewer.Application.Handlers;
 
@@ -38,7 +37,7 @@ public class ScanHandlerV2(
 
             if (request.Timestamp.Date == DateTime.Now.Date)
             {
-                stocksResponseCollection = liveCache.GetStocksResponses(request.Timestamp, timespans);
+                stocksResponseCollection = await liveCache.GetStocksResponses(request.Timestamp, timespans);
             }
             else
             {
@@ -49,7 +48,10 @@ public class ScanHandlerV2(
             {
                 return new OperationResult<ScanResponse>
                 {
-                    Status = HttpStatusCode.NotFound
+                    Status = HttpStatusCode.NotFound,
+                    ErrorMessages = [
+                        "No results found."
+                    ]
                 };
             }
 
@@ -306,8 +308,8 @@ public class ScanHandlerV2(
                 {
                     Ticker = stocksResponse.Ticker,
                     Price = stocksResponse.Results.Last().Close,
-                    Volume = stocksResponse.Results.TakeLast(filter.Timeframe.Multiplier).Select(q => q.Volume).Sum()
-                    //Float = stocksResponse.TickerDetails.Float
+                    Volume = stocksResponse.Results.TakeLast(filter.Timeframe.Multiplier).Select(q => q.Volume).Sum(),
+                    Float = stocksResponse.TickerDetails?.Float
                 });
             }
         }

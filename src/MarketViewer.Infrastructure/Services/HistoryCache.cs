@@ -1,16 +1,12 @@
-﻿using Amazon.S3;
-using Amazon.S3.Model;
+﻿using Amazon.Runtime.Internal.Util;
+using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.ScanV2;
 using MarketViewer.Contracts.Responses;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Polygon.Client.Models;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MarketViewer.Infrastructure.Services;
@@ -26,13 +22,14 @@ public class HistoryCache(
     {
         var stocksResponses = new List<StocksResponse>();
 
-        if (_marketCache.GetTickers(Timespan.minute, date) is null)
+        if (_marketCache.GetTickersByTimespan(Timespan.minute, date) is null)
         {
             await _marketCache.Initialize(date.Date, 1, Timespan.minute);
         }
 
-        var tickers = _marketCache.GetTickers(Timespan.minute, date);
+        var tickers = _marketCache.GetTickersByTimespan(Timespan.minute, date);
 
+        _logger.LogInformation("Removing candles outside of {timestamp}.", date);
         var time = date.ToUnixTimeMilliseconds();
 
         foreach (var ticker in tickers)
@@ -55,6 +52,7 @@ public class HistoryCache(
             });
         }
 
+        _logger.LogInformation("Returning {count} total aggregates.", stocksResponses.Count);
         return stocksResponses;
     }
 
@@ -64,13 +62,14 @@ public class HistoryCache(
 
         foreach (var timespan in timespans)
         {
-            if (_marketCache.GetTickers(timespan, date) is null)
+            if (_marketCache.GetTickersByTimespan(timespan, date) is null)
             {
                 await _marketCache.Initialize(date, 1, timespan); //TODO add multiplier input eventually
             }
 
-            var tickers = _marketCache.GetTickers(timespan, date);
+            var tickers = _marketCache.GetTickersByTimespan(timespan, date);
 
+            _logger.LogInformation("Removing candles outside of {timestamp}.", date);
             var time = date.ToUnixTimeMilliseconds();
 
             var stocksResponses = new List<StocksResponse>();
@@ -101,6 +100,7 @@ public class HistoryCache(
             }
         }
 
+        _logger.LogInformation("Returning {count} total aggregates.", stocksResponseCollection.Responses.Select(q => q.Value.Select(w => w.Results.Count)));
         return stocksResponseCollection;
     }
 }
