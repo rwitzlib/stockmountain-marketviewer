@@ -9,8 +9,9 @@ public class ValueOperand : IScanOperand
     public string Name { get; } = "Value";
     public float Value { get; set; }
 
-    public bool HasTimespan(out Timespan? timespan)
+    public bool HasTimeframe(out int? multiplier, out Timespan? timespan)
     {
+        multiplier = null;
         timespan = null;
         return false;
     }
