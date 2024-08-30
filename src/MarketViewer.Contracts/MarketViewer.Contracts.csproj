@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <PackageId>MarketViewer.Contracts</PackageId>
-    <Version>1.2.1</Version>
+    <Version>1.2.2</Version>
     <Authors>Robert Witzlib</Authors>
     <Description>
       .NET project containing models, request and response contracts for MarketViewer.
@@ -13,7 +13,7 @@
     <PackageProjectUrl>https://github.com/rwitzlib/stockmountain-marketviewer</PackageProjectUrl>
     <RepositoryUrl>https://github.com/rwitzlib/stockmountain-marketviewer</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageReleaseNotes>Change HasTimespan to HasTimeframe</PackageReleaseNotes>
+    <PackageReleaseNotes>Return stocks response list on market cache initialization</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
