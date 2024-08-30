@@ -4,5 +4,5 @@ namespace MarketViewer.Contracts.Models.ScanV2;
 
 public interface IScanOperand
 {
-    public bool HasTimespan(out Timespan? timespan);
+    public bool HasTimeframe(out int? multiplier, out Timespan? timespan);
 }

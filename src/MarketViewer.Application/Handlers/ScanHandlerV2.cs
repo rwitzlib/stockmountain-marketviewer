@@ -92,11 +92,11 @@ public class ScanHandlerV2(
 
         foreach (var filter in scanArgument.Filters)
         {
-            if (filter.FirstOperand.HasTimespan(out var firstTimespan))
+            if (filter.FirstOperand.HasTimeframe(out var firstMultiplier, out var firstTimespan))
             {
                 timespans.Add(firstTimespan.Value);
             }
-            if (filter.SecondOperand.HasTimespan(out var secondTimespan))
+            if (filter.SecondOperand.HasTimeframe(out var secondMultiplier, out var secondTimespan))
             {
                 timespans.Add(secondTimespan.Value);
             }
@@ -163,7 +163,7 @@ public class ScanHandlerV2(
     private List<ScanResponse.Item> ApplyFilter(FilterV2 filter, StocksResponseCollection stocksResponseCollection)
     {
         var results = new List<ScanResponse.Item>();
-        var stocksResponses = filter.FirstOperand.HasTimespan(out var timespan) ? stocksResponseCollection.Responses[timespan.Value] : [];
+        var stocksResponses = filter.FirstOperand.HasTimeframe(out var multiplier, out var timespan) ? stocksResponseCollection.Responses[timespan.Value] : [];
 
         foreach (var stocksResponse in stocksResponses)
         {

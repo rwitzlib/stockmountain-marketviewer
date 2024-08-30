@@ -20,8 +20,9 @@ public class PriceActionOperand : IScanOperand
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public Timespan Timespan { get; set; }
 
-    public bool HasTimespan(out Timespan? timespan)
+    public bool HasTimeframe(out int? multiplier, out Timespan? timespan)
     {
+        multiplier = Multiplier;
         timespan = Timespan;
         return true;
     }
