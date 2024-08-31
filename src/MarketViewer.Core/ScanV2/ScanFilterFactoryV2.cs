@@ -1,4 +1,5 @@
 ﻿using MarketViewer.Contracts.Models.ScanV2;
+using MarketViewer.Contracts.Models.ScanV2.Operands;
 using MarketViewer.Core.ScanV2.Filters;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
@@ -14,7 +15,8 @@ public class ScanFilterFactoryV2(IServiceProvider serviceProvider)
         {
             PriceActionOperand => serviceProvider.GetRequiredService<PriceActionFilter>(),
             StudyOperand => serviceProvider.GetRequiredService<StudyFilter>(),
-            ValueOperand => serviceProvider.GetRequiredService<ValueFilter>(),
+            FixedOperand => serviceProvider.GetRequiredService<ValueFilter>(),
+            PropertyOperand => serviceProvider.GetRequiredService<PropertyFilter>(),
             _ => throw new NotImplementedException()
         };
     }

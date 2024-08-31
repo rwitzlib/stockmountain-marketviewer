@@ -11,7 +11,6 @@ using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Requests;
 using Microsoft.Extensions.Logging;
 using System.Net;
-using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Core.ScanV2;
 using MarketViewer.Contracts.Comparers;

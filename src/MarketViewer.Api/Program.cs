@@ -11,6 +11,7 @@ using MarketViewer.Api.Jobs;
 using MarketViewer.Application.Handlers;
 using MarketViewer.Contracts.Converters;
 using MarketViewer.Api.Binders;
+using System.Text.Json.Serialization;
 
 namespace MarketViewer.Api;
 
@@ -80,7 +81,8 @@ public class Program
             options.ModelBinderProviders.Insert(0, new BinderProvider());
         }).AddJsonOptions(options =>
         {
-            options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+            options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+            options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
             options.JsonSerializerOptions.Converters.Add(new ScanArgumentConverter());
         });
 

@@ -1,6 +1,7 @@
 ﻿@using MarketViewer.Contracts.Enums
 @using MarketViewer.Contracts.Models.ScanV2
-@using FilterOperator = MarketViewer.Contracts.Models.Scan.FilterOperator;
+@using MarketViewer.Contracts.Models.ScanV2.Operands
+@using FilterOperator = MarketViewer.Contracts.Enums.FilterOperator;
 @inject IJSRuntime JsRuntime;
 
 <MudPaper Elevation="@(Argument.Depth * 2)" Class="ma-4 row" id="outer-dropzone">
@@ -57,14 +58,14 @@
                 FirstOperand = new StudyOperand
                 {
                     Modifier = OperandModifier.Slope,
-                    Type = StudyType.rsi,
+                    Study = StudyType.rsi,
                     Parameters = null,
                     Multiplier = 1,
                     Timespan = Timespan.minute
                 },
                 Operator = FilterOperator.gt,
-                SecondOperandType = OperandType.Value,
-                SecondOperand = new ValueOperand
+                SecondOperandType = OperandType.Fixed,
+                SecondOperand = new FixedOperand
                 {
                     Value = 3
                 },
@@ -84,14 +85,14 @@
                 FirstOperand = new StudyOperand
                 {
                     Modifier = OperandModifier.Slope,
-                    Type = StudyType.macd,
+                    Study = StudyType.macd,
                     Parameters = "12,26,9,ema",
                     Multiplier = 1,
                     Timespan = Timespan.minute
                 },
                 Operator = FilterOperator.gt,
-                SecondOperandType = OperandType.Value,
-                SecondOperand = new ValueOperand
+                SecondOperandType = OperandType.Fixed,
+                SecondOperand = new FixedOperand
                 {
                     Value = 0
                 },
@@ -111,14 +112,14 @@
                 FirstOperand = new StudyOperand
                 {
                     Modifier = OperandModifier.Value,
-                    Type = StudyType.macd,
+                    Study = StudyType.macd,
                     Parameters = "12,26,9,ema",
                     Multiplier = 1,
                     Timespan = Timespan.minute
                 },
                 Operator = FilterOperator.le,
-                SecondOperandType = OperandType.Value,
-                SecondOperand = new ValueOperand
+                SecondOperandType = OperandType.Fixed,
+                SecondOperand = new FixedOperand
                 {
                     Value = 0
                 },

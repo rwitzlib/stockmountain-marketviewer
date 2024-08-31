@@ -1,6 +1,6 @@
 ﻿using MarketViewer.Contracts.Converters;
 using MarketViewer.Contracts.Models;
-using MarketViewer.Contracts.Models.Scan;
+using MarketViewer.Contracts.Models.ScanV2;
 using MarketViewer.Contracts.Responses;
 using MediatR;
 using System;

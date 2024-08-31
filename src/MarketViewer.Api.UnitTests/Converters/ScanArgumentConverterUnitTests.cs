@@ -1,8 +1,8 @@
 ﻿using FluentAssertions;
 using MarketViewer.Contracts.Converters;
 using MarketViewer.Contracts.Enums;
-using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Models.ScanV2;
+using MarketViewer.Contracts.Models.ScanV2.Operands;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,7 +44,7 @@ public class ScanArgumentConverterUnitTests
 
         var firstOperand = argument.Filters[0].FirstOperand.Should().BeOfType<PriceActionOperand>().Subject;
         firstOperand.Modifier.Should().Be(OperandModifier.Value);
-        firstOperand.Type.Should().Be(PriceActionType.Close);
+        firstOperand.PriceAction.Should().Be(PriceActionType.Close);
         firstOperand.Multiplier.Should().Be(1);
         firstOperand.Timespan.Should().Be(Timespan.minute);
 
@@ -68,7 +68,7 @@ public class ScanArgumentConverterUnitTests
 
         var firstOperand = argument.Filters[0].FirstOperand.Should().BeOfType<PriceActionOperand>().Subject;
         firstOperand.Modifier.Should().Be(OperandModifier.Value);
-        firstOperand.Type.Should().Be(PriceActionType.Close);
+        firstOperand.PriceAction.Should().Be(PriceActionType.Close);
         firstOperand.Multiplier.Should().Be(1);
         firstOperand.Timespan.Should().Be(Timespan.minute);
 

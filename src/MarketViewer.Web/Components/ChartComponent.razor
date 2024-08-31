@@ -26,16 +26,16 @@
                         }
                     }
                 </select>
-                <MudSelect T="int" ValueChanged="SetDateFromRange">
-                    <MudSelectItem Value="1" selected>1D</MudSelectItem>
-                    <MudSelectItem Value="2">2D</MudSelectItem>
-                    <MudSelectItem Value="3">3D</MudSelectItem>
-                    <MudSelectItem Value="7">1W</MudSelectItem>
-                    <MudSelectItem Value="14">2W</MudSelectItem>
-                    <MudSelectItem Value="30">1M</MudSelectItem>
-                    <MudSelectItem Value="90">3M</MudSelectItem>
-                    <MudSelectItem Value="180">6M</MudSelectItem>
-                    <MudSelectItem Value="365">1Y</MudSelectItem>
+                <MudSelect T="int" ValueChanged="SetDateFromRange" SelectedValues="@([1])">
+                    <MudSelectItem Value="@(1)">1D</MudSelectItem>
+                    <MudSelectItem Value="@(2)">2D</MudSelectItem>
+                    <MudSelectItem Value="@(3)">3D</MudSelectItem>
+                    <MudSelectItem Value="@(7)">1W</MudSelectItem>
+                    <MudSelectItem Value="@(14)">2W</MudSelectItem>
+                    <MudSelectItem Value="@(30)">1M</MudSelectItem>
+                    <MudSelectItem Value="@(90)">3M</MudSelectItem>
+                    <MudSelectItem Value="@(180)">6M</MudSelectItem>
+                    <MudSelectItem Value="@(365)">1Y</MudSelectItem>
                 </MudSelect>
                 <div class="btn-group me-2" role="group" aria-label="volume">
                     @if (IsVolumeEnabled)
