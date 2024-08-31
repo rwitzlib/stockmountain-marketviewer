@@ -4,18 +4,18 @@ using MarketViewer.Contracts.Responses;
 
 namespace MarketViewer.Core.ScanV2.Filters;
 
-public class ValueFilter : IFilterV2
+public class PropertyFilter : IFilterV2
 {
     public float[] Compute(IScanOperand operand, StocksResponse stocksResponse, Timeframe timeframe)
     {
-        var valueOperand = operand as FixedOperand;
+        var propertyOperand = operand as PropertyOperand;
 
-        var results = new float[timeframe.Multiplier];
-
-        for (int i = 0; i < results.Length; i++)
+        float[] results = propertyOperand.Property switch
         {
-            results[i] = valueOperand.Value;
-        }
+            "Float" => [(float)stocksResponse.TickerDetails.Float],
+            "MarketCap" => [(float)stocksResponse.TickerDetails.MarketCap],
+            _ => []
+        };
 
         return results;
     }

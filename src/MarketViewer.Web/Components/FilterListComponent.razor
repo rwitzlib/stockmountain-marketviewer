@@ -1,4 +1,5 @@
-﻿@using FilterOperator = MarketViewer.Contracts.Models.Scan.FilterOperator;
+﻿@using FilterOperator = MarketViewer.Contracts.Enums.FilterOperator;
+@using MarketViewer.Contracts.Enums
 @using MarketViewer.Contracts.Models.Scan
 
 <MudExpansionPanels MultiExpansion="true">
@@ -101,7 +102,7 @@
             Value = 100000,
             ValueType = FilterValueType.CustomAmount,
             Multiplier = 5,
-            Timespan = MarketViewer.Contracts.Enums.Timespan.minute,
+            Timespan = Timespan.minute,
         }));
         Entries.Add(new FilterEntry(true, new Filter
         {
@@ -111,7 +112,7 @@
             Value = 2,
             ValueType = FilterValueType.CustomAmount,
             Multiplier = 5,
-            Timespan = MarketViewer.Contracts.Enums.Timespan.minute,
+            Timespan = Timespan.minute,
         }));
         Entries.Add(new FilterEntry(true, new Filter
         {
@@ -121,7 +122,7 @@
             Value = 20,
             ValueType = FilterValueType.CustomAmount,
             Multiplier = 5,
-            Timespan = MarketViewer.Contracts.Enums.Timespan.minute,
+            Timespan = Timespan.minute,
         }));
         Entries.Add(new FilterEntry(true, new Filter
         {
@@ -131,7 +132,7 @@
             Value = 0,
             ValueType = FilterValueType.CustomAmount,
             Multiplier = 3,
-            Timespan = MarketViewer.Contracts.Enums.Timespan.minute,
+            Timespan = Timespan.minute,
         }));
         Entries.Add(new FilterEntry(true, new Filter
         {
@@ -141,7 +142,7 @@
             Value = 0,
             ValueType = FilterValueType.CustomAmount,
             Multiplier = 2,
-            Timespan = MarketViewer.Contracts.Enums.Timespan.minute,
+            Timespan = Timespan.minute,
         }));
     }
 }

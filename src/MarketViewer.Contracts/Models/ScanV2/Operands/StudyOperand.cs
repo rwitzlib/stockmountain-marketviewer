@@ -2,18 +2,18 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
-namespace MarketViewer.Contracts.Models.ScanV2;
+namespace MarketViewer.Contracts.Models.ScanV2.Operands;
 
 [ExcludeFromCodeCoverage]
-public class PriceActionOperand : IScanOperand
+public class StudyOperand : IScanOperand
 {
-    public string Name { get; } = "PriceAction";
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public StudyType Study { get; set; }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public OperandModifier Modifier { get; set; }
 
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public PriceActionType Type { get; set; }
+    public string Parameters { get; set; }
 
     public int Multiplier { get; set; }
 
@@ -26,14 +26,4 @@ public class PriceActionOperand : IScanOperand
         timespan = Timespan;
         return true;
     }
-}
-
-public enum PriceActionType
-{
-    Open,
-    Close,
-    High,
-    Low,
-    Vwap,
-    Volume
 }

@@ -2,7 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
-namespace MarketViewer.Contracts.Models.Backtest;
+namespace MarketViewer.Contracts.Models.BacktestV2;
 
 [ExcludeFromCodeCoverage]
 public class Feature

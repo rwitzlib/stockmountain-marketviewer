@@ -1,13 +1,12 @@
 ﻿using MarketViewer.Contracts.Enums;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MarketViewer.Contracts.Models.ScanV2;
+namespace MarketViewer.Contracts.Models.ScanV2.Operands;
 
 [ExcludeFromCodeCoverage]
-public class ValueOperand : IScanOperand
+public class PropertyOperand : IScanOperand
 {
-    public string Name { get; } = "Value";
-    public float Value { get; set; }
+    public string Property { get; set; }
 
     public bool HasTimeframe(out int? multiplier, out Timespan? timespan)
     {

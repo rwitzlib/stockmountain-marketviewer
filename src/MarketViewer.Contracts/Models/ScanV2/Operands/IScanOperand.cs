@@ -1,6 +1,6 @@
 ﻿using MarketViewer.Contracts.Enums;
 
-namespace MarketViewer.Contracts.Models.ScanV2;
+namespace MarketViewer.Contracts.Models.ScanV2.Operands;
 
 public interface IScanOperand
 {

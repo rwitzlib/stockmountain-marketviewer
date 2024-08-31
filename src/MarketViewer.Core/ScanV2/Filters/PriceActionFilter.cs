@@ -1,5 +1,6 @@
 ﻿using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.ScanV2;
+using MarketViewer.Contracts.Models.ScanV2.Operands;
 using MarketViewer.Contracts.Responses;
 
 namespace MarketViewer.Core.ScanV2.Filters;
@@ -10,7 +11,7 @@ public class PriceActionFilter : IFilterV2
     {
         var priceActionOperand = operand as PriceActionOperand;
 
-        var candles = priceActionOperand.Type switch
+        var candles = priceActionOperand.PriceAction switch
         {
             PriceActionType.Open => stocksResponse.Results.Select(q => q.Open),
             PriceActionType.Close => stocksResponse.Results.Select(q => q.Close),

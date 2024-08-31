@@ -1,4 +1,5 @@
-﻿using MarketViewer.Contracts.Models.Scan;
+﻿using MarketViewer.Contracts.Enums;
+using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Core.Scanner.Filters;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
@@ -16,7 +17,6 @@ namespace MarketViewer.Core.Scanner
                 FilterType.Price => serviceProvider.GetRequiredService<PriceFilter>(),
                 FilterType.Vwap => serviceProvider.GetRequiredService<VwapFilter>(),
                 FilterType.Macd => serviceProvider.GetRequiredService<MacdFilter>(),
-                FilterType.Float => serviceProvider.GetRequiredService<FloatFilter>(),
                 _ => throw new NotImplementedException()
             };
         }

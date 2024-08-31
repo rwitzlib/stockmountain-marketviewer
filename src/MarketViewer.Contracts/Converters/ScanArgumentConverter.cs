@@ -1,5 +1,6 @@
-﻿using MarketViewer.Contracts.Models.Scan;
+﻿using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.ScanV2;
+using MarketViewer.Contracts.Models.ScanV2.Operands;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -108,16 +109,24 @@ public class ScanArgumentConverter : System.Text.Json.Serialization.JsonConverte
     {
         var json = jsonElement.GetRawText();
 
-
-        if (jsonElement.TryGetProperty("Name", out var name))
+        if (jsonElement.TryGetProperty("Study", out var studyElement))
         {
-            return name.ToString() switch
-            {
-                "PriceAction" => JsonSerializer.Deserialize<PriceActionOperand>(json),
-                "Study" => JsonSerializer.Deserialize<StudyOperand>(json),
-                "Value" => JsonSerializer.Deserialize<ValueOperand>(json),
-                _ => null
-            };
+            return JsonSerializer.Deserialize<StudyOperand>(json);
+        }
+
+        if (jsonElement.TryGetProperty("PriceAction", out var priceAction))
+        {
+            return JsonSerializer.Deserialize<PriceActionOperand>(json);
+        }
+
+        if (jsonElement.TryGetProperty("Property", out var property))
+        {
+            return JsonSerializer.Deserialize<PropertyOperand>(json);
+        }
+
+        if (jsonElement.TryGetProperty("Value", out var value))
+        {
+            return JsonSerializer.Deserialize<FixedOperand>(json);
         }
 
         return null;

@@ -1,5 +1,6 @@
 ﻿using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.ScanV2;
+using MarketViewer.Contracts.Models.ScanV2.Operands;
 using MarketViewer.Contracts.Responses;
 using MarketViewer.Studies;
 
@@ -12,7 +13,7 @@ public class StudyFilter : IFilterV2
         var studyOperand = operand as StudyOperand;
 
         var parameters = studyOperand.Parameters is null ? [] : studyOperand.Parameters.Split(',');
-        var studyResponse = StudyService.ComputeStudy(studyOperand.Type, parameters, stocksResponse.Results.ToArray());
+        var studyResponse = StudyService.ComputeStudy(studyOperand.Study, parameters, stocksResponse.Results.ToArray());
 
         if (studyResponse is null || studyResponse.Results.Count == 0)
         {

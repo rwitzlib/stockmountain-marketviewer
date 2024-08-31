@@ -1,10 +1,8 @@
 ﻿using MarketViewer.Contracts.Converters;
-using MarketViewer.Contracts.Models.ScanV2;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
-namespace MarketViewer.Contracts.Models.Scan;
+namespace MarketViewer.Contracts.Models.ScanV2;
 
 [ExcludeFromCodeCoverage]
 [JsonConverter(typeof(ScanArgumentConverter))]
