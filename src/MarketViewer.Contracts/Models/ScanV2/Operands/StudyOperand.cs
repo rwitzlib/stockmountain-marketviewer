@@ -20,6 +20,11 @@ public class StudyOperand : IScanOperand
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public Timespan Timespan { get; set; }
 
+    public int GetPriority()
+    {
+        return 10;
+    }
+
     public bool HasTimeframe(out int? multiplier, out Timespan? timespan)
     {
         multiplier = Multiplier;

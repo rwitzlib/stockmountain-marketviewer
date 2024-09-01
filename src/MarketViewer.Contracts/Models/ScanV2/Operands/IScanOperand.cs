@@ -4,5 +4,6 @@ namespace MarketViewer.Contracts.Models.ScanV2.Operands;
 
 public interface IScanOperand
 {
+    public int GetPriority();
     public bool HasTimeframe(out int? multiplier, out Timespan? timespan);
 }
