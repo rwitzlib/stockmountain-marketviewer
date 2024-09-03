@@ -10,9 +10,13 @@ public class ValueFilter : IFilterV2
     {
         var valueOperand = operand as FixedOperand;
 
-        var results = new float[timeframe.Multiplier];
+        if (timeframe is null)
+        {
+            return [valueOperand.Value];
+        }
 
-        for (int i = 0; i < results.Length; i++)
+        var results = new float[timeframe.Multiplier];
+        for (int i = 0; i < timeframe.Multiplier; i++)
         {
             results[i] = valueOperand.Value;
         }
