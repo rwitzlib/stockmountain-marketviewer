@@ -1,22 +1,37 @@
-﻿using MarketViewer.Contracts.Models.ScanV2;
+﻿using MarketViewer.Contracts.Caching;
+using MarketViewer.Contracts.Models.ScanV2;
 using MarketViewer.Contracts.Models.ScanV2.Operands;
 using MarketViewer.Contracts.Responses;
 
 namespace MarketViewer.Core.ScanV2.Filters;
 
-public class PropertyFilter : IFilterV2
+public class PropertyFilter(MarketCache marketCache) : IFilterV2
 {
     public float[] Compute(IScanOperand operand, StocksResponse stocksResponse, Timeframe timeframe)
     {
-        var propertyOperand = operand as PropertyOperand;
-
-        float[] results = propertyOperand.Property switch
+        try
         {
-            "Float" => [(float)stocksResponse.TickerDetails.Float],
-            "MarketCap" => [(float)stocksResponse.TickerDetails.MarketCap],
-            _ => []
-        };
+            var tickerDetails = marketCache.GetTickerDetails(stocksResponse.Ticker);
 
-        return results;
+            if (tickerDetails is null)
+            {
+                return [];
+            }
+
+            var propertyOperand = operand as PropertyOperand;
+
+            float[] results = propertyOperand.Property switch
+            {
+                "Float" => [tickerDetails.Float],
+                "MarketCap" => [(float)tickerDetails.MarketCap],
+                _ => []
+            };
+
+            return results;
+        }
+        catch (Exception ex)
+        {
+            return [];
+        }
     }
 }
