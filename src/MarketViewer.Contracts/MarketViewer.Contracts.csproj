@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <PackageId>MarketViewer.Contracts</PackageId>
-    <Version>1.2.3-preview.2</Version>
+    <Version>1.2.3-preview.3</Version>
     <Authors>Robert Witzlib</Authors>
     <Description>
       .NET project containing models, request and response contracts for MarketViewer.
