@@ -90,7 +90,7 @@ public class LiveCache(
             {
                 var stocksResponse = _marketCache.GetStocksResponse(ticker, timespan, date);
 
-                if (stocksResponse.Results is null || stocksResponse.Results.Count < MINIMUM_REQUIRED_CANDLES)
+                if (stocksResponse is null || stocksResponse.Results is null || stocksResponse.Results.Count < MINIMUM_REQUIRED_CANDLES)
                 {
                     continue;
                 }

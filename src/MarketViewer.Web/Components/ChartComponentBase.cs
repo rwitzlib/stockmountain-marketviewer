@@ -24,6 +24,7 @@ namespace MarketViewer.Web.Components
 
         #region Parameters
         [Parameter] public StocksRequest StocksRequest { get; set; }
+        [Parameter] public int Days { get; set; } = 1;
         [Parameter] public string Id { get; set; }
         [Parameter] public string Height { get; set; } = "100%";
         [Parameter] public string Width { get; set; } = "100%";
@@ -93,7 +94,8 @@ namespace MarketViewer.Web.Components
         protected async void GetChartData()
         {
             var timestamp = ClockComponent.GetTime();
-            StocksRequest.To = new DateTimeOffset(StocksRequest.To.Year, StocksRequest.To.Month, StocksRequest.To.Day, timestamp.Hour, timestamp.Minute, timestamp.Second, StocksRequest.To.Offset);
+            StocksRequest.To = new DateTimeOffset(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second, timestamp.Offset);
+            StocksRequest.From = StocksRequest.To.AddDays(-Days).Date;
             try
             {
 

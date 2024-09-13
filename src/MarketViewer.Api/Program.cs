@@ -53,22 +53,35 @@ public class Program
         var now = DateTimeOffset.Now;
         var startTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 0, 1, now.Offset);
 
-        var aggregatesJob = JobBuilder.Create<StocksJob>()
-                .WithIdentity("aggregates", "group1")
+        var minuteJob = JobBuilder.Create<StocksMinuteJob>()
+                .WithIdentity("minute", "group1")
+                .Build();
+        
+        var hourJob = JobBuilder.Create<StocksHourJob>()
+                .WithIdentity("hour", "group2")
                 .Build();
 
         var snapshotJob = JobBuilder.Create<SnapshotJob>()
-            .WithIdentity("snapshot", "group2")
+            .WithIdentity("snapshot", "group3")
             .Build();
 
-        var aggregatesTrigger = TriggerBuilder.Create()
+        var minuteTrigger = TriggerBuilder.Create()
             .WithIdentity("trigger1", "group1")
             .StartAt(startTime)
-            .ForJob(aggregatesJob)
+            .ForJob(minuteJob)
+            .Build();
+
+        var hourTrigger = TriggerBuilder.Create()
+            .WithIdentity("trigger2", "group2")
+            .StartAt(startTime)
+            .WithSimpleSchedule(schedule => schedule
+                .WithIntervalInHours(1)
+                .RepeatForever())
+            .ForJob(hourJob)
             .Build();
 
         var snapshotTrigger = TriggerBuilder.Create()
-            .WithIdentity("trigger2", "group2")
+            .WithIdentity("trigger3", "group3")
             .StartAt(startTime.AddMinutes(1))
             .WithSimpleSchedule(schedule => schedule
                 .WithIntervalInMinutes(1)
@@ -95,7 +108,8 @@ public class Program
         var schedulerFactory = app.Services.GetRequiredService<ISchedulerFactory>();
         var scheduler = schedulerFactory.GetScheduler().GetAwaiter().GetResult();
 
-        scheduler.ScheduleJob(aggregatesJob, aggregatesTrigger).GetAwaiter().GetResult();
+        scheduler.ScheduleJob(minuteJob, minuteTrigger).GetAwaiter().GetResult();
+        scheduler.ScheduleJob(hourJob, hourTrigger).GetAwaiter().GetResult();
         scheduler.ScheduleJob(snapshotJob, snapshotTrigger).GetAwaiter().GetResult();
 
         // Configure the HTTP request pipeline.

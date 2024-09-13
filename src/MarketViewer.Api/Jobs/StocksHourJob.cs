@@ -5,16 +5,15 @@ using Polygon.Client.Requests;
 using System.Diagnostics;
 using MarketViewer.Contracts.Responses;
 using MarketViewer.Contracts.Enums;
-using MarketViewer.Infrastructure.Services;
 using MarketViewer.Contracts.Caching;
 
 namespace MarketViewer.Api.Jobs;
 
-public class StocksJob(
+public class StocksHourJob(
     MarketCache _marketCache,
     IPolygonClient polygonClient,
     IMapper mapper,
-    ILogger<StocksJob> logger) : IJob
+    ILogger<StocksHourJob> logger) : IJob
 {
     public async Task Execute(IJobExecutionContext context)
     {
@@ -30,12 +29,11 @@ public class StocksJob(
         sp.Start();
 
 
-        var tickers = _marketCache.GetTickers();
+        var tickers = _marketCache.GetTickersByTimespan(Timespan.hour, DateTimeOffset.Now);
 
         var tasks = new List<Task>();
         foreach (var ticker in tickers)
         {
-            tasks.Add(Task.Run(() => PopulateStocksResponse(ticker, 1, Timespan.minute)));
             tasks.Add(Task.Run(() => PopulateStocksResponse(ticker, 1, Timespan.hour)));
         }
         await Task.WhenAll(tasks);
@@ -53,12 +51,15 @@ public class StocksJob(
             Ticker = ticker,
             Multiplier = multiplier,
             Timespan = timespan.ToString(),
-            From = ((DateTimeOffset)DateTime.Now.Date).ToUnixTimeMilliseconds().ToString(),
-            To = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString()
+            From = ((DateTimeOffset)DateTime.Now.AddMonths(-2).Date).ToUnixTimeMilliseconds().ToString(),
+            To = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString(),
+            Limit = 50000
         };
         var polygonAggregateResponse = await polygonClient.GetAggregates(polygonAggregateRequest);
 
         var stocksResponse = mapper.Map<StocksResponse>(polygonAggregateResponse);
+
+        var asdf = _marketCache.GetStocksResponse(ticker, timespan, DateTimeOffset.Now);
 
         _marketCache.SetStocksResponse(stocksResponse, timespan, DateTimeOffset.Now);
     }
