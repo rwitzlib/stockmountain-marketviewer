@@ -26,7 +26,7 @@
                         }
                     }
                 </select>
-                <MudSelect T="int" ValueChanged="SetDateFromRange" SelectedValues="@([1])">
+                <MudSelect T="int" @bind-Value="Days" SelectedValues="@([1])">
                     <MudSelectItem Value="@(1)">1D</MudSelectItem>
                     <MudSelectItem Value="@(2)">2D</MudSelectItem>
                     <MudSelectItem Value="@(3)">3D</MudSelectItem>

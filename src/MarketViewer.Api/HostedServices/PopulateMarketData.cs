@@ -1,6 +1,7 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
 using MarketViewer.Contracts.Caching;
+using MarketViewer.Contracts.Enums;
 using Polygon.Client.Models;
 using System.Diagnostics;
 using System.Text.Json;
@@ -32,14 +33,36 @@ public class PopulateMarketData(
             var json = await streamReader.ReadToEndAsync(cancellationToken);
 
             var tickerDetailsList = JsonSerializer.Deserialize<IEnumerable<TickerDetails>>(json);
-            var tickers = tickerDetailsList.Select(tickerDetails => tickerDetails.Ticker);
-
-            _marketCache.SetTickers(tickers);
 
             foreach (var tickerDetails in tickerDetailsList)
             {
                 _marketCache.SetTickerDetails(tickerDetails);
             }
+            
+            var tickers = tickerDetailsList.Select(tickerDetails => tickerDetails.Ticker);
+
+            _marketCache.SetTickers(tickers);
+
+            _marketCache.SetTickersByTimespan(DateTimeOffset.Now, Timespan.minute, tickers);
+            _marketCache.SetTickersByTimespan(DateTimeOffset.Now, Timespan.hour, tickers);
+
+            //var minuteStocksResponses = await _marketCache.Initialize(DateTimeOffset.Now.AddDays(-1), 1, Timespan.minute);
+            //var minuteTickers = minuteStocksResponses.Select(q => q.Ticker);
+            //_marketCache.SetTickersByTimespan(DateTimeOffset.Now, Timespan.minute, minuteTickers);
+
+            //foreach (var stocksResponse in minuteStocksResponses)
+            //{
+            //    _marketCache.SetStocksResponse(stocksResponse, Timespan.minute, DateTimeOffset.Now);
+            //}
+
+            //var hourStocksResponses = await _marketCache.Initialize(DateTimeOffset.Now.AddDays(-1), 1, Timespan.hour);
+            //var hourTickers = minuteStocksResponses.Select(q => q.Ticker);
+            //_marketCache.SetTickersByTimespan(DateTimeOffset.Now, Timespan.hour, hourTickers);
+
+            //foreach (var stocksResponse in hourStocksResponses)
+            //{
+            //    _marketCache.SetStocksResponse(stocksResponse, Timespan.hour, DateTimeOffset.Now);
+            //}
         }
         catch (Exception ex)
         {
