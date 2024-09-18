@@ -54,6 +54,8 @@ public class BacktestV2Handler(
                     DetailedResponse = request.DetailedResponse,
                     PositionSize = request.PositionSize,
                     Multiplier = request.Multiplier,
+                    StopLoss = request.StopLoss,
+                    MaxPositions = request.MaxPositions,
                     Timespan = request.Timespan,
                     Argument = request.Argument,
                     Features = request.Features,
@@ -79,24 +81,24 @@ public class BacktestV2Handler(
                         PositiveTrendRatio = validResults.Average(result => result.Hold.PositiveTrendRatio),
                         HighPosition = validResults.Average(result => result.Hold.HighPosition),
                         LowPosition = validResults.Average(result => result.Hold.LowPosition),
-                        AvgPosition = validResults.Average(result => result.Hold.AvgPosition),
-                        SumProfit = validResults.Average(result => result.Hold.SumProfit),
+                        AvgProfit = validResults.Average(result => result.Hold.SumProfit),
+                        SumProfit = validResults.Sum(result => result.Hold.SumProfit),
                     },
                     High = new BackTestEntryStats
                     {
                         PositiveTrendRatio = validResults.Average(result => result.High.PositiveTrendRatio),
                         HighPosition = validResults.Average(result => result.High.HighPosition),
                         LowPosition = validResults.Average(result => result.High.LowPosition),
-                        AvgPosition = validResults.Average(result => result.High.AvgPosition),
-                        SumProfit = validResults.Average(result => result.High.SumProfit),
+                        AvgProfit = validResults.Average(result => result.High.SumProfit),
+                        SumProfit = validResults.Sum(result => result.High.SumProfit),
                     },
                     Average = new BackTestEntryStats
                     {
                         PositiveTrendRatio = validResults.Average(result => result.Other.PositiveTrendRatio),
                         HighPosition = validResults.Average(result => result.Other.HighPosition),
                         LowPosition = validResults.Average(result => result.Other.LowPosition),
-                        AvgPosition = validResults.Average(result => result.Other.AvgPosition),
-                        SumProfit = validResults.Average(result => result.Other.SumProfit),
+                        AvgProfit = validResults.Average(result => result.Other.SumProfit),
+                        SumProfit = validResults.Sum(result => result.Other.SumProfit),
                     },
                     Results = validResults
                 }
