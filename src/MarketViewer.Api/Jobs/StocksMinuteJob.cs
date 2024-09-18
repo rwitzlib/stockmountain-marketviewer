@@ -5,7 +5,6 @@ using Polygon.Client.Requests;
 using System.Diagnostics;
 using MarketViewer.Contracts.Responses;
 using MarketViewer.Contracts.Enums;
-using MarketViewer.Infrastructure.Services;
 using MarketViewer.Contracts.Caching;
 
 namespace MarketViewer.Api.Jobs;
