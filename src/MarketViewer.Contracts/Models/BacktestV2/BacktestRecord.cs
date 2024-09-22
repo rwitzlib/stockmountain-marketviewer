@@ -17,6 +17,10 @@ public class BacktestRecord
     [DynamoDBGlobalSecondaryIndexHashKey]
     public string CustomerId { get; set; }
     public string Date { get; set; }
+
+    /// <summary>
+    /// Cost is $0.000133334 per credit
+    /// </summary>
     public float CreditsUsed { get; set; }
     public float HoldProfit { get; set; }
     public float HighProfit { get; set; }
