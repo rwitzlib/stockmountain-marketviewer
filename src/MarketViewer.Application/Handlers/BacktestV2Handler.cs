@@ -108,15 +108,15 @@ public class BacktestV2Handler(
             var record = new BacktestRecord
             {
                 CustomerId = Guid.Empty.ToString(),
+                Date = DateTimeOffset.Now.ToString("yyyy-mm-dd hh:mm"),
+                CreditsUsed = validResults.Sum(result => result.CreditsUsed),
                 HoldProfit = response.Data.Hold.SumProfit,
                 HighProfit = response.Data.High.SumProfit,
                 Request = JsonSerializer.Serialize(request),
-                Response = JsonSerializer.Serialize(response)
+                Response = JsonSerializer.Serialize(response.Data)
             };
 
             await _dbContext.SaveAsync(record, cancellationToken);
-
-            var asdf = await _dbContext.LoadAsync<BacktestRecord>(record.Id, cancellationToken);
 
             response.Data.Results = validResults;
 
