@@ -8,6 +8,10 @@ public class BacktestEntryV2
 {
     public Guid EntryId { get; set; }
     public DateTime Date { get; set; }
+
+    /// <summary>
+    /// Cost is $0.000133334 per credit
+    /// </summary>
     public float CreditsUsed { get; set; }
     public BackTestEntryStats Hold { get; set; }
     public BackTestEntryStats High { get; set; }

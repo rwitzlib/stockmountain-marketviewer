@@ -65,7 +65,7 @@ public class BacktestV2Handler(
                 tasks.Add(Task.Run(async () => await BacktestDay(backtesterLambdaRequest)));
             }
             var results = await Task.WhenAll(tasks);
-            var validResults = results.Where(q => q is not null);
+            var validResults = results.Where(q => q is not null && q.Results is not null);
 
             if (validResults is null || !validResults.Any())
             {
@@ -108,8 +108,8 @@ public class BacktestV2Handler(
             var record = new BacktestRecord
             {
                 CustomerId = Guid.Empty.ToString(),
-                Date = DateTimeOffset.Now.ToString("yyyy-mm-dd hh:mm"),
-                CreditsUsed = validResults.Sum(result => result.CreditsUsed),
+                Date = DateTimeOffset.Now.ToString("yyyy-MM-dd hh:mm z"),
+                CreditsUsed = results.Where(result => result is not null).Sum(result => result.CreditsUsed),
                 HoldProfit = response.Data.Hold.SumProfit,
                 HighProfit = response.Data.High.SumProfit,
                 Request = JsonSerializer.Serialize(request),
