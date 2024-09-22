@@ -7,6 +7,9 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using System.Net;
 using Polygon.Client.Responses;
+using MarketViewer.Contracts.Responses;
+using MemoryPack;
+using MemoryPack.Streaming;
 
 namespace MarketViewer.Infrastructure.UnitTests.Performance
 {
@@ -14,40 +17,88 @@ namespace MarketViewer.Infrastructure.UnitTests.Performance
     {
         private readonly ITestOutputHelper _output;
 
-        #region Constructor
         public PerformanceUnitTests(ITestOutputHelper output)
         {
             _output = output;
         }
-        #endregion
 
-        // [Fact]
-        // public async Task Read_And_Serialize_S3_Backtest_File()
-        // {
-        //     var sp = new Stopwatch();
-        //     sp.Start();
+        [Fact]
+        public async Task Read_And_Serialize_S3_Backtest_File_JsonSerializer()
+        {
+            var sp = new Stopwatch();
+            sp.Start();
 
-        //     using var client = new AmazonS3Client(Amazon.RegionEndpoint.USEast2);
+            using var client = new AmazonS3Client(Amazon.RegionEndpoint.USEast2);
 
-        //     var response = await client.GetObjectAsync(new GetObjectRequest
-        //     {
-        //         BucketName = "lad-dev-marketviewer",
-        //         Key = "backtest/2023/9/9-29.json"
-        //     });
+            var response = await client.GetObjectAsync(new GetObjectRequest
+            {
+                BucketName = "lad-dev-marketviewer",
+                Key = "backtest/2023/01/aggregate_1_hour"
+            });
 
-        //     response.HttpStatusCode.Should().Be(HttpStatusCode.OK);
+            response.HttpStatusCode.Should().Be(HttpStatusCode.OK);
 
-        //     using var reader = new StreamReader(response.ResponseStream);
-        //     var responseBody = reader.ReadToEnd();
+            using var reader = new StreamReader(response.ResponseStream);
+            var json = await reader.ReadToEndAsync();
 
-        //     responseBody.Should().NotBeNullOrWhiteSpace();
+            var aggregates = JsonSerializer.Deserialize<List<StocksResponse>>(json);
 
-        //     var aggregates = JsonSerializer.Deserialize<List<PolygonAggregateResponse>>(responseBody);
+            sp.Stop();
+            _output.WriteLine($"Serialized {aggregates.Count} results in {sp.ElapsedMilliseconds}ms");
 
-        //     sp.Stop();
+            sp.ElapsedMilliseconds.Should().BeLessThan(30000);
+            aggregates.Should().NotBeNull();
+        }
 
-        //     sp.ElapsedMilliseconds.Should().BeLessThan(15000);
-        //     aggregates.Should().NotBeNull();
-        // }
+        [Fact]
+        public async Task Read_And_Serialize_S3_Backtest_File_MemoryPack()
+        {
+            var sp = new Stopwatch();
+            sp.Start();
+
+            using var client = new AmazonS3Client(Amazon.RegionEndpoint.USEast2);
+
+            var response = await client.GetObjectAsync(new GetObjectRequest
+            {
+                BucketName = "lad-dev-marketviewer",
+                Key = "backtest/2023/01/aggregate_1_hour"
+            });
+
+            response.HttpStatusCode.Should().Be(HttpStatusCode.OK);
+
+            using var streamReader = new MemoryStream();
+            response.ResponseStream.CopyTo(streamReader);
+            var result = streamReader.ToArray();
+
+
+
+
+            //var test = new List<StocksResponse>
+            //{
+            //    new StocksResponse
+            //    {
+            //        Ticker = "asdf",
+            //        Results = new List<Polygon.Client.Models.Bar>
+            //        {
+            //            new Polygon.Client.Models.Bar
+            //            {
+            //                Close = 1234
+            //            }
+            //        }
+            //    }
+            //};
+            //var bytes = MemoryPackSerializer.Serialize(test);
+
+            //var asdf = MemoryPackSerializer.Deserialize<List<StocksResponse>>(bytes);
+
+            //var mp = MemoryPackStreamingSerializer.DeserializeAsync<List<StocksResponse>>(response.ResponseStream, bufferAtLeast: 1800000000, readMinimumSize: 1800000000);
+            //var aggregates = mp.ToBlockingEnumerable().First();
+
+            //sp.Stop();
+            //_output.WriteLine($"Serialized {aggregates.Count} results in {sp.ElapsedMilliseconds}ms");
+
+            //sp.ElapsedMilliseconds.Should().BeLessThan(15000);
+            //aggregates.Should().NotBeNull();
+        }
     }
 }

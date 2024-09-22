@@ -1,4 +1,5 @@
-﻿using Amazon.Lambda;
+﻿using Amazon.DynamoDBv2.DataModel;
+using Amazon.Lambda;
 using Amazon.Lambda.Model;
 using FluentValidation;
 using MarketViewer.Contracts.Models;
@@ -20,8 +21,9 @@ namespace MarketViewer.Application.Handlers;
 
 public class BacktestV2Handler(
     //IValidator<BacktestV2Request> validator,
-    IAmazonLambda amazonLambda,
-    ILogger<BacktestV2Handler> logger) : IRequestHandler<BacktestV2Request, OperationResult<BacktestV2Response>>
+    IAmazonLambda _lambdaClient,
+    IDynamoDBContext _dbContext,
+    ILogger<BacktestV2Handler> _logger) : IRequestHandler<BacktestV2Request, OperationResult<BacktestV2Response>>
 {
     public async Task<OperationResult<BacktestV2Response>> Handle(BacktestV2Request request, CancellationToken cancellationToken)
     {
@@ -39,7 +41,7 @@ public class BacktestV2Handler(
                 .Select(day => request.Start.AddDays(day))
                 .Where(day => day.DayOfWeek != DayOfWeek.Sunday && day.DayOfWeek != DayOfWeek.Saturday);
 
-            logger.LogInformation("Backtesting strategy between {start} and {end}. Total days: {count}",
+            _logger.LogInformation("Backtesting strategy between {start} and {end}. Total days: {count}",
                 request.Start.ToString("yyyy-MM-dd"),
                 request.End.ToString("yyyy-MM-dd"),
                 days.Count());
@@ -70,7 +72,7 @@ public class BacktestV2Handler(
                 return GenerateErrorResponse(HttpStatusCode.NotFound, ["No results."]);
             }
 
-            return new OperationResult<BacktestV2Response>
+            var response = new OperationResult<BacktestV2Response>
             {
                 Status = HttpStatusCode.OK,
                 Data = new BacktestV2Response
@@ -92,22 +94,38 @@ public class BacktestV2Handler(
                         AvgProfit = validResults.Average(result => result.High.SumProfit),
                         SumProfit = validResults.Sum(result => result.High.SumProfit),
                     },
-                    Average = new BackTestEntryStats
+                    Other = new BackTestEntryStats
                     {
                         PositiveTrendRatio = validResults.Average(result => result.Other.PositiveTrendRatio),
                         HighPosition = validResults.Average(result => result.Other.HighPosition),
                         LowPosition = validResults.Average(result => result.Other.LowPosition),
                         AvgProfit = validResults.Average(result => result.Other.SumProfit),
                         SumProfit = validResults.Sum(result => result.Other.SumProfit),
-                    },
-                    Results = validResults
+                    }
                 }
             };
+
+            var record = new BacktestRecord
+            {
+                CustomerId = Guid.Empty.ToString(),
+                HoldProfit = response.Data.Hold.SumProfit,
+                HighProfit = response.Data.High.SumProfit,
+                Request = JsonSerializer.Serialize(request),
+                Response = JsonSerializer.Serialize(response)
+            };
+
+            await _dbContext.SaveAsync(record, cancellationToken);
+
+            var asdf = await _dbContext.LoadAsync<BacktestRecord>(record.Id, cancellationToken);
+
+            response.Data.Results = validResults;
+
+            return response;
         }
         catch (Exception ex)
         {
-            logger.LogError("Error: {}", ex.Message);
-            logger.LogError("Stacktrace: {}", ex.StackTrace);
+            _logger.LogError("Error: {}", ex.Message);
+            _logger.LogError("Stacktrace: {}", ex.StackTrace);
 
             return new OperationResult<BacktestV2Response>
             {
@@ -131,7 +149,7 @@ public class BacktestV2Handler(
                 
             };
 
-            var response = await amazonLambda.InvokeAsync(invokeRequest);
+            var response = await _lambdaClient.InvokeAsync(invokeRequest);
 
             if (response.StatusCode is not 200)
             {
