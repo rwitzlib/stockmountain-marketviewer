@@ -11,6 +11,7 @@ namespace MarketViewer.Contracts.Requests;
 [ExcludeFromCodeCoverage]
 public class BacktestV2Request : IRequest<OperationResult<BacktestV2Response>>
 {
+    public string Id { get; set; }
     public DateTimeOffset Start { get; set; }
     public DateTimeOffset End { get; set; }
     public bool DetailedResponse { get; set; } = false;

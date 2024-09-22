@@ -6,7 +6,7 @@ namespace MarketViewer.Contracts.Responses
     [ExcludeFromCodeCoverage]
     public class BacktestV2Response
     {
-        public Guid RequestId { get; set; }
+        public string Id { get; set; }
         public BackTestEntryStats Hold { get; set; }
         public BackTestEntryStats High { get; set; }
         public BackTestEntryStats Other { get; set; }
