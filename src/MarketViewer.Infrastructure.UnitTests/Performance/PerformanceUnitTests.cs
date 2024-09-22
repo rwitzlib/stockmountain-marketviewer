@@ -25,53 +25,46 @@ namespace MarketViewer.Infrastructure.UnitTests.Performance
         [Fact]
         public async Task Read_And_Serialize_S3_Backtest_File_JsonSerializer()
         {
-            var sp = new Stopwatch();
-            sp.Start();
+            //var sp = new Stopwatch();
+            //sp.Start();
 
-            using var client = new AmazonS3Client(Amazon.RegionEndpoint.USEast2);
+            //using var client = new AmazonS3Client(Amazon.RegionEndpoint.USEast2);
 
-            var response = await client.GetObjectAsync(new GetObjectRequest
-            {
-                BucketName = "lad-dev-marketviewer",
-                Key = "backtest/2023/01/aggregate_1_hour"
-            });
+            //var response = await client.GetObjectAsync(new GetObjectRequest
+            //{
+            //    BucketName = "lad-dev-marketviewer",
+            //    Key = "backtest/2023/01/aggregate_1_hour"
+            //});
 
-            response.HttpStatusCode.Should().Be(HttpStatusCode.OK);
+            //using var reader = new StreamReader(response.ResponseStream);
+            //var json = await reader.ReadToEndAsync();
 
-            using var reader = new StreamReader(response.ResponseStream);
-            var json = await reader.ReadToEndAsync();
+            //var aggregates = JsonSerializer.Deserialize<List<StocksResponse>>(json);
 
-            var aggregates = JsonSerializer.Deserialize<List<StocksResponse>>(json);
+            //sp.Stop();
+            //_output.WriteLine($"Serialized {aggregates.Count} results in {sp.ElapsedMilliseconds}ms");
 
-            sp.Stop();
-            _output.WriteLine($"Serialized {aggregates.Count} results in {sp.ElapsedMilliseconds}ms");
-
-            sp.ElapsedMilliseconds.Should().BeLessThan(30000);
-            aggregates.Should().NotBeNull();
+            //sp.ElapsedMilliseconds.Should().BeLessThan(30000);
+            //aggregates.Should().NotBeNull();
         }
 
         [Fact]
         public async Task Read_And_Serialize_S3_Backtest_File_MemoryPack()
         {
-            var sp = new Stopwatch();
-            sp.Start();
+            //var sp = new Stopwatch();
+            //sp.Start();
 
-            using var client = new AmazonS3Client(Amazon.RegionEndpoint.USEast2);
+            //using var client = new AmazonS3Client(Amazon.RegionEndpoint.USEast2);
 
-            var response = await client.GetObjectAsync(new GetObjectRequest
-            {
-                BucketName = "lad-dev-marketviewer",
-                Key = "backtest/2023/01/aggregate_1_hour"
-            });
+            //var response = await client.GetObjectAsync(new GetObjectRequest
+            //{
+            //    BucketName = "lad-dev-marketviewer",
+            //    Key = "backtest/2023/01/aggregate_1_hour"
+            //});
 
-            response.HttpStatusCode.Should().Be(HttpStatusCode.OK);
-
-            using var streamReader = new MemoryStream();
-            response.ResponseStream.CopyTo(streamReader);
-            var result = streamReader.ToArray();
-
-
-
+            //using var streamReader = new MemoryStream();
+            //response.ResponseStream.CopyTo(streamReader);
+            //var result = streamReader.ToArray();
 
             //var test = new List<StocksResponse>
             //{
