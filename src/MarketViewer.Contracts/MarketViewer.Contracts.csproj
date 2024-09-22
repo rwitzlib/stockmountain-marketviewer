@@ -21,6 +21,7 @@
     <PackageReference Include="AWSSDK.S3" Version="3.7.305.28" />
     <PackageReference Include="MarketDataProvider.Contracts" Version="1.0.0" />
     <PackageReference Include="MediatR" Version="12.2.0" />
+    <PackageReference Include="MemoryPack" Version="1.21.3" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />

@@ -1,4 +1,6 @@
 ﻿using Amazon;
+using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.DataModel;
 using Amazon.Lambda;
 using FluentValidation;
 using MarketViewer.Application.Validators;
@@ -19,6 +21,10 @@ public static class ServiceCollectionExtensions
             {
                 Timeout = TimeSpan.FromMinutes(5),
                 RegionEndpoint = RegionEndpoint.USEast2
-            }));
+            }))
+            .AddSingleton<IDynamoDBContext, DynamoDBContext>(context => new DynamoDBContext(new AmazonDynamoDBClient(new AmazonDynamoDBConfig
+            {
+                RegionEndpoint = RegionEndpoint.USEast2
+            })));
     }
 }
