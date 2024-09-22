@@ -77,7 +77,7 @@ public class BacktestV2Handler(
                 Status = HttpStatusCode.OK,
                 Data = new BacktestV2Response
                 {
-                    RequestId = Guid.NewGuid(),
+                    Id = request.Id,
                     Hold = new BackTestEntryStats
                     {
                         PositiveTrendRatio = validResults.Average(result => result.Hold.PositiveTrendRatio),
@@ -107,6 +107,7 @@ public class BacktestV2Handler(
 
             var record = new BacktestRecord
             {
+                Id = request.Id,
                 CustomerId = Guid.Empty.ToString(),
                 Date = DateTimeOffset.Now.ToString("yyyy-MM-dd hh:mm z"),
                 CreditsUsed = results.Where(result => result is not null).Sum(result => result.CreditsUsed),
