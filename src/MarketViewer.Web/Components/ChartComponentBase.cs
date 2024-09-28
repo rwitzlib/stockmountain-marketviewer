@@ -165,7 +165,7 @@ namespace MarketViewer.Web.Components
                     JsInProcessRuntime.InvokeVoid("UpdateVolume", Id, volumeJson);
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 
             }

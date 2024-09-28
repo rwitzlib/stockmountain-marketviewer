@@ -1,6 +1,5 @@
 ﻿using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Enums;
-using MarketViewer.Infrastructure.Services;
 using Polygon.Client.Interfaces;
 using Polygon.Client.Models;
 using Quartz;
@@ -10,42 +9,74 @@ namespace MarketViewer.Api.Jobs;
 
 public class SnapshotJob(
     MarketCache _marketCache,
-    IPolygonClient polygonClient,
-    ILogger<SnapshotJob> logger) : IJob
+    IPolygonClient _polygonClient,
+    ILogger<SnapshotJob> _logger) : IJob
 {
     public async Task Execute(IJobExecutionContext context)
     {
+        var jobDataMap = context.JobDetail.JobDataMap;
+        if (!jobDataMap.TryGetString("timespan", out var timespanString))
+        {
+            _logger.LogInformation("Missing required timespan parameter.");
+            return;
+        }
+
+        if (!Enum.TryParse<Timespan>(timespanString, out var timespan))
+        {
+            _logger.LogInformation("Invalid timespan.");
+        }
+
         if (DateTimeOffset.Now.DayOfWeek == DayOfWeek.Saturday || DateTimeOffset.Now.DayOfWeek == DayOfWeek.Sunday)
         {
-            logger.LogInformation("Market Closed - Skipping snapshot job.");
+            _logger.LogInformation("Market Closed - Skipping snapshot job.");
             return;
         }
 
         var sp = new Stopwatch();
         sp.Start();
-        logger.LogInformation("Snapshot - Started at: {time}.", DateTimeOffset.Now);
+        _logger.LogInformation("Snapshot({timespan}) - Started at: {time}.", timespan, DateTimeOffset.Now);
 
-        var snapshotResponse = await polygonClient.GetAllTickersSnapshot(null);
+        var snapshotResponse = await _polygonClient.GetAllTickersSnapshot(null);
 
         var tasks = new List<Task>();
         foreach (var snapshot in snapshotResponse.Tickers)
         {
-            tasks.Add(Task.Run(() => AddBarToCache(snapshot.Ticker, snapshot.Minute)));
+            tasks.Add(Task.Run(() => AddBarToCache(snapshot.Ticker, timespan, snapshot.Minute)));
         }
         await Task.WhenAll(tasks);
         sp.Stop();
 
-        logger.LogInformation("Snapshot - Finished at: {time}.", DateTimeOffset.Now);
-        logger.LogInformation("Snapshot - Time elapsed: {elapsed}ms.", sp.ElapsedMilliseconds);
+        _logger.LogInformation("Snapshot({timespan}) - Finished at: {time}.", timespan, DateTimeOffset.Now);
+        _logger.LogInformation("Snapshot({timespan}) - Time elapsed: {elapsed}ms.", timespan, sp.ElapsedMilliseconds);
     }
 
-    private Task AddBarToCache(string ticker, Bar bar)
+    private Task AddBarToCache(string ticker, Timespan timespan, Bar bar)
     {
-        var stocksResponse = _marketCache.GetStocksResponse(ticker, Timespan.minute, DateTimeOffset.Now);
+        if (bar.Timestamp == 0)
+        {
+            return Task.CompletedTask;
+        }
 
-        stocksResponse?.Results.Add(bar);
+        var stocksResponse = _marketCache.GetStocksResponse(ticker, timespan, DateTimeOffset.Now);
 
-        _marketCache.SetStocksResponse(stocksResponse, Timespan.minute, DateTimeOffset.Now);
+        if (stocksResponse is not null && stocksResponse.Results.Any())
+        {
+            var last = stocksResponse.Results.Last();
+            if (last.Timestamp < bar.Timestamp)
+            {
+                stocksResponse.Results.Add(bar);
+
+                _marketCache.SetStocksResponse(stocksResponse, timespan, DateTimeOffset.Now);
+            }
+            else if (last.Timestamp == bar.Timestamp)
+            {
+                
+            }
+            else
+            {
+
+            }
+        }
 
         return Task.CompletedTask;
     }
