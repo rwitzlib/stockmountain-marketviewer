@@ -14,7 +14,7 @@ public class LiveCache(
     MarketCache _marketCache,
     ILogger<LiveCache> logger)
 {
-    private const int MINIMUM_REQUIRED_CANDLES = 60;
+    private const int MINIMUM_REQUIRED_CANDLES = 30;
     private const int CANDLES_TO_TAKE = 120;
 
     public async Task<IEnumerable<StocksResponse>> GetStocksResponses(DateTimeOffset date)

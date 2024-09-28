@@ -5,20 +5,20 @@ using System.Diagnostics.CodeAnalysis;
 using MarketViewer.Infrastructure.Mapping;
 using MarketViewer.Application.Mapping;
 using MarketViewer.Core.DependencyInjection;
-using MarketViewer.Api.HostedServices;
 using Quartz;
 using MarketViewer.Api.Jobs;
 using MarketViewer.Application.Handlers;
 using MarketViewer.Contracts.Converters;
 using MarketViewer.Api.Binders;
 using System.Text.Json.Serialization;
+using MarketViewer.Contracts.Enums;
 
 namespace MarketViewer.Api;
 
 public class Program
 {
     [ExcludeFromCodeCoverage]
-    private static void Main(string[] args)
+    private static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -33,60 +33,61 @@ public class Program
             typeof(AggregateProfile).Assembly
         };
 
-        builder.Services.AddQuartz();
-        builder.Services.AddQuartzHostedService(opt =>
-        {
-            opt.WaitForJobsToComplete = true;
-        });
-
         builder.Services.AddMediatR(q => q.RegisterServicesFromAssemblies(microserviceApplicationAssemblies))
-            .AddAutoMapper(microserviceApplicationAssemblies);
-
-        builder.Services.AddMemoryCache()
-            .AddHostedService<PopulateMarketData>()
-            .AddSignalR();
-
-        builder.Services.RegisterApplication()
+            .AddAutoMapper(microserviceApplicationAssemblies)
+            .AddMemoryCache()
+            .AddSignalR(); 
+        
+        builder.Services.AddQuartz()
+            .AddQuartzHostedService(opt =>
+            {
+                opt.WaitForJobsToComplete = true;
+            })
+            .RegisterApplication()
             .RegisterCore()
             .RegisterInfrastructure(builder.Configuration);
 
         var now = DateTimeOffset.Now;
-        var startTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 0, 1, now.Offset);
+        var minuteStartTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 1, 0, now.Offset);
+        var hourStartTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.AddHours(1).Hour, 0, 1, 0, now.Offset);
 
-        var minuteJob = JobBuilder.Create<StocksMinuteJob>()
-                .WithIdentity("minute", "group1")
-                .Build();
+        var initJob = JobBuilder.Create<InitializeJob>()
+            .WithIdentity("ticker")
+            .UsingJobData("date", DateTimeOffset.Now.ToString())
+            .Build();
+
+        var snapshotMinuteJob = JobBuilder.Create<SnapshotJob>()
+            .WithIdentity("snapshotMinute")
+            .UsingJobData("timespan", Timespan.minute.ToString())
+            .Build();
+
+        var snapshotHourJob = JobBuilder.Create<SnapshotJob>()
+            .WithIdentity("snapshotHour")
+            .UsingJobData("timespan", Timespan.hour.ToString())
+            .Build();
+
+        var initTrigger = TriggerBuilder.Create()
+            .WithIdentity("trigger1")
+            .StartNow()
+            .ForJob(initJob)
+            .Build();
         
-        var hourJob = JobBuilder.Create<StocksHourJob>()
-                .WithIdentity("hour", "group2")
-                .Build();
-
-        var snapshotJob = JobBuilder.Create<SnapshotJob>()
-            .WithIdentity("snapshot", "group3")
-            .Build();
-
-        var minuteTrigger = TriggerBuilder.Create()
-            .WithIdentity("trigger1", "group1")
-            .StartAt(startTime)
-            .ForJob(minuteJob)
-            .Build();
-
-        var hourTrigger = TriggerBuilder.Create()
-            .WithIdentity("trigger2", "group2")
-            .StartAt(startTime)
-            .WithSimpleSchedule(schedule => schedule
-                .WithIntervalInHours(1)
-                .RepeatForever())
-            .ForJob(hourJob)
-            .Build();
-
-        var snapshotTrigger = TriggerBuilder.Create()
-            .WithIdentity("trigger3", "group3")
-            .StartAt(startTime.AddMinutes(1))
+        var snapshopMinuteTrigger = TriggerBuilder.Create()
+            .WithIdentity("trigger2")
+            .StartAt(minuteStartTime)
             .WithSimpleSchedule(schedule => schedule
                 .WithIntervalInMinutes(1)
                 .RepeatForever())
-            .ForJob(snapshotJob)
+            .ForJob(snapshotMinuteJob)
+            .Build();
+
+        var snapshotHourTrigger = TriggerBuilder.Create()
+            .WithIdentity("trigger3")
+            .StartAt(hourStartTime)
+            .WithSimpleSchedule(schedule => schedule
+                .WithIntervalInHours(1)
+                .RepeatForever())
+            .ForJob(snapshotHourJob)
             .Build();
 
         builder.Services.AddControllers(options =>
@@ -106,11 +107,11 @@ public class Program
         var app = builder.Build();
 
         var schedulerFactory = app.Services.GetRequiredService<ISchedulerFactory>();
-        var scheduler = schedulerFactory.GetScheduler().GetAwaiter().GetResult();
+        var scheduler = await schedulerFactory.GetScheduler();
 
-        scheduler.ScheduleJob(minuteJob, minuteTrigger).GetAwaiter().GetResult();
-        scheduler.ScheduleJob(hourJob, hourTrigger).GetAwaiter().GetResult();
-        scheduler.ScheduleJob(snapshotJob, snapshotTrigger).GetAwaiter().GetResult();
+        await scheduler.ScheduleJob(initJob, initTrigger);
+        await scheduler.ScheduleJob(snapshotMinuteJob, snapshopMinuteTrigger);
+        await scheduler.ScheduleJob(snapshotHourJob, snapshotHourTrigger);
 
         // Configure the HTTP request pipeline.
         if (IsDevelopment(app.Environment.EnvironmentName))
