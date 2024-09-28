@@ -15,7 +15,7 @@ public class MarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3)
         PropertyNameCaseInsensitive = true
     };
 
-    public async Task Initialize(DateTimeOffset date, int multiplier, Timespan timespan)
+    public async Task<IEnumerable<StocksResponse>> Initialize(DateTimeOffset date, int multiplier, Timespan timespan)
     {
         var s3Request = new GetObjectRequest
         {
@@ -38,6 +38,8 @@ public class MarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3)
         {
             SetStocksResponse(stocksResponse, timespan, date); //TODO use multiplier in cache key eventually?
         }
+
+        return stocksResponses;
     }
 
     public IEnumerable<string> GetTickers()
@@ -97,7 +99,7 @@ public class MarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3)
     private static string BuildS3Key(DateTimeOffset timestamp, int multiplier, Timespan timespan)
     {
         var month = timestamp.Date.Month < 10 ? $"0{timestamp.Date.Month}" : $"{timestamp.Date.Month}";
-        var day = timestamp.Date.Month < 10 ? $"0{timestamp.Date.Day}" : $"{timestamp.Date.Day}";
+        var day = timestamp.Date.Day < 10 ? $"0{timestamp.Date.Day}" : $"{timestamp.Date.Day}";
 
         return timespan switch
         {

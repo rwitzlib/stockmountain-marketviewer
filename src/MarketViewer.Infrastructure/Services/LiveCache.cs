@@ -14,7 +14,7 @@ public class LiveCache(
     MarketCache _marketCache,
     ILogger<LiveCache> logger)
 {
-    private const int MINIMUM_REQUIRED_CANDLES = 60;
+    private const int MINIMUM_REQUIRED_CANDLES = 30;
     private const int CANDLES_TO_TAKE = 120;
 
     public async Task<IEnumerable<StocksResponse>> GetStocksResponses(DateTimeOffset date)
@@ -90,7 +90,7 @@ public class LiveCache(
             {
                 var stocksResponse = _marketCache.GetStocksResponse(ticker, timespan, date);
 
-                if (stocksResponse.Results is null || stocksResponse.Results.Count < MINIMUM_REQUIRED_CANDLES)
+                if (stocksResponse is null || stocksResponse.Results is null || stocksResponse.Results.Count < MINIMUM_REQUIRED_CANDLES)
                 {
                     continue;
                 }

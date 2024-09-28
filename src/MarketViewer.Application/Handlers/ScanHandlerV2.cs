@@ -11,7 +11,6 @@ using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Requests;
 using Microsoft.Extensions.Logging;
 using System.Net;
-using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Core.ScanV2;
 using MarketViewer.Contracts.Comparers;
@@ -92,11 +91,11 @@ public class ScanHandlerV2(
 
         foreach (var filter in scanArgument.Filters)
         {
-            if (filter.FirstOperand.HasTimespan(out var firstTimespan))
+            if (filter.FirstOperand.HasTimeframe(out var firstMultiplier, out var firstTimespan))
             {
                 timespans.Add(firstTimespan.Value);
             }
-            if (filter.SecondOperand.HasTimespan(out var secondTimespan))
+            if (filter.SecondOperand.HasTimeframe(out var secondMultiplier, out var secondTimespan))
             {
                 timespans.Add(secondTimespan.Value);
             }
@@ -163,15 +162,10 @@ public class ScanHandlerV2(
     private List<ScanResponse.Item> ApplyFilter(FilterV2 filter, StocksResponseCollection stocksResponseCollection)
     {
         var results = new List<ScanResponse.Item>();
-        var stocksResponses = filter.FirstOperand.HasTimespan(out var timespan) ? stocksResponseCollection.Responses[timespan.Value] : [];
+        var stocksResponses = filter.FirstOperand.HasTimeframe(out var multiplier, out var timespan) ? stocksResponseCollection.Responses[timespan.Value] : [];
 
         foreach (var stocksResponse in stocksResponses)
         {
-            List<string> debugTickers = [ "AI" ];
-            if (debugTickers.Contains(stocksResponse.Ticker))
-            {
-
-            }
             bool passesFilter = false;
 
             var firstFilter = scanFilterFactory.GetScanFilter(filter.FirstOperand);
@@ -185,121 +179,51 @@ public class ScanHandlerV2(
                 continue;
             }
 
-            if (firstOperandResult.Length < secondOperandResult.Length)
+            if (filter.CollectionModifier is null)
             {
-                secondOperandResult = secondOperandResult.TakeLast(firstOperandResult.Length).ToArray();
+                passesFilter = filter.Operator switch
+                {
+                    FilterOperator.lt => firstOperandResult.First() < secondOperandResult.First(),
+                    FilterOperator.le => firstOperandResult.First() <= secondOperandResult.First(),
+                    FilterOperator.eq => firstOperandResult.First() == secondOperandResult.First(),
+                    FilterOperator.ge => firstOperandResult.First() >= secondOperandResult.First(),
+                    FilterOperator.gt => firstOperandResult.First() > secondOperandResult.First(),
+                    _ => throw new NotImplementedException(),
+                };
             }
-            else if (firstOperandResult.Length > secondOperandResult.Length)
+            else
             {
-                firstOperandResult = firstOperandResult.TakeLast(secondOperandResult.Length).ToArray();
-            }
-
-            if (firstOperandResult.Length != secondOperandResult.Length)
-            {
-                return null;
-            }
-
-            switch (filter.CollectionModifier.ToLowerInvariant())
-            {
-                case "all":
-                    switch (filter.Operator)
+                passesFilter = filter.CollectionModifier.ToLowerInvariant() switch
+                {
+                    "all" => filter.Operator switch
                     {
-                        case FilterOperator.lt:
-                            passesFilter = firstOperandResult.Zip(secondOperandResult, (x, y) => x < y).All(result => result == true);
-                            break;
-
-                        case FilterOperator.le:
-                            passesFilter = firstOperandResult.Zip(secondOperandResult, (x, y) => x <= y).All(result => result == true);
-                            break;
-
-                        case FilterOperator.eq:
-                            passesFilter = firstOperandResult.Zip(secondOperandResult, (x, y) => x == y).All(result => result == true);
-                            break;
-
-                        case FilterOperator.ge:
-                            passesFilter = firstOperandResult.Zip(secondOperandResult, (x, y) => x >= y).All(result => result == true);
-                            break;
-
-                        case FilterOperator.gt:
-                            passesFilter = firstOperandResult.Zip(secondOperandResult, (x, y) => x > y).All(result => result == true);
-                            break;
-                    }
-                    break;
-
-                case "any":
-                    switch (filter.Operator)
+                        FilterOperator.lt => firstOperandResult.Zip(secondOperandResult, (x, y) => x < y).All(result => result == true),
+                        FilterOperator.le => firstOperandResult.Zip(secondOperandResult, (x, y) => x <= y).All(result => result == true),
+                        FilterOperator.eq => firstOperandResult.Zip(secondOperandResult, (x, y) => x == y).All(result => result == true),
+                        FilterOperator.ge => firstOperandResult.Zip(secondOperandResult, (x, y) => x >= y).All(result => result == true),
+                        FilterOperator.gt => firstOperandResult.Zip(secondOperandResult, (x, y) => x > y).All(result => result == true),
+                        _ => throw new NotImplementedException(),
+                    },
+                    "any" => filter.Operator switch
                     {
-                        case FilterOperator.lt:
-                            passesFilter = firstOperandResult.Zip(secondOperandResult, (x, y) => x < y).Any(result => result == true);
-                            break;
-
-                        case FilterOperator.le:
-                            passesFilter = firstOperandResult.Zip(secondOperandResult, (x, y) => x <= y).Any(result => result == true);
-                            break;
-
-                        case FilterOperator.eq:
-                            passesFilter = firstOperandResult.Zip(secondOperandResult, (x, y) => x == y).Any(result => result == true);
-                            break;
-
-                        case FilterOperator.ge:
-                            passesFilter = firstOperandResult.Zip(secondOperandResult, (x, y) => x >= y).Any(result => result == true);
-                            break;
-
-                        case FilterOperator.gt:
-                            passesFilter = firstOperandResult.Zip(secondOperandResult, (x, y) => x > y).Any(result => result == true);
-                            break;
-                    }
-                    break;
-
-                case "average": 
-                    switch (filter.Operator)
+                        FilterOperator.lt => firstOperandResult.Zip(secondOperandResult, (x, y) => x < y).Any(result => result == true),
+                        FilterOperator.le => firstOperandResult.Zip(secondOperandResult, (x, y) => x <= y).Any(result => result == true),
+                        FilterOperator.eq => firstOperandResult.Zip(secondOperandResult, (x, y) => x == y).Any(result => result == true),
+                        FilterOperator.ge => firstOperandResult.Zip(secondOperandResult, (x, y) => x >= y).Any(result => result == true),
+                        FilterOperator.gt => firstOperandResult.Zip(secondOperandResult, (x, y) => x > y).Any(result => result == true),
+                        _ => throw new NotImplementedException(),
+                    },
+                    "average" => filter.Operator switch
                     {
-                        case FilterOperator.lt:
-                            passesFilter = (firstOperandResult.Sum() / firstOperandResult.Length) < (secondOperandResult.Sum() / secondOperandResult.Length);
-                            break;
-
-                        case FilterOperator.le:
-                            passesFilter = (firstOperandResult.Sum() / firstOperandResult.Length) <= (secondOperandResult.Sum() / secondOperandResult.Length);
-                            break;
-
-                        case FilterOperator.eq:
-                            passesFilter = (firstOperandResult.Sum() / firstOperandResult.Length) == (secondOperandResult.Sum() / secondOperandResult.Length);
-                            break;
-
-                        case FilterOperator.ge:
-                            passesFilter = (firstOperandResult.Sum() / firstOperandResult.Length) >= (secondOperandResult.Sum() / secondOperandResult.Length);
-                            break;
-
-                        case FilterOperator.gt:
-                            passesFilter = (firstOperandResult.Sum() / firstOperandResult.Length) > (secondOperandResult.Sum() / secondOperandResult.Length);
-                            break;
-                    }
-                    break;
-
-                default:
-                    switch (filter.Operator)
-                    {
-                        case FilterOperator.lt:
-                            passesFilter = firstOperandResult.Last() < secondOperandResult.Last();
-                            break;
-
-                        case FilterOperator.le:
-                            passesFilter = firstOperandResult.Last() <= secondOperandResult.Last();
-                            break;
-
-                        case FilterOperator.eq:
-                            passesFilter = firstOperandResult.Last() == secondOperandResult.Last();
-                            break;
-
-                        case FilterOperator.ge:
-                            passesFilter = firstOperandResult.Last() >= secondOperandResult.Last();
-                            break;
-
-                        case FilterOperator.gt:
-                            passesFilter = firstOperandResult.Last() > secondOperandResult.Last();
-                            break;
-                    }
-                    break;
+                        FilterOperator.lt => (firstOperandResult.Sum() / firstOperandResult.Length) < (secondOperandResult.Sum() / secondOperandResult.Length),
+                        FilterOperator.le => (firstOperandResult.Sum() / firstOperandResult.Length) <= (secondOperandResult.Sum() / secondOperandResult.Length),
+                        FilterOperator.eq => (firstOperandResult.Sum() / firstOperandResult.Length) == (secondOperandResult.Sum() / secondOperandResult.Length),
+                        FilterOperator.ge => (firstOperandResult.Sum() / firstOperandResult.Length) >= (secondOperandResult.Sum() / secondOperandResult.Length),
+                        FilterOperator.gt => (firstOperandResult.Sum() / firstOperandResult.Length) > (secondOperandResult.Sum() / secondOperandResult.Length),
+                        _ => throw new NotImplementedException(),
+                    },
+                    _ => throw new NotImplementedException()
+                };
             }
 
             if (passesFilter)

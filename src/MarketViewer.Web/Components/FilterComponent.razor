@@ -1,6 +1,7 @@
-﻿@using MarketViewer.Contracts.Enums
+﻿@using MarketViewer.Contracts.Models.ScanV2.Operands
+@using MarketViewer.Contracts.Enums
 @using MarketViewer.Contracts.Models.ScanV2
-@using FilterOperator = MarketViewer.Contracts.Models.Scan.FilterOperator;
+@using FilterOperator = MarketViewer.Contracts.Enums.FilterOperator;
 
 @inject IJSRuntime JsRuntime;
 
@@ -26,9 +27,9 @@
     {
         <StudyOperandComponent Operand="Filter.FirstOperand as StudyOperand"></StudyOperandComponent>
     }
-    else if (Filter.FirstOperandType is OperandType.Value)
+    else if (Filter.FirstOperandType is OperandType.Fixed)
     {
-        <ValueOperandComponent Operand="Filter.FirstOperand as ValueOperand"></ValueOperandComponent>
+        <ValueOperandComponent Operand="Filter.FirstOperand as FixedOperand"></ValueOperandComponent>
     }
 
     <MudSelect @bind-Value="Filter.Operator" T="FilterOperator" Label="Operator" AnchorOrigin="Origin.BottomCenter">
@@ -54,9 +55,9 @@
     {
         <StudyOperandComponent Operand="Filter.SecondOperand as StudyOperand"></StudyOperandComponent>
     }
-    else if (Filter.SecondOperandType is OperandType.Value)
+    else if (Filter.SecondOperandType is OperandType.Fixed)
     {
-        <ValueOperandComponent Operand="Filter.SecondOperand as ValueOperand"></ValueOperandComponent>
+        <ValueOperandComponent Operand="Filter.SecondOperand as FixedOperand"></ValueOperandComponent>
     }
 
     <MudNumericField @bind-Value="Filter.Timeframe.Multiplier" Label="Multiplier" Variant="Variant.Text" Min="1" Max="60" />
@@ -94,9 +95,9 @@
             Filter.FirstOperand = new StudyOperand();
 
         }
-        else if (type is OperandType.Value)
+        else if (type is OperandType.Fixed)
         {
-            Filter.FirstOperand = new ValueOperand();
+            Filter.FirstOperand = new FixedOperand();
         }
     }
 
@@ -112,9 +113,9 @@
             Filter.SecondOperand = new StudyOperand();
 
         }
-        else if (type is OperandType.Value)
+        else if (type is OperandType.Fixed)
         {
-            Filter.SecondOperand = new ValueOperand();
+            Filter.SecondOperand = new FixedOperand();
         }
     }
 

@@ -19,7 +19,6 @@ namespace MarketViewer.Application.UnitTests.Handlers
         private StocksHandler _classUnderTest;
         private Fixture _fixture;
         private Mock<IMarketDataRepository> _repository;
-        private Mock<IMapper> _mapper;
         #endregion
 
         #region Constructor
