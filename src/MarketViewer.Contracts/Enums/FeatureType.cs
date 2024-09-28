@@ -3,6 +3,8 @@
 public enum FeatureType
 {
     Ticker,
-    EntryTime,
-    DayOfWeek
+    EntryBefore,
+    EntryAfter,
+    DayOfWeek,
+
 }

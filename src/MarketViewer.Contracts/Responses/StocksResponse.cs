@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using MarketViewer.Contracts.Models.Study;
+using MemoryPack;
 using Polygon.Client.Models;
 
 namespace MarketViewer.Contracts.Responses;

@@ -1,7 +1,11 @@
-﻿public enum OperandType
+﻿namespace MarketViewer.Web.Enums;
+
+public enum OperandType
 {
     None,
     PriceAction,
     Study,
-    Value
+    Fixed,
+    Float,
+    MarketCap
 }

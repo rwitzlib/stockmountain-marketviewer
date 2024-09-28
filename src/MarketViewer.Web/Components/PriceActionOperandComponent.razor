@@ -1,5 +1,6 @@
 ﻿@using MarketViewer.Contracts.Enums
-@using MarketViewer.Contracts.Models.ScanV2
+@using MarketViewer.Contracts.Models.ScanV2;
+@using MarketViewer.Contracts.Models.ScanV2.Operands
 
 <MudPaper Elevation="11" Class="d-flex gap-4 pa-2" Style="width: 400px">
     <MudSelect @bind-Value="Operand.Modifier" T="OperandModifier" Label="Modifier" AnchorOrigin="Origin.BottomCenter">
@@ -9,7 +10,7 @@
         }
     </MudSelect>
 
-    <MudSelect @bind-Value="Operand.Type" T="PriceActionType" Label="Value Type" AnchorOrigin="Origin.BottomCenter">
+    <MudSelect @bind-Value="Operand.PriceAction" T="PriceActionType" Label="Value Type" AnchorOrigin="Origin.BottomCenter">
         @foreach (PriceActionType type in Enum.GetValues(typeof(PriceActionType)))
         {
             <MudSelectItem Value="@type">@type</MudSelectItem>

@@ -69,7 +69,6 @@ public class HistoryCache(
 
             var tickers = _marketCache.GetTickersByTimespan(timespan, date);
 
-            _logger.LogInformation("Removing candles outside of {timestamp}.", date);
             var time = date.ToUnixTimeMilliseconds();
 
             var stocksResponses = new List<StocksResponse>();
@@ -100,7 +99,6 @@ public class HistoryCache(
             }
         }
 
-        _logger.LogInformation("Returning {count} total aggregates.", stocksResponseCollection.Responses.Select(q => q.Value.Select(w => w.Results.Count)));
         return stocksResponseCollection;
     }
 }
