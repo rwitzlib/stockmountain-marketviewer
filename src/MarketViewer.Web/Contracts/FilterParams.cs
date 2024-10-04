@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using MarketViewer.Contracts.Enums;
-using MarketViewer.Contracts.Models.Scan;
+using MarketViewer.Contracts.Enums.Scan;
 
 namespace MarketViewer.Web.Contracts
 {

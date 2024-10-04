@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using MarketViewer.Contracts.Requests;
+using MarketViewer.Contracts.Requests.Scan;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 

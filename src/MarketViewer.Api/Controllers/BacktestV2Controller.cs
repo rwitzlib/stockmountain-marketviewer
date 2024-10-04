@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using MarketViewer.Contracts.Requests;
+using MarketViewer.Contracts.Requests.Backtest;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,7 +14,7 @@ namespace MarketViewer.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> BacktestStrategy([FromBody] BacktestV2Request request)
+        public async Task<IActionResult> Backtest([FromBody] BacktestV2Request request)
         {
             try
             {

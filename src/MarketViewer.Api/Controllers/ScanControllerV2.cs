@@ -4,11 +4,10 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Enums;
-using MarketViewer.Contracts.Requests;
+using MarketViewer.Contracts.Requests.Scan;
 using MarketViewer.Contracts.Responses;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using File = System.IO.File;
 
 namespace MarketViewer.Api.Controllers
 {

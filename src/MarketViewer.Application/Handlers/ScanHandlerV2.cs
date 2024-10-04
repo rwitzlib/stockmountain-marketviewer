@@ -8,13 +8,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MarketViewer.Contracts.Models;
-using MarketViewer.Contracts.Requests;
 using Microsoft.Extensions.Logging;
 using System.Net;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Core.ScanV2;
 using MarketViewer.Contracts.Comparers;
 using MarketViewer.Contracts.Models.ScanV2;
+using MarketViewer.Contracts.Requests.Scan;
 
 namespace MarketViewer.Application.Handlers;
 

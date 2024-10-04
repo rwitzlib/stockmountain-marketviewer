@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using MarketViewer.Contracts.Models.Scan;
+using MarketViewer.Contracts.Models.ScanV2;
 
 namespace MarketViewer.Application.Mapping
 {

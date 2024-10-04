@@ -4,7 +4,7 @@ using Amazon.DynamoDBv2.DataModel;
 using Amazon.Lambda;
 using FluentValidation;
 using MarketViewer.Application.Validators;
-using MarketViewer.Contracts.Requests;
+using MarketViewer.Contracts.Requests.Backtest;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Diagnostics.CodeAnalysis;

@@ -3,9 +3,9 @@ using Amazon.Lambda;
 using Amazon.Lambda.Model;
 using FluentValidation;
 using MarketViewer.Contracts.Models;
-using MarketViewer.Contracts.Models.BacktestV2;
-using MarketViewer.Contracts.Requests;
-using MarketViewer.Contracts.Responses;
+using MarketViewer.Contracts.Models.Backtest;
+using MarketViewer.Contracts.Requests.Backtest;
+using MarketViewer.Contracts.Responses.Backtest;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
@@ -78,7 +78,7 @@ public class BacktestV2Handler(
                 Data = new BacktestV2Response
                 {
                     Id = request.Id,
-                    Hold = new BackTestEntryStats
+                    Hold = new BackTestEntryStatsV2
                     {
                         PositiveTrendRatio = validResults.Average(result => result.Hold.PositiveTrendRatio),
                         HighPosition = validResults.Average(result => result.Hold.HighPosition),
@@ -86,7 +86,7 @@ public class BacktestV2Handler(
                         AvgProfit = validResults.Average(result => result.Hold.SumProfit),
                         SumProfit = validResults.Sum(result => result.Hold.SumProfit),
                     },
-                    High = new BackTestEntryStats
+                    High = new BackTestEntryStatsV2
                     {
                         PositiveTrendRatio = validResults.Average(result => result.High.PositiveTrendRatio),
                         HighPosition = validResults.Average(result => result.High.HighPosition),
@@ -94,7 +94,7 @@ public class BacktestV2Handler(
                         AvgProfit = validResults.Average(result => result.High.SumProfit),
                         SumProfit = validResults.Sum(result => result.High.SumProfit),
                     },
-                    Other = new BackTestEntryStats
+                    Other = new BackTestEntryStatsV2
                     {
                         PositiveTrendRatio = validResults.Average(result => result.Other.PositiveTrendRatio),
                         HighPosition = validResults.Average(result => result.Other.HighPosition),

@@ -1,4 +1,4 @@
-﻿namespace MarketViewer.Contracts.Enums;
+﻿namespace MarketViewer.Contracts.Enums.Scan;
 
 public enum FilterValueType
 {
