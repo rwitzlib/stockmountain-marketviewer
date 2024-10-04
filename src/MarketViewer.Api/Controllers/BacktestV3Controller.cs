@@ -7,13 +7,14 @@ namespace MarketViewer.Api.Controllers
 {
     [ApiController]
     [Route("api/backtest")]
-    public class BacktestController(IMediator mediator, ILogger<BacktestController> logger) : ControllerBase
+    public class BacktestV3Controller(IMediator mediator, ILogger<BacktestV3Controller> logger) : ControllerBase
     {
         [HttpPost]
+        [Route("v3")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Backtest([FromBody] BacktestRequest request)
+        public async Task<IActionResult> Backtest([FromBody] BacktestV3Request request)
         {
             try
             {
