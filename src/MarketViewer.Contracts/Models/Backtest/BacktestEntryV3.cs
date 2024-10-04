@@ -15,7 +15,6 @@ public class BacktestEntryV3
     public float CreditsUsed { get; set; }
     public BackTestEntryStatsV2 Hold { get; set; }
     public BackTestEntryStatsV2 High { get; set; }
-    public BackTestEntryStatsV2 Other { get; set; }
     public List<List<BackTestEntryResultV2>> Results { get; set; }
 }
 
