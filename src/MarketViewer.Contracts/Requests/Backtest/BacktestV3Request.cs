@@ -16,7 +16,6 @@ public class BacktestV3Request : IRequest<OperationResult<BacktestV3Response>>
     public bool DetailedResponse { get; set; } = false;
     public BacktestPosition PositionInfo { get; set; }
     public BacktestExit Exit { get; set; }
-    public Timeframe Timeframe { get; set; }
     public IEnumerable<Feature> Features { get; set; }
     public ScanArgument Argument { get; set; }
 }
