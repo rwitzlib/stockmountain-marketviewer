@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MarketViewer.Contracts.Models.BacktestV2;
+namespace MarketViewer.Contracts.Models.Backtest;
 
 [ExcludeFromCodeCoverage]
 [DynamoDBTable("lad-dev-marketviewer-backtest-store")]

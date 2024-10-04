@@ -1,5 +1,5 @@
-﻿using MarketViewer.Contracts.Requests;
-using MarketViewer.Contracts.Responses;
+﻿using MarketViewer.Contracts.Requests.Backtest;
+using MarketViewer.Contracts.Responses.Backtest;
 using System.Net.Http.Json;
 using System.Text.Json;
 

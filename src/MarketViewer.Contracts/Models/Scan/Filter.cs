@@ -1,8 +1,9 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using MarketViewer.Contracts.Enums;
+using MarketViewer.Contracts.Enums.Scan;
 
-namespace MarketViewer.Contracts.Models.Scan;
+namespace MarketViewer.Contracts.Models.ScanV2;
 
 [ExcludeFromCodeCoverage]
 public class Filter

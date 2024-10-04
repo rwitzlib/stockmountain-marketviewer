@@ -49,7 +49,8 @@ public class Program
 
         var now = DateTimeOffset.Now;
         var minuteStartTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 1, 0, now.Offset);
-        var hourStartTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.AddHours(1).Hour, 0, 1, 0, now.Offset);
+        // Start at 9:01, 10:01, etc. to get the minute before: 9:00, 10:00, etc.
+        var hourStartTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.AddHours(1).Hour, 1, 1, 0, now.Offset);
 
         var initJob = JobBuilder.Create<InitializeJob>()
             .WithIdentity("ticker")

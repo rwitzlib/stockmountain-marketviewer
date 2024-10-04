@@ -1,10 +1,10 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
-namespace MarketViewer.Contracts.Models.BacktestV2;
+namespace MarketViewer.Contracts.Models.Backtest;
 
 [ExcludeFromCodeCoverage]
-public class BacktestEntryV2
+public class BacktestEntryV3
 {
     public Guid EntryId { get; set; }
     public DateTime Date { get; set; }
@@ -13,14 +13,13 @@ public class BacktestEntryV2
     /// Cost is $0.000133334 per credit
     /// </summary>
     public float CreditsUsed { get; set; }
-    public BackTestEntryStats Hold { get; set; }
-    public BackTestEntryStats High { get; set; }
-    public BackTestEntryStats Other { get; set; }
-    public List<List<BackTestEntryResult>> Results { get; set; } 
+    public BackTestEntryStatsV2 Hold { get; set; }
+    public BackTestEntryStatsV2 High { get; set; }
+    public List<List<BackTestEntryResultV2>> Results { get; set; }
 }
 
 [ExcludeFromCodeCoverage]
-public class BackTestEntryStats
+public class BackTestEntryStatsV3
 {
     public float PositiveTrendRatio { get; set; }
     public float HighPosition { get; set; }
@@ -30,7 +29,7 @@ public class BackTestEntryStats
 }
 
 [ExcludeFromCodeCoverage]
-public class BackTestEntryResult
+public class BackTestEntryResultV3
 {
     public string Name { get; set; }
     public string Ticker { get; set; }
