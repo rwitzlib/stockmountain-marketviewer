@@ -4,7 +4,6 @@ using Amazon.Lambda.Model;
 using FluentValidation;
 using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Models.Backtest;
-using MarketViewer.Contracts.Models.BacktestV2;
 using MarketViewer.Contracts.Requests.Backtest;
 using MarketViewer.Contracts.Responses.Backtest;
 using MediatR;
