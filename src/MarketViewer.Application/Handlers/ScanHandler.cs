@@ -11,8 +11,8 @@ using MarketViewer.Contracts.Models;
 using Microsoft.Extensions.Logging;
 using MarketViewer.Core.Scanner;
 using System.Net;
-using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Requests.Scan;
+using MarketViewer.Contracts.Models.ScanV2;
 
 namespace MarketViewer.Application.Handlers;
 

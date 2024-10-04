@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
-namespace MarketViewer.Contracts.Models.BacktestV2;
+namespace MarketViewer.Contracts.Models.Backtest;
 
 [ExcludeFromCodeCoverage]
 public class BacktestEntryV2
@@ -16,7 +16,7 @@ public class BacktestEntryV2
     public BackTestEntryStats Hold { get; set; }
     public BackTestEntryStats High { get; set; }
     public BackTestEntryStats Other { get; set; }
-    public List<List<BackTestEntryResult>> Results { get; set; } 
+    public List<List<BackTestEntryResult>> Results { get; set; }
 }
 
 [ExcludeFromCodeCoverage]
