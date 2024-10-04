@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using MarketViewer.Contracts.Requests;
+using MarketViewer.Contracts.Requests.Scan;
 using Polygon.Client.Responses;
 
 namespace MarketViewer.Contracts.Interfaces;

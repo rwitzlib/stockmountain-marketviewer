@@ -6,7 +6,7 @@ using MediatR;
 using System;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MarketViewer.Contracts.Requests;
+namespace MarketViewer.Contracts.Requests.Scan;
 
 [ExcludeFromCodeCoverage]
 public class ScanV2Request : IRequest<OperationResult<ScanResponse>>

@@ -8,11 +8,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MarketViewer.Contracts.Models;
-using MarketViewer.Contracts.Requests;
 using Microsoft.Extensions.Logging;
 using MarketViewer.Core.Scanner;
 using System.Net;
 using MarketViewer.Contracts.Models.Scan;
+using MarketViewer.Contracts.Requests.Scan;
 
 namespace MarketViewer.Application.Handlers;
 
