@@ -9,7 +9,6 @@ namespace MarketViewer.Contracts.Responses.Backtest
         public string Id { get; set; }
         public BackTestEntryStats Hold { get; set; }
         public BackTestEntryStats High { get; set; }
-        public BackTestEntryStats Other { get; set; }
         public IEnumerable<BacktestEntryV2> Results { get; set; }
     }
 }

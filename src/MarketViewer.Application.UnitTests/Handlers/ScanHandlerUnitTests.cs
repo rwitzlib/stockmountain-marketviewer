@@ -12,8 +12,8 @@ using System.Net;
 using Microsoft.Extensions.Logging.Abstractions;
 using MarketViewer.Core.Scanner;
 using MarketViewer.Core.ScanV2;
-using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Requests.Scan;
+using MarketViewer.Contracts.Models.ScanV2;
 
 namespace MarketViewer.Application.UnitTests.Handlers
 {
