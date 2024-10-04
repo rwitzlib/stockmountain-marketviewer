@@ -7,9 +7,9 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using System.Net;
 using MarketViewer.Contracts.Models;
-using MarketViewer.Contracts.Requests;
 using Xunit;
 using FluentAssertions;
+using MarketViewer.Contracts.Requests.Scan;
 
 namespace MarketViewer.Api.UnitTests.Controllers
 {

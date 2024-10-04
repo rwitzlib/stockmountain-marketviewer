@@ -1,6 +1,6 @@
 ﻿using System.Net.Http.Json;
 using System.Text.Json;
-using MarketViewer.Contracts.Requests;
+using MarketViewer.Contracts.Requests.Scan;
 using MarketViewer.Contracts.Responses;
 
 namespace MarketViewer.Web.Services

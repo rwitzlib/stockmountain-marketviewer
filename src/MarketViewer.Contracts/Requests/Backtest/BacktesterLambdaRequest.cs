@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MarketViewer.Contracts.Requests;
+namespace MarketViewer.Contracts.Requests.Backtest;
 
 [ExcludeFromCodeCoverage]
 public class BacktesterLambdaRequest

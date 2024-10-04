@@ -1,13 +1,13 @@
 ﻿using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Models.BacktestV2;
 using MarketViewer.Contracts.Models.Scan;
-using MarketViewer.Contracts.Responses;
+using MarketViewer.Contracts.Responses.Backtest;
 using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MarketViewer.Contracts.Requests;
+namespace MarketViewer.Contracts.Requests.Backtest;
 
 [ExcludeFromCodeCoverage]
 public class BacktestRequest : IRequest<OperationResult<BacktestResponse>>
