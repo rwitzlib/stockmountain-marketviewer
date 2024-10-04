@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace MarketViewer.Contracts.Models.Backtest;
 
 [ExcludeFromCodeCoverage]
-public class BacktestEntryV2
+public class BacktestEntryV3
 {
     public Guid EntryId { get; set; }
     public DateTime Date { get; set; }
@@ -20,7 +20,7 @@ public class BacktestEntryV2
 }
 
 [ExcludeFromCodeCoverage]
-public class BackTestEntryStatsV2
+public class BackTestEntryStatsV3
 {
     public float PositiveTrendRatio { get; set; }
     public float HighPosition { get; set; }
@@ -30,7 +30,7 @@ public class BackTestEntryStatsV2
 }
 
 [ExcludeFromCodeCoverage]
-public class BackTestEntryResultV2
+public class BackTestEntryResultV3
 {
     public string Name { get; set; }
     public string Ticker { get; set; }

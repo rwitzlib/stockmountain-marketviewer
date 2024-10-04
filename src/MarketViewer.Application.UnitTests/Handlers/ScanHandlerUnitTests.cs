@@ -14,6 +14,7 @@ using MarketViewer.Core.Scanner;
 using MarketViewer.Core.ScanV2;
 using MarketViewer.Contracts.Requests.Scan;
 using MarketViewer.Contracts.Models.ScanV2;
+using MarketViewer.Contracts.Enums.Scan;
 
 namespace MarketViewer.Application.UnitTests.Handlers
 {
