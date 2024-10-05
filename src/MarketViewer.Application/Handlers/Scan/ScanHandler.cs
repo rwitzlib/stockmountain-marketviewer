@@ -14,7 +14,7 @@ using System.Net;
 using MarketViewer.Contracts.Requests.Scan;
 using MarketViewer.Contracts.Models.ScanV2;
 
-namespace MarketViewer.Application.Handlers;
+namespace MarketViewer.Application.Handlers.Scan;
 
 public class ScanHandler(
     LiveCache liveCache,

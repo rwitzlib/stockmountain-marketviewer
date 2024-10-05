@@ -7,7 +7,7 @@ namespace MarketViewer.Contracts.Requests.Backtest;
 [ExcludeFromCodeCoverage]
 public class BacktesterLambdaV3Request
 {
-    public DateTimeOffset Timestamp { get; set; }
+    public DateTimeOffset Date { get; set; }
     public bool DetailedResponse { get; set; } = false;
     public BacktestPosition PositionInfo { get; set; }
     public BacktestExit Exit { get; set; }
