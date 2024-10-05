@@ -1,6 +1,6 @@
 ﻿using Amazon;
 using Amazon.S3;
-using MarketViewer.Application.Handlers;
+using MarketViewer.Application.Handlers.Scan;
 using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Requests.Scan;
 using MarketViewer.Core.ScanV2;

@@ -7,8 +7,10 @@ namespace MarketViewer.Contracts.Responses.Backtest
     public class BacktestV3Response
     {
         public string Id { get; set; }
-        public BackTestEntryStatsV2 Hold { get; set; }
-        public BackTestEntryStatsV2 High { get; set; }
+        public float HoldBalance { get; set; }
+        public float HighBalance { get; set; }
+        public BackTestEntryStatsV3 Hold { get; set; }
+        public BackTestEntryStatsV3 High { get; set; }
         public IEnumerable<BacktestEntryV3> Results { get; set; }
     }
 }
