@@ -63,13 +63,15 @@ public class BacktestHandlerV3(
             var highOpenPositions = new List<BackTestEntryResultCollection>();
 
             DateTimeOffset[] lastDate = [
-                results.Max(q => q.Results.Max(result => result.Hold.SoldAt)),
-                results.Max(q => q.Results.Max(result => result.High.SoldAt))
+                validResults.Max(q => q.Results.Max(result => result.Hold.SoldAt)),
+                validResults.Max(q => q.Results.Max(result => result.High.SoldAt))
             ];
 
             var dayRange = Enumerable.Range(0, (lastDate.Max()- request.Start).Days + 1)
                 .Select(day => request.Start.AddDays(day))
                 .Where(day => day.DayOfWeek != DayOfWeek.Sunday && day.DayOfWeek != DayOfWeek.Saturday);
+
+            var backtestDayResults = new List<BacktestDayV3>();
 
             foreach (var day in dayRange)
             {
@@ -77,7 +79,25 @@ public class BacktestHandlerV3(
                 var marketOpen = new DateTimeOffset(day.Year, day.Month, day.Day, 8, 30, 0, offset);
                 var marketClose = new DateTimeOffset(day.Year, day.Month, day.Day, 15, 0, 0, offset);
 
-                var entry = results.FirstOrDefault(q => q.Date == day.Date);
+                var entry = validResults.FirstOrDefault(q => q.Date == day.Date);
+
+                var backtestEntryDay = new BacktestDayV3
+                {
+                    Date = day,
+                    //CreditsUsed = results.First(result => result.Date == day.Date).CreditsUsed,
+                    Hold = new BacktestDayDetails
+                    {
+                        StartingBalance = availableFundsHold,
+                        Bought = [],
+                        Sold = []
+                    },
+                    High = new BacktestDayDetails
+                    {
+                        StartingBalance = availableFundsHigh,
+                        Bought = [],
+                        Sold = []
+                    }
+                };
 
                 for (int i = 0; i < (marketClose - marketOpen).TotalMinutes; i++)
                 {
@@ -90,9 +110,19 @@ public class BacktestHandlerV3(
                         availableFundsHold += holdPosition.Hold.EndPosition;
                         holdPositionsToRemove.Add(holdPosition);
                     }
-                    foreach (var holdPosition in holdPositionsToRemove)
+                    foreach (var position in holdPositionsToRemove)
                     {
-                        holdOpenPositions.Remove(holdPosition);
+                        backtestEntryDay.Hold.Sold.Add(new BacktestDayPosition
+                        {
+                            Ticker = position.Ticker,
+                            Price = position.Hold.EndPrice,
+                            Shares = position.Shares,
+                            Position = position.Hold.EndPosition,
+                            Profit = position.Hold.Profit,
+                            Timestamp = position.Hold.SoldAt,
+                            StoppedOut = position.Hold.StoppedOut
+                        });
+                        holdOpenPositions.Remove(position);
                     }
 
                     var highPositionsToSell = highOpenPositions.Where(position => position.High.SoldAt == currentTime);
@@ -102,9 +132,19 @@ public class BacktestHandlerV3(
                         availableFundsHigh += highPosition.High.EndPosition;
                         highPositionsToRemove.Add(highPosition);
                     }
-                    foreach (var highPosition in highPositionsToRemove)
+                    foreach (var position in highPositionsToRemove)
                     {
-                        highOpenPositions.Remove(highPosition);
+                        backtestEntryDay.High.Sold.Add(new BacktestDayPosition
+                        {
+                            Ticker = position.Ticker,
+                            Price = position.High.EndPrice,
+                            Shares = position.Shares,
+                            Position = position.High.EndPosition,
+                            Profit = position.High.Profit,
+                            Timestamp = position.High.SoldAt,
+                            StoppedOut = position.High.StoppedOut
+                        });
+                        highOpenPositions.Remove(position);
                     }
 
                     if (entry is null)
@@ -120,6 +160,14 @@ public class BacktestHandlerV3(
                             continue;
                         }
 
+                        backtestEntryDay.Hold.Bought.Add(new BacktestDayPosition
+                        {
+                            Ticker = holdResult.Ticker,
+                            Price = holdResult.StartPrice,
+                            Shares = holdResult.Shares,
+                            Position = holdResult.StartPosition,
+                            Timestamp = holdResult.BoughtAt,
+                        });
                         holdOpenPositions.Add(holdResult);
                         availableFundsHold -= holdResult.StartPosition;
                     }
@@ -132,10 +180,27 @@ public class BacktestHandlerV3(
                             continue;
                         }
 
+                        backtestEntryDay.High.Bought.Add(new BacktestDayPosition
+                        {
+                            Ticker = highResult.Ticker,
+                            Price = highResult.StartPrice,
+                            Shares = highResult.Shares,
+                            Position = highResult.StartPosition,
+                            Timestamp = highResult.BoughtAt,
+                        });
                         highOpenPositions.Add(highResult);
                         availableFundsHigh -= highResult.StartPosition;
                     }
                 }
+
+                backtestEntryDay.Hold.OpenPositions = holdOpenPositions.Count;
+                backtestEntryDay.Hold.EndingBalance = availableFundsHold;
+                backtestEntryDay.High.OpenPositions = highOpenPositions.Count;
+                backtestEntryDay.High.EndingBalance = availableFundsHigh;
+
+                //backtestEntryDay.Results = entry is not null ? entry.Results : [];
+
+                backtestDayResults.Add(backtestEntryDay);
             }
 
             if (validResults is null || !validResults.Any())
@@ -143,26 +208,39 @@ public class BacktestHandlerV3(
                 return GenerateErrorResponse(HttpStatusCode.NotFound, ["No results."]);
             }
 
+            var holdWins = backtestDayResults.SelectMany(q => q.Hold.Sold).Where(q => q.Profit > 0);
+            var holdLosses = backtestDayResults.SelectMany(q => q.Hold.Sold).Where(q => q.Profit < 0);
+            var highWins = backtestDayResults.SelectMany(q => q.High.Sold).Where(q => q.Profit > 0);
+            var highLosses = backtestDayResults.SelectMany(q => q.High.Sold).Where(q => q.Profit < 0);
+
             var response = new OperationResult<BacktestV3Response>
             {
                 Status = HttpStatusCode.OK,
                 Data = new BacktestV3Response
                 {
                     Id = request.Id,
+                    StartBalance = request.PositionInfo.StartingBalance,
                     HoldBalance = availableFundsHold,
                     HighBalance = availableFundsHigh,
+                    PotentialHoldProfit = validResults.Sum(q => q.Hold.SumProfit),
+                    PotentialHighProfit = validResults.Sum(q => q.High.SumProfit),
                     Hold = new BackTestEntryStatsV3
                     {
-                        PositiveTrendRatio = validResults.Average(result => result.Hold.PositiveTrendRatio),
-                        AvgProfit = validResults.Average(result => result.Hold.SumProfit),
-                        SumProfit = validResults.Sum(result => result.Hold.SumProfit),
+                        PositiveTrendRatio = (float)holdWins.Count() / (float)(holdWins.Count() + holdLosses.Count()),
+                        AvgWin = holdWins.Average(q => q.Profit),
+                        AvgLoss = holdLosses.Average(q => q.Profit),
+                        AvgProfit = backtestDayResults.SelectMany(q => q.Hold.Sold).Average(q => q.Profit),
+                        SumProfit = backtestDayResults.SelectMany(q => q.Hold.Sold).Sum(q => q.Profit),
                     },
                     High = new BackTestEntryStatsV3
                     {
-                        PositiveTrendRatio = validResults.Average(result => result.High.PositiveTrendRatio),
-                        AvgProfit = validResults.Average(result => result.High.SumProfit),
-                        SumProfit = validResults.Sum(result => result.High.SumProfit),
-                    }
+                        PositiveTrendRatio = (float)highWins.Count() / (float)(highWins.Count() + highLosses.Count()),
+                        AvgWin = highWins.Average(q => q.Profit),
+                        AvgLoss = highLosses.Average(q => q.Profit),
+                        AvgProfit = backtestDayResults.SelectMany(q => q.High.Sold).Average(q => q.Profit),
+                        SumProfit = backtestDayResults.SelectMany(q => q.High.Sold).Sum(q => q.Profit)
+                    },
+                    Results = backtestDayResults
                 }
             };
 
@@ -180,7 +258,7 @@ public class BacktestHandlerV3(
 
             await _dbContext.SaveAsync(record, cancellationToken);
 
-            response.Data.Results = validResults;
+            response.Data.Other = validResults;
 
             return response;
         }
