@@ -224,6 +224,7 @@ public class BacktestHandlerV3(
                     HighBalance = availableFundsHigh,
                     PotentialHoldProfit = validResults.Sum(q => q.Hold.SumProfit),
                     PotentialHighProfit = validResults.Sum(q => q.High.SumProfit),
+                    MaxConcurrentPositions = backtestDayResults.Max(result => result.Hold.OpenPositions),
                     Hold = new BackTestEntryStatsV3
                     {
                         PositiveTrendRatio = (float)holdWins.Count() / (float)(holdWins.Count() + holdLosses.Count()),
