@@ -219,11 +219,8 @@ public class BacktestHandlerV3(
                 Data = new BacktestV3Response
                 {
                     Id = request.Id,
-                    StartBalance = request.PositionInfo.StartingBalance,
                     HoldBalance = availableFundsHold,
                     HighBalance = availableFundsHigh,
-                    PotentialHoldProfit = validResults.Sum(q => q.Hold.SumProfit),
-                    PotentialHighProfit = validResults.Sum(q => q.High.SumProfit),
                     MaxConcurrentPositions = backtestDayResults.Max(result => result.Hold.OpenPositions),
                     Hold = new BackTestEntryStatsV3
                     {
