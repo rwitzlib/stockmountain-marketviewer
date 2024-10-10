@@ -3,13 +3,13 @@
 
 @if (IsLive)
 {
-    <MudChip Color="Color.Error" Icon="@Icons.Material.Filled.Camera">Live</MudChip>
-    <MudChip @onclick="SetBacktesting" Color="Color.Default" Icon="@Icons.Material.Filled.History">Backtesting</MudChip>
+    <MudChip T="string" Color="Color.Error" Icon="@Icons.Material.Filled.Camera">Live</MudChip>
+    <MudChip T="string" @onclick="SetBacktesting" Color="Color.Default" Icon="@Icons.Material.Filled.History">Backtesting</MudChip>
 }
 else
 {
-    <MudChip @onclick="SetLive" Color="Color.Default" Icon="@Icons.Material.Filled.Camera">Live</MudChip>
-    <MudChip Color="Color.Warning" Icon="@Icons.Material.Filled.History">Backtesting</MudChip>
+    <MudChip T="string" @onclick="SetLive" Color="Color.Default" Icon="@Icons.Material.Filled.Camera">Live</MudChip>
+    <MudChip T="string" Color="Color.Warning" Icon="@Icons.Material.Filled.History">Backtesting</MudChip>
 }
 
 @if (ShowDate){
