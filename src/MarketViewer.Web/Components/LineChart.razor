@@ -1,0 +1,80 @@
+﻿@using MarketViewer.Contracts.Models.Study
+@using MarketViewer.Contracts.Requests.Backtest
+
+@inject BacktestService BacktestService;
+
+<MudPaper id=@($"{Id}-container") style="height: 100%; width: 100%;">
+    <MudCard id="@Id" Class="tvChart" Style=@($"height: {Height} width: {Width}; position: relative;")></MudCard>
+</MudPaper>
+
+@code {
+    [Inject] public IJSRuntime JsRuntime { get; set; }
+
+    [Parameter] public string Id { get; set; }
+    [Parameter] public string Height { get; set; }
+    [Parameter] public string Width { get; set; }
+
+    private List<Line> Lines { get; set; } = [];
+
+    private DotNetObjectReference<LineChart> ObjectReference;
+    private IJSInProcessRuntime JsInProcessRuntime;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            JsInProcessRuntime = (IJSInProcessRuntime)JsRuntime;
+            ObjectReference = DotNetObjectReference.Create(this);
+            JsInProcessRuntime.InvokeVoid("BuildChart", Id, ObjectReference, true);
+        }
+
+        var json = "{\"Start\":\"2024-09-01\",\"End\":\"2024-09-30\",\"PositionInfo\":{\"StartingBalance\":35000,\"MaxConcurrentPositions\":1000,\"PositionSize\":10000},\"Exit\":{\"StopLoss\":{\"Type\":\"percent\",\"Value\":-5},\"ProfitTarget\":{\"Type\":\"percent\",\"Value\":12.5},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"day\"}},\"DetailedResponse\":true,\"Argument\":{\"Operator\":\"AND\",\"Filters\":[{\"CollectionModifier\":\"ANY\",\"FirstOperand\":{\"Study\":\"rsi\",\"Modifier\":\"Slope\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"lt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":4,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"Study\":\"rsi\",\"Modifier\":\"Slope\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":3,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"Study\":\"macd\",\"Modifier\":\"Slope\",\"Parameters\":\"12,26,9,ema\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":3,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"Study\":\"macd\",\"Modifier\":\"Value\",\"Parameters\":\"12,26,9,ema\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"lt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":2,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"PriceAction\":\"Volume\",\"Modifier\":\"Value\",\"Multiplier\":1,\"Timespan\":\"minute\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":100000},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"PriceAction\":\"Vwap\",\"Modifier\":\"Value\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":2},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"PriceAction\":\"Vwap\",\"Modifier\":\"Value\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"lt\",\"SecondOperand\":{\"Value\":600},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"minute\"}}]}}\r\n";
+        var request = JsonSerializer.Deserialize<BacktestV3Request>(json);
+
+        var response = await BacktestService.BacktestV3Async(request);
+
+        var holdEntries = new List<LineEntry>();
+        var highEntries = new List<LineEntry>();
+
+        foreach (var result in response.Results)
+        {
+            holdEntries.Add(new LineEntry
+            {
+                Value = result.Hold.EndCashAvailable,
+                Timestamp = result.Date.ToUnixTimeSeconds()
+            });
+
+            highEntries.Add(new LineEntry
+            {
+                Value = result.High.EndCashAvailable,
+                Timestamp = result.Date.ToUnixTimeSeconds()
+            });
+        }
+
+        Lines.Add(new Line
+        {
+            Color = "red",
+            Width = 1,
+            Series = holdEntries
+        });
+
+        Lines.Add(new Line
+        {
+            Color = "green",
+            Width = 1,
+            Series = highEntries
+        });
+
+        await PlotLines(JsRuntime, Id);
+    }
+
+    public async Task PlotLines(IJSRuntime jsRuntime, string chartId)
+    {
+        foreach (var line in Lines)
+        {
+            var json = JsonSerializer.Serialize(line);
+
+            await jsRuntime.InvokeVoidAsync("CreateLineChart", chartId, json, 0);
+        }
+    }
+}

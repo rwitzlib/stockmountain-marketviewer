@@ -28,8 +28,9 @@ public class BacktestDayV3
 [ExcludeFromCodeCoverage]
 public class BacktestDayDetails
 {
-    public float StartingBalance { get; set; }
-    public float EndingBalance { get; set; }
+    public float StartCashAvailable { get; set; }
+    public float EndCashAvailable { get; set; }
+    public float TotalBalance { get; set; }
     public float Profit { get; set; }
     public int OpenPositions { get; set; }
     public List<BacktestDayPosition> Bought { get; set; }
