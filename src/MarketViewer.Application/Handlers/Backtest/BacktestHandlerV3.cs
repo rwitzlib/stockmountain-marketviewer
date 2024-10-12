@@ -87,13 +87,13 @@ public class BacktestHandlerV3(
                     //CreditsUsed = results.First(result => result.Date == day.Date).CreditsUsed,
                     Hold = new BacktestDayDetails
                     {
-                        StartingBalance = availableFundsHold,
+                        StartCashAvailable = availableFundsHold,
                         Bought = [],
                         Sold = []
                     },
                     High = new BacktestDayDetails
                     {
-                        StartingBalance = availableFundsHigh,
+                        StartCashAvailable = availableFundsHigh,
                         Bought = [],
                         Sold = []
                     }
@@ -194,9 +194,9 @@ public class BacktestHandlerV3(
                 }
 
                 backtestEntryDay.Hold.OpenPositions = holdOpenPositions.Count;
-                backtestEntryDay.Hold.EndingBalance = availableFundsHold;
+                backtestEntryDay.Hold.EndCashAvailable = availableFundsHold;
                 backtestEntryDay.High.OpenPositions = highOpenPositions.Count;
-                backtestEntryDay.High.EndingBalance = availableFundsHigh;
+                backtestEntryDay.High.EndCashAvailable = availableFundsHigh;
 
                 //backtestEntryDay.Results = entry is not null ? entry.Results : [];
 
