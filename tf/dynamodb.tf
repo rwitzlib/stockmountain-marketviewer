@@ -29,7 +29,7 @@ resource "aws_dynamodb_table" "backtest" {
   }
 
   global_secondary_index {
-    name            = "CustomerIndex"
+    name            = "RequestIndex"
     hash_key        = "RequestDetails"
     write_capacity  = 1
     read_capacity   = 1
