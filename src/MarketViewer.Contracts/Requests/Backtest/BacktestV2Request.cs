@@ -19,6 +19,7 @@ public class BacktestV2Request : IRequest<OperationResult<BacktestV2Response>>
     public Timespan Timespan { get; set; }
     public int Multiplier { get; set; }
     public float StopLoss { get; set; }
+    public float ProfitTarget { get; set; }
     public int MaxPositions { get; set; }
     public ScanArgument Argument { get; set; }
     public IEnumerable<Feature> Features { get; set; }

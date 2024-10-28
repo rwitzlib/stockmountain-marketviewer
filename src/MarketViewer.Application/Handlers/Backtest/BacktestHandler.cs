@@ -18,7 +18,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MarketViewer.Application.Handlers;
+namespace MarketViewer.Application.Handlers.Backtest;
 
 public class BacktestHandler(
     IValidator<BacktestRequest> validator,
@@ -35,7 +35,7 @@ public class BacktestHandler(
             return GenerateErrorResponse(HttpStatusCode.BadRequest, errorMessages);
         }
 
-        var days = (request.End == request.Start) ? [request.Start] : Enumerable.Range(0, (request.End - request.Start).Days + 1)
+        var days = request.End == request.Start ? [request.Start] : Enumerable.Range(0, (request.End - request.Start).Days + 1)
             .Select(day => request.Start.AddDays(day))
             .Where(day => day.DayOfWeek != DayOfWeek.Sunday && day.DayOfWeek != DayOfWeek.Saturday);
 

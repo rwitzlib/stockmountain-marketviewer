@@ -12,9 +12,9 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="13.0.1" />
-    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.401" />
-    <PackageReference Include="AWSSDK.Lambda" Version="3.7.305.8" />
-    <PackageReference Include="FluentValidation" Version="11.9.0" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.401.11" />
+    <PackageReference Include="AWSSDK.Lambda" Version="3.7.405.8" />
+    <PackageReference Include="FluentValidation" Version="11.10.0" />
     <PackageReference Include="MemoryPack" Version="1.21.3" />
     <PackageReference Include="MemoryPack.Streaming" Version="1.21.3" />
   </ItemGroup>

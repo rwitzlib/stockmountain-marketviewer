@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <PackageId>MarketViewer.Contracts</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.0.1-preview.3</Version>
     <Authors>Robert Witzlib</Authors>
     <Description>
       Add Backtest v3, rename lots of namespaces
@@ -18,10 +18,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.401" />
-    <PackageReference Include="AWSSDK.S3" Version="3.7.305.28" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.401.11" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.404.5" />
     <PackageReference Include="MarketDataProvider.Contracts" Version="1.0.0" />
-    <PackageReference Include="MediatR" Version="12.2.0" />
+    <PackageReference Include="MediatR" Version="12.4.1" />
     <PackageReference Include="MemoryPack" Version="1.21.3" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="8.0.0" />
