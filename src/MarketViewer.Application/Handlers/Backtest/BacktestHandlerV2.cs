@@ -17,13 +17,13 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MarketViewer.Application.Handlers;
+namespace MarketViewer.Application.Handlers.Backtest;
 
-public class BacktestV2Handler(
+public class BacktestHandlerV2(
     //IValidator<BacktestV2Request> validator,
     IAmazonLambda _lambdaClient,
     IDynamoDBContext _dbContext,
-    ILogger<BacktestV2Handler> _logger) : IRequestHandler<BacktestV2Request, OperationResult<BacktestV2Response>>
+    ILogger<BacktestHandlerV2> _logger) : IRequestHandler<BacktestV2Request, OperationResult<BacktestV2Response>>
 {
     public async Task<OperationResult<BacktestV2Response>> Handle(BacktestV2Request request, CancellationToken cancellationToken)
     {
@@ -37,7 +37,7 @@ public class BacktestV2Handler(
             //    return GenerateErrorResponse(HttpStatusCode.BadRequest, errorMessages);
             //}
 
-            var days = (request.End == request.Start) ? [request.Start] : Enumerable.Range(0, (request.End - request.Start).Days + 1)
+            var days = request.End == request.Start ? [request.Start] : Enumerable.Range(0, (request.End - request.Start).Days + 1)
                 .Select(day => request.Start.AddDays(day))
                 .Where(day => day.DayOfWeek != DayOfWeek.Sunday && day.DayOfWeek != DayOfWeek.Saturday);
 
@@ -93,14 +93,6 @@ public class BacktestV2Handler(
                         LowPosition = validResults.Average(result => result.High.LowPosition),
                         AvgProfit = validResults.Average(result => result.High.SumProfit),
                         SumProfit = validResults.Sum(result => result.High.SumProfit),
-                    },
-                    Other = new BackTestEntryStatsV2
-                    {
-                        PositiveTrendRatio = validResults.Average(result => result.Other.PositiveTrendRatio),
-                        HighPosition = validResults.Average(result => result.Other.HighPosition),
-                        LowPosition = validResults.Average(result => result.Other.LowPosition),
-                        AvgProfit = validResults.Average(result => result.Other.SumProfit),
-                        SumProfit = validResults.Sum(result => result.Other.SumProfit),
                     }
                 }
             };
@@ -147,7 +139,7 @@ public class BacktestV2Handler(
                 FunctionName = "lad-dev-backtester-v2",
                 InvocationType = InvocationType.RequestResponse,
                 Payload = json,
-                
+
             };
 
             var response = await _lambdaClient.InvokeAsync(invokeRequest);

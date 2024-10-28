@@ -16,7 +16,7 @@ using MarketViewer.Contracts.Comparers;
 using MarketViewer.Contracts.Models.ScanV2;
 using MarketViewer.Contracts.Requests.Scan;
 
-namespace MarketViewer.Application.Handlers;
+namespace MarketViewer.Application.Handlers.Scan;
 
 public class ScanHandlerV2(
     LiveCache liveCache,
@@ -110,7 +110,7 @@ public class ScanHandlerV2(
 
     private async Task<IEnumerable<ScanResponse.Item>> ApplyScanToArgument(ScanArgument argument, StocksResponseCollection stocksResponseCollection)
     {
-        if (argument is null || (argument.Operator is not "AND" && argument.Operator is not "OR" && argument.Operator is not "AVERAGE") || argument.Filters.Count == 0)
+        if (argument is null || argument.Operator is not "AND" && argument.Operator is not "OR" && argument.Operator is not "AVERAGE" || argument.Filters.Count == 0)
         {
             return [];
         }
@@ -215,11 +215,11 @@ public class ScanHandlerV2(
                     },
                     "average" => filter.Operator switch
                     {
-                        FilterOperator.lt => (firstOperandResult.Sum() / firstOperandResult.Length) < (secondOperandResult.Sum() / secondOperandResult.Length),
-                        FilterOperator.le => (firstOperandResult.Sum() / firstOperandResult.Length) <= (secondOperandResult.Sum() / secondOperandResult.Length),
-                        FilterOperator.eq => (firstOperandResult.Sum() / firstOperandResult.Length) == (secondOperandResult.Sum() / secondOperandResult.Length),
-                        FilterOperator.ge => (firstOperandResult.Sum() / firstOperandResult.Length) >= (secondOperandResult.Sum() / secondOperandResult.Length),
-                        FilterOperator.gt => (firstOperandResult.Sum() / firstOperandResult.Length) > (secondOperandResult.Sum() / secondOperandResult.Length),
+                        FilterOperator.lt => firstOperandResult.Sum() / firstOperandResult.Length < secondOperandResult.Sum() / secondOperandResult.Length,
+                        FilterOperator.le => firstOperandResult.Sum() / firstOperandResult.Length <= secondOperandResult.Sum() / secondOperandResult.Length,
+                        FilterOperator.eq => firstOperandResult.Sum() / firstOperandResult.Length == secondOperandResult.Sum() / secondOperandResult.Length,
+                        FilterOperator.ge => firstOperandResult.Sum() / firstOperandResult.Length >= secondOperandResult.Sum() / secondOperandResult.Length,
+                        FilterOperator.gt => firstOperandResult.Sum() / firstOperandResult.Length > secondOperandResult.Sum() / secondOperandResult.Length,
                         _ => throw new NotImplementedException(),
                     },
                     _ => throw new NotImplementedException()
@@ -237,7 +237,7 @@ public class ScanHandlerV2(
                 });
             }
         }
-        
+
         return results;
     }
     #endregion

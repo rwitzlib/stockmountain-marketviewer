@@ -3,7 +3,6 @@ using Moq;
 using Xunit;
 using FluentAssertions;
 using MarketViewer.Contracts.Responses;
-using MarketViewer.Application.Handlers;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Infrastructure.Services;
 using Moq.AutoMock;
@@ -15,6 +14,7 @@ using MarketViewer.Core.ScanV2;
 using MarketViewer.Contracts.Requests.Scan;
 using MarketViewer.Contracts.Models.ScanV2;
 using MarketViewer.Contracts.Enums.Scan;
+using MarketViewer.Application.Handlers.Scan;
 
 namespace MarketViewer.Application.UnitTests.Handlers
 {

@@ -10,7 +10,7 @@ on:
 
 jobs:
   api:
-    uses: rwitzlib/github-action-templates/.github/workflows/dotnet-docker-terraform-validate.yml@master
+    uses: rwitzlib/github-action-templates/.github/workflows/dotnet-docker-terraform-validate.yml@MARK-165-fix-docker-datetime
     with:
       environment: ${{ inputs.environment || 'dev'}}
       ecr_repo: lad-${{ inputs.environment || 'dev'}}-marketviewer-api
@@ -22,7 +22,7 @@ jobs:
     secrets: inherit
 
   web:
-    uses: rwitzlib/github-action-templates/.github/workflows/dotnet-docker-terraform-validate.yml@master
+    uses: rwitzlib/github-action-templates/.github/workflows/dotnet-docker-terraform-validate.yml@MARK-165-fix-docker-datetime
     with:
       environment: ${{ inputs.environment || 'dev'}}
       ecr_repo: lad-${{ inputs.environment || 'dev'}}-marketviewer-web

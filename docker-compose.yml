@@ -39,5 +39,4 @@ services:
 
 networks:
   marketviewer:
-    external: true
     name: marketviewer
