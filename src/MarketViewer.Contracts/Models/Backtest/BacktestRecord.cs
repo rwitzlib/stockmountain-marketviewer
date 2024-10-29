@@ -1,10 +1,5 @@
 ﻿using Amazon.DynamoDBv2.DataModel;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MarketViewer.Contracts.Models.Backtest;
 
@@ -24,6 +19,9 @@ public class BacktestRecord
     public float CreditsUsed { get; set; }
     public float HoldProfit { get; set; }
     public float HighProfit { get; set; }
-    public string Request { get; set; }
-    public string Response { get; set; }
+    [DynamoDBGlobalSecondaryIndexHashKey]
+    public string RequestDetails { get; set; }
+    public int StartDate { get; set; }
+    public int EndDate { get; set; }
+    public string S3ObjectName { get; set; }
 }

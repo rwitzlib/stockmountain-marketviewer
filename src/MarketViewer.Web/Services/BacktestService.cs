@@ -38,6 +38,11 @@ namespace MarketViewer.Web.Services
         {
             try
             {
+                if (request is null)
+                {
+                    Console.WriteLine("asdf");
+                }
+
                 var response = await httpClient.PostAsJsonAsync("api/backtest/v3", request);
 
                 var json = await response.Content.ReadAsStringAsync();

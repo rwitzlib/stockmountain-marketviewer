@@ -1,11 +1,7 @@
 {
   "iisSettings": {
     "windowsAuthentication": false,
-    "anonymousAuthentication": true,
-    "iisExpress": {
-      "applicationUrl": "http://localhost:53710",
-      "sslPort": 44343
-    }
+    "anonymousAuthentication": true
   },
   "profiles": {
     "MarketViewer.Web": {
@@ -13,15 +9,7 @@
       "dotnetRunMessages": true,
       "launchBrowser": true,
       "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}",
-      "applicationUrl": "https://localhost:7025;http://localhost:5204",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "local"
-      }
-    },
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "launchBrowser": true,
-      "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}",
+      "applicationUrl": "https://localhost:7025",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "local"
       }

@@ -1,13 +1,16 @@
 ﻿using Amazon.DynamoDBv2.DataModel;
 using Amazon.Lambda;
 using Amazon.Lambda.Model;
+using Amazon.S3;
 using AutoFixture;
 using FluentAssertions;
 using MarketViewer.Application.Handlers.Backtest;
+using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.Backtest;
 using MarketViewer.Contracts.Models.ScanV2;
 using MarketViewer.Contracts.Requests.Backtest;
+using MarketViewer.Infrastructure.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Moq.AutoMock;
@@ -31,9 +34,11 @@ public class BacktestHandlerV3UnitTests
         _autoMocker = new AutoMocker();
 
         _lambdaClient = new Mock<IAmazonLambda>();
+        var _s3Client = new Mock<IAmazonS3>();
         _dynamodbClient = new Mock<IDynamoDBContext>();
-
-        _classUnderTest = new BacktestHandlerV3(_lambdaClient.Object, _dynamodbClient.Object, new NullLogger<BacktestHandlerV3>());
+        var backtestService = new Mock<BacktestService>();
+        var marketCache = new Mock<MarketCache>();
+        _classUnderTest = new BacktestHandlerV3(_dynamodbClient.Object, _s3Client.Object, backtestService.Object, marketCache.Object, new NullLogger<BacktestHandlerV3>());
     }
 
     [Fact]

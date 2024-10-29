@@ -105,8 +105,7 @@ public class BacktestHandlerV2(
                 CreditsUsed = results.Where(result => result is not null).Sum(result => result.CreditsUsed),
                 HoldProfit = response.Data.Hold.SumProfit,
                 HighProfit = response.Data.High.SumProfit,
-                Request = JsonSerializer.Serialize(request),
-                Response = JsonSerializer.Serialize(response.Data)
+                RequestDetails = JsonSerializer.Serialize(request)
             };
 
             await _dbContext.SaveAsync(record, cancellationToken);

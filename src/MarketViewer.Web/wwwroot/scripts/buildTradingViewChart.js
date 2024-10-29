@@ -118,7 +118,8 @@ function BuildChart(id, dotnetReference, enableScroll) {
                 color: '#363C4E',
             },
         },
-        pane: 0
+        pane: 0,
+        autoSize: true
     }
 
     let legend = document.createElement('div');
