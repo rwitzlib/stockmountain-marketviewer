@@ -1,0 +1,125 @@
+﻿@using MarketViewer.Contracts.Enums
+@using MarketViewer.Contracts.Models.Study
+@using MarketViewer.Contracts.Requests
+@using MarketViewer.Contracts.Requests.Backtest
+@using MarketViewer.Contracts.Responses.Backtest
+
+@inject BacktestService BacktestService;
+@inject ChartService ChartService;
+
+<MudCard id="@Id" Class="tvChart" Style=@($"height: {Height} width: {Width}; position: relative;")></MudCard>
+
+@code {
+    [Inject] public IJSRuntime JsRuntime { get; set; }
+
+    [Parameter] public string Height { get; set; }
+    [Parameter] public string Width { get; set; }
+    [Parameter] public BacktestV3Request Request { get; set; }
+
+    public BacktestV3Response Response { get; set; }
+
+    private List<Line> Lines { get; set; } = [];
+    private string Id { get; set; } = Guid.NewGuid().ToString();
+    private DotNetObjectReference<BacktestLineChart> ObjectReference;
+    private IJSInProcessRuntime JsInProcessRuntime;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            JsInProcessRuntime = (IJSInProcessRuntime)JsRuntime;
+            ObjectReference = DotNetObjectReference.Create(this);
+            JsInProcessRuntime.InvokeVoid("BuildChart", Id, ObjectReference, true);
+        }
+    }
+
+    public async Task PlotLines()
+    {
+        Response = await BacktestService.BacktestV3Async(Request);
+
+        var baseLine = await ChartService.GetStockData(new StocksRequest
+        {
+            Ticker = "SPY",
+            Multiplier = 1,
+            Timespan = Timespan.day,
+            From = Request.Start,
+            To = Response.Results.MaxBy(q => q.Date).Date.Date
+        });
+
+        var shares = (int)Request.PositionInfo.StartingBalance / (int)baseLine.Results.First().Vwap;
+
+        var baseSeries = new List<LineEntry>();
+        var holdEntries = new List<LineEntry>();
+        var highEntries = new List<LineEntry>();
+
+        foreach (var result in Response.Results)
+        {
+            var baseLineCandle = baseLine.Results.FirstOrDefault(candle => DateTimeOffset.FromUnixTimeSeconds(candle.Timestamp).Date == result.Date.Date);
+
+            if (baseLineCandle is not null)
+            {
+                baseSeries.Add(new LineEntry
+                {
+                    Value = baseLineCandle.Vwap * shares,
+                    Timestamp = result.Date.ToUnixTimeSeconds()
+                });
+            }
+
+            holdEntries.Add(new LineEntry
+            {
+                Value = result.Hold.TotalBalance,
+                Timestamp = result.Date.ToUnixTimeSeconds()
+            });
+
+            highEntries.Add(new LineEntry
+            {
+                Value = result.High.TotalBalance,
+                Timestamp = result.Date.ToUnixTimeSeconds()
+            });
+        }
+
+        Lines.Add(new Line
+        {
+            Color = "gray",
+            Width = 1,
+            Series = baseSeries
+        });
+
+        Lines.Add(new Line
+        {
+            Color = "red",
+            Width = 1,
+            Series = holdEntries
+        });
+
+        Lines.Add(new Line
+        {
+            Color = "green",
+            Width = 1,
+            Series = highEntries
+        });
+
+        foreach (var line in Lines)
+        {
+            var json = JsonSerializer.Serialize(line);
+            await JsRuntime.InvokeVoidAsync("CreateLineChart", Id, json, 0);
+        }
+
+        await JsRuntime.InvokeVoidAsync("AddStudyToLegend", Id, "High", Lines[2].Color);
+        await JsRuntime.InvokeVoidAsync("AddStudyToLegend", Id, "Hold", Lines[1].Color);
+        await JsRuntime.InvokeVoidAsync("AddStudyToLegend", Id, "SPY", Lines[0].Color);
+    }
+
+    public async Task RemoveLines()
+    {
+        foreach (var line in Lines)
+        {
+            var json = JsonSerializer.Serialize(line);
+            await JsRuntime.InvokeVoidAsync("DeleteLineChart", Id, json);
+        }
+        await JsRuntime.InvokeVoidAsync("RemoveStudyFromLegend", Id, "High");
+        await JsRuntime.InvokeVoidAsync("RemoveStudyFromLegend", Id, "Hold");
+        await JsRuntime.InvokeVoidAsync("RemoveStudyFromLegend", Id, "SPY");
+        Lines = [];
+    }
+}

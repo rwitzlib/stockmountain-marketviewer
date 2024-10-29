@@ -1,0 +1,154 @@
+﻿@using MarketViewer.Contracts.Enums
+@using MarketViewer.Contracts.Models.ScanV2
+@using MarketViewer.Contracts.Models.ScanV2.Operands
+@using FilterOperator = MarketViewer.Contracts.Enums.FilterOperator;
+
+@inject IJSRuntime JsRuntime;
+
+<MudPaper Elevation="@(Argument.Depth * 2)" Class="ma-4 row" id="outer-dropzone">
+    <div class="col-1">
+        <MudSelect @bind-Value="Argument.Operator" T="string" Label="Operator" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
+            <MudSelectItem Value="@("AND")" />
+            <MudSelectItem Value="@("OR")" />
+        </MudSelect>
+
+        @if (Argument.Argument is not null)
+        {
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="RemoveArgument">Delete</MudButton>
+        }
+    </div>
+    <div class="col-11">
+        @if (Argument.Argument is null)
+        {
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" OnClick="AddArgument">Add Argument</MudButton>
+        }
+        else
+        {
+            <ScanArgumentComponent PageId="@PageId" Parent="this" Argument="Argument.Argument"></ScanArgumentComponent>
+        }
+
+        <MudCard id="@Argument.Id" Class="dropzone">
+            @foreach (var filter in Argument.Filters)
+            {
+                <FilterComponent Argument="this" Filter="filter"></FilterComponent>
+            }
+        </MudCard>
+        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" OnClick="AddFilter">Add Filter</MudButton>
+    </div>
+</MudPaper>
+
+@code {
+    [Parameter] public string PageId { get; set; }
+    [Parameter] public ScanArgumentZone Argument { get; set; }
+    [Parameter] public ScanArgumentComponent Parent { get; set; }
+
+    private IJSInProcessRuntime JsInProcessRuntime;
+    private DotNetObjectReference<ScanArgumentComponent> ObjectReference;
+
+    #region Protected Methods
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            JsInProcessRuntime = (IJSInProcessRuntime)JsRuntime;
+            ObjectReference = DotNetObjectReference.Create(this);
+
+            if (Parent is null)
+            {
+                JsInProcessRuntime.InvokeVoid("initializePage", PageId, ObjectReference);
+                JsInProcessRuntime.InvokeVoid("addInitialArgument", PageId, Argument.Id);
+            }
+        }
+    }
+
+    #endregion
+
+    #region Public Methods
+
+    [JSInvokable]
+    public void MoveFilter(string sourceArgumentId, string destinationArgumentId, string filterId)
+    {
+        var sourceArgument = FindArgument(Argument, sourceArgumentId);
+        var destinationArgument = FindArgument(Argument, destinationArgumentId);
+
+        if (sourceArgument is null || destinationArgument is null)
+        {
+            return;
+        }
+
+        var filter = sourceArgument.Filters.Find(filter => filter.Id == filterId);
+
+        sourceArgument.Filters.Remove(filter);
+        destinationArgument.Filters.Add(filter);
+
+        // StateHasChanged();
+    }
+
+    public ScanArgument GetScanArgument()
+    {
+        if (Parent is null)
+        {
+            
+        }
+        var argument = new ScanArgument
+        {
+            Operator = Argument.Operator,
+            Argument = Parent is null ? null : Parent.GetScanArgument(),
+            Filters = Argument.GetFilters()
+        };
+        return argument; 
+    }
+
+    #endregion
+
+    #region Private Methods
+
+    private void AddArgument()
+    {
+        Argument.Argument = new ScanArgumentZone(Argument.Depth++, "AND");
+        JsInProcessRuntime.InvokeVoid("addArgumentToArgument", PageId, Argument.Id, Argument.Argument.Id);
+    }
+
+    private void RemoveArgument()
+    {
+        Argument.Argument = null;
+        JsInProcessRuntime.InvokeVoid("removeArgumentFromArgument", PageId, Argument.Id);
+    }   
+
+    private void AddFilter()
+    {
+        var filter = new FilterItem();
+        Argument.Filters.Add(filter);
+        JsInProcessRuntime.InvokeVoid("addFilterToArgument", PageId, Argument.Id, filter.Id);
+    }
+
+    public void RemoveFilter(FilterItem filterItem)
+    {
+        Argument.Filters.Remove(filterItem);
+        JsInProcessRuntime.InvokeVoid("removeFilterFromArgument", PageId, Argument.Id, filterItem.Id);
+        StateHasChanged();
+    }
+
+    private ScanArgumentZone FindArgument(ScanArgumentZone argument, string argumentId)
+    {
+        if (argument.Id is null)
+        {
+            return null;
+        }
+
+        if (argument.Id == argumentId)
+        {
+            return argument;
+        }
+
+        if (argument.Argument is null)
+        {
+            return null;
+        }
+
+        return FindArgument(argument.Argument, argumentId);
+    }
+
+    #endregion
+}

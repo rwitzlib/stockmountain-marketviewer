@@ -2,17 +2,20 @@
 @using MarketViewer.Contracts.Enums
 @using MarketViewer.Contracts.Models.ScanV2
 @using FilterOperator = MarketViewer.Contracts.Enums.FilterOperator;
+@using MarketViewer.Web.Components.Scan
 
 @inject IJSRuntime JsRuntime;
 
-<MudPaper Elevation="10" id="@Filter.Id" Class="d-flex flex-grow-1 gap-4 justify-content-center drag-drop filter">
+<MudPaper Elevation="10" id="@Filter.Id" Class="d-flex pa-2 flex-grow-1 gap-4 justify-content-center filter">
+    <MudIcon Class="drag-drop" Icon="@Icons.Material.Filled.DragIndicator"></MudIcon>
+
     <MudSelect @bind-Value="Filter.CollectionModifier" T="string" Label="Collection" AnchorOrigin="Origin.BottomCenter">
         <MudSelectItem Value="@("All")" />
         <MudSelectItem Value="@("Any")" />
         <MudSelectItem Value="@("Average")" />
     </MudSelect>
 
-    <MudSelect T="OperandType" Label="First Operand" AnchorOrigin="Origin.BottomCenter" ValueChanged="AddFirstOperand">
+    <MudSelect T="OperandType" Label="First Operand" AnchorOrigin="Origin.BottomCenter" ValueChanged="AddFirstOperand" Value="Filter.FirstOperandType">
         @foreach (OperandType type in Enum.GetValues(typeof(OperandType)))
         {
             <MudSelectItem Value="@type">@type</MudSelectItem>
@@ -40,7 +43,7 @@
         <MudSelectItem Value="FilterOperator.lt">@("<")</MudSelectItem>
     </MudSelect>
 
-    <MudSelect T="OperandType" Label="Second Operand" AnchorOrigin="Origin.BottomCenter" ValueChanged="AddSecondOperand">
+    <MudSelect T="OperandType" Label="Second Operand" AnchorOrigin="Origin.BottomCenter" ValueChanged="AddSecondOperand" Value="Filter.SecondOperandType">
         @foreach (OperandType type in Enum.GetValues(typeof(OperandType)))
         {
             <MudSelectItem Value="@type">@type</MudSelectItem>
@@ -78,9 +81,12 @@
 
     private IJSInProcessRuntime JsInProcessRuntime;
 
-    protected override void OnInitialized()
+    protected override void OnAfterRender(bool firstRender)
     {
-        base.OnInitialized();
+        if (firstRender)
+        {
+            JsInProcessRuntime = (IJSInProcessRuntime)JsRuntime;
+        }
     }
 
     private void AddFirstOperand(OperandType type)
@@ -116,14 +122,6 @@
         else if (type is OperandType.Fixed)
         {
             Filter.SecondOperand = new FixedOperand();
-        }
-    }
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (firstRender)
-        {
-            JsInProcessRuntime = (IJSInProcessRuntime)JsRuntime;
         }
     }
 }

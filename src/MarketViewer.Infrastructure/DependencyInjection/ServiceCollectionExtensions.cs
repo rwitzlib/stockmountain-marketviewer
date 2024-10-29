@@ -12,6 +12,7 @@ using MarketDataProvider.Clients.Interfaces;
 using MarketDataProvider.Clients;
 using Polygon.Client.DependencyInjection;
 using MarketViewer.Contracts.Caching;
+using Amazon.DynamoDBv2;
 
 namespace MarketViewer.Infrastructure.DependencyInjection;
 
@@ -33,6 +34,8 @@ public static class ServiceCollectionExtensions
             .AddSingleton<LiveCache>()
             .AddSingleton<HistoryCache>()
             .AddSingleton<MarketCache>()
+            .AddSingleton<BacktestService>()
+            .AddSingleton<IAmazonDynamoDB, AmazonDynamoDBClient>(client => new AmazonDynamoDBClient(RegionEndpoint.USEast2))
             .AddSingleton<IMarketCacheClient, MarketCacheClient>();
 
         services.AddHttpClient("marketdataprovider", client =>

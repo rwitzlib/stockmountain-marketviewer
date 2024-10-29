@@ -5,5 +5,6 @@ public enum FeatureType
     Ticker,
     EntryBefore,
     EntryAfter,
+    TickerType,
     DayOfWeek
 }
