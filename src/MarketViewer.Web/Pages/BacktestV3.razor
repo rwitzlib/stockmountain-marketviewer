@@ -1,0 +1,281 @@
+﻿@page "/backtest/v3"
+
+@using MarketViewer.Contracts.Enums
+@using MarketViewer.Contracts.Enums.Backtest
+@using MarketViewer.Contracts.Models.Backtest
+@using MarketViewer.Contracts.Models.ScanV2
+@using MarketViewer.Contracts.Models.ScanV2.Operands
+@using MarketViewer.Contracts.Requests
+@using System.Collections.Generic;
+@using MarketViewer.Contracts.Requests.Backtest
+@using MarketViewer.Web.Components.Backtest
+@using MarketViewer.Web.Components.Scan
+@using MudBlazor.Components.Chart.Models
+@using FilterOperator = MarketViewer.Contracts.Enums.FilterOperator;
+
+@inherits ComponentBase;
+
+<PageTitle>Backtest V3</PageTitle>
+
+<MudExpansionPanels MultiExpansion="true">
+    <MudExpansionPanel Text="Parameters">
+
+        <MudDatePicker Label="Start Date" @bind-Date="Start" />
+        <MudDatePicker Label="End Date" @bind-Date="End" />
+        <MudNumericField @bind-Value="Request.PositionInfo.StartingBalance" Label="Starting Balance" Variant="Variant.Text" Min="0"/>
+        <MudNumericField @bind-Value="Request.PositionInfo.MaxConcurrentPositions" Label="Max Concurrent Positions" Variant="Variant.Text" Min="1" Max="100" />
+        <MudNumericField @bind-Value="Request.PositionInfo.PositionSize" Label="Position Size" Variant="Variant.Text" Min="0" Max="10" />
+        
+        <MudTextField @bind-Value="Request.Exit.StopLoss.Type" Label="Stop Loss Type" Variant="Variant.Text"></MudTextField>
+        <MudNumericField @bind-Value="Request.Exit.StopLoss.Value" Label="Stop Loss Value" Variant="Variant.Text"/>
+        
+        <MudTextField @bind-Value="Request.Exit.ProfitTarget.Type" Label="Profit Target Type" Variant="Variant.Text"></MudTextField>
+        <MudNumericField @bind-Value="Request.Exit.ProfitTarget.Value" Label="Profit Target Value" Variant="Variant.Text" Min="0" Max="10" />
+
+        <MudNumericField @bind-Value="Request.Exit.Timeframe.Multiplier" Label="Timeframe Multiplier" Variant="Variant.Text"/>
+        <MudSelect T="Timespan" @bind-Value="Request.Exit.Timeframe.Timespan" SelectedValues="@([Timespan.day])">
+            <MudSelectItem Value="@(Timespan.minute)">Minute</MudSelectItem>
+            <MudSelectItem Value="@(Timespan.hour)">Hour</MudSelectItem>
+            <MudSelectItem Value="@(Timespan.day)">Day</MudSelectItem>
+            <MudSelectItem Value="@(Timespan.week)">Week</MudSelectItem>
+            <MudSelectItem Value="@(Timespan.month)">Month</MudSelectItem>
+            <MudSelectItem Value="@(Timespan.year)">Year</MudSelectItem>
+        </MudSelect>
+
+        <MudTextField @bind-Value="StockTypes" Label="Profit Target Type" Variant="Variant.Text"></MudTextField>
+    </MudExpansionPanel>
+    <MudExpansionPanel Text="Argument">
+        <ScanArgumentComponent @ref="ScanArgumentComponent" PageId="@PageId" Argument="@ScanArgument" Parent="null"></ScanArgumentComponent>
+    </MudExpansionPanel>
+</MudExpansionPanels>
+
+<MudPaper Elevation="0" style="height: 75%; width: 100%">
+    <MudPaper id=@($"{PageId}-container") style="height: 100%; width: 100%;">
+        <MudCard id=@($"{PageId}-parameters") Square="true">
+            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="PlotLines">Plot Lines</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="RemoveLines">Clear</MudButton>
+        </MudCard>
+        <BacktestLineChart @ref="BacktestLineChartComponent" Request="@Request" Height="75%" Width="100%"></BacktestLineChart>
+    </MudPaper>
+</MudPaper>
+
+@code {
+    private string PageId { get; set; } = Guid.NewGuid().ToString();
+    private ScanArgumentZone ScanArgument { get; set; } = new ScanArgumentZone(0, "AND");
+    private BacktestV3Request Request { get; set; }
+
+    private DateTime? Start { get; set; } = DateTime.Parse("2024-03-01");
+    private DateTime? End { get; set; } = DateTime.Parse("2024-09-30");
+    private string StockTypes { get; set; } = "CS,ETF";
+
+    private ScanArgumentComponent ScanArgumentComponent { get; set; }
+    private BacktestLineChart BacktestLineChartComponent { get; set; }
+
+    #region Protected Methods
+
+    protected override void OnInitialized()
+    {
+        var json = "{\"Start\":\"2024-03-01\",\"End\":\"2024-09-30\",\"PositionInfo\":{\"StartingBalance\":20000,\"MaxConcurrentPositions\":1000,\"PositionSize\":1000},\"Exit\":{\"StopLoss\":{\"Type\":\"percent\",\"Value\":-5},\"ProfitTarget\":{\"Type\":\"percent\",\"Value\":12.5},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"day\"}},\"DetailedResponse\":true,\"Argument\":{\"Operator\":\"AND\",\"Filters\":[{\"CollectionModifier\":\"ANY\",\"FirstOperand\":{\"Study\":\"rsi\",\"Modifier\":\"Slope\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"lt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":4,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"Study\":\"rsi\",\"Modifier\":\"Slope\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":3,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"Study\":\"macd\",\"Modifier\":\"Slope\",\"Parameters\":\"12,26,9,ema\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":3,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"Study\":\"macd\",\"Modifier\":\"Value\",\"Parameters\":\"12,26,9,ema\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"lt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":2,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"PriceAction\":\"Volume\",\"Modifier\":\"Value\",\"Multiplier\":1,\"Timespan\":\"minute\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":100000},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"PriceAction\":\"Vwap\",\"Modifier\":\"Value\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":2},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"PriceAction\":\"Vwap\",\"Modifier\":\"Value\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"lt\",\"SecondOperand\":{\"Value\":600},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"minute\"}}]}}\r\n";
+        var request = JsonSerializer.Deserialize<BacktestV3Request>(json);
+        request.Features = [
+            new Feature
+            {
+                Type = FeatureType.TickerType,
+                Value = StockTypes
+            }
+        ];
+        Request = request;
+
+        ScanArgument.Filters.Add(new FilterItem
+        {
+            CollectionModifier = "ANY",
+            FirstOperandType = OperandType.Study,
+            FirstOperand = new StudyOperand
+            {
+                Study = StudyType.rsi,
+                Modifier = OperandModifier.Slope,
+                Multiplier = 1,
+                Timespan = Timespan.hour
+            },
+            Operator = FilterOperator.lt,
+            SecondOperandType = OperandType.Fixed,
+            SecondOperand = new FixedOperand
+            {
+                Value = 0
+            },
+            Timeframe = new Timeframe
+            {
+                Multiplier = 4,
+                Timespan = Timespan.minute
+            }
+        });
+
+        ScanArgument.Filters.Add(new FilterItem
+        {
+            CollectionModifier = "ALL",
+            FirstOperandType = OperandType.Study,
+            FirstOperand = new StudyOperand
+            {
+                Study = StudyType.rsi,
+                Modifier = OperandModifier.Slope,
+                Multiplier = 1,
+                Timespan = Timespan.hour
+            },
+            Operator = FilterOperator.gt,
+            SecondOperandType = OperandType.Fixed,
+            SecondOperand = new FixedOperand
+            {
+                Value = 0
+            },
+            Timeframe = new Timeframe
+            {
+                Multiplier = 3,
+                Timespan = Timespan.minute
+            }
+        });
+
+        ScanArgument.Filters.Add(new FilterItem
+        {
+            CollectionModifier = "ALL",
+            FirstOperandType = OperandType.Study,
+            FirstOperand = new StudyOperand
+            {
+                Study = StudyType.macd,
+                Modifier = OperandModifier.Slope,
+                Parameters = "12,26,9,ema",
+                Multiplier = 1,
+                Timespan = Timespan.hour
+            },
+            Operator = FilterOperator.gt,
+            SecondOperandType = OperandType.Fixed,
+            SecondOperand = new FixedOperand
+            {
+                Value = 0
+            },
+            Timeframe = new Timeframe
+            {
+                Multiplier = 3,
+                Timespan = Timespan.minute
+            }
+        });
+
+        ScanArgument.Filters.Add(new FilterItem
+        {
+            CollectionModifier = "ALL",
+            FirstOperandType = OperandType.Study,
+            FirstOperand = new StudyOperand
+            {
+                Study = StudyType.macd,
+                Modifier = OperandModifier.Value,
+                Parameters = "12,26,9,ema",
+                Multiplier = 1,
+                Timespan = Timespan.hour
+            },
+            Operator = FilterOperator.lt,
+            SecondOperandType = OperandType.Fixed,
+            SecondOperand = new FixedOperand
+            {
+                Value = 0
+            },
+            Timeframe = new Timeframe
+            {
+                Multiplier = 2,
+                Timespan = Timespan.minute
+            }
+        });
+
+        ScanArgument.Filters.Add(new FilterItem
+        {
+            CollectionModifier = "ALL",
+            FirstOperandType = OperandType.PriceAction,
+            FirstOperand = new PriceActionOperand
+            {
+                PriceAction = PriceActionType.Volume,
+                Modifier = OperandModifier.Value,
+                Multiplier = 1,
+                Timespan = Timespan.minute
+            },
+            Operator = FilterOperator.gt,
+            SecondOperandType = OperandType.Fixed,
+            SecondOperand = new FixedOperand
+            {
+                Value = 100000
+            },
+            Timeframe = new Timeframe
+            {
+                Multiplier = 5,
+                Timespan = Timespan.minute
+            }
+        });
+
+        ScanArgument.Filters.Add(new FilterItem
+        {
+            CollectionModifier = "ALL",
+            FirstOperandType = OperandType.PriceAction,
+            FirstOperand = new PriceActionOperand
+            {
+                PriceAction = PriceActionType.Vwap,
+                Modifier = OperandModifier.Value,
+                Multiplier = 1,
+                Timespan = Timespan.hour
+            },
+            Operator = FilterOperator.gt,
+            SecondOperandType = OperandType.Fixed,
+            SecondOperand = new FixedOperand
+            {
+                Value = 2
+            },
+            Timeframe = new Timeframe
+            {
+                Multiplier = 5,
+                Timespan = Timespan.minute
+            }
+        });
+
+        ScanArgument.Filters.Add(new FilterItem
+        {
+            CollectionModifier = "ALL",
+            FirstOperandType = OperandType.PriceAction,
+            FirstOperand = new PriceActionOperand
+            {
+                PriceAction = PriceActionType.Vwap,
+                Modifier = OperandModifier.Value,
+                Multiplier = 1,
+                Timespan = Timespan.hour
+            },
+            Operator = FilterOperator.lt,
+            SecondOperandType = OperandType.Fixed,
+            SecondOperand = new FixedOperand
+            {
+                Value = 600
+            },
+            Timeframe = new Timeframe
+            {
+                Multiplier = 5,
+                Timespan = Timespan.minute
+            }
+        });
+    }
+
+    #endregion
+
+    #region Private Methods
+
+    private async Task PlotLines()
+    {
+        var argument = ScanArgumentComponent.GetScanArgument();
+
+        Request.Start = Start.Value;
+        Request.End = End.Value;
+        Request.Argument = argument;
+
+        await BacktestLineChartComponent.PlotLines();
+    }
+
+    private async Task RemoveLines()
+    {
+        await BacktestLineChartComponent.RemoveLines();
+    }
+
+    #endregion
+}

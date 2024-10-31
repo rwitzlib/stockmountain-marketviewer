@@ -4,10 +4,10 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <PackageId>MarketViewer.Contracts</PackageId>
-    <Version>2.0.1-preview.3</Version>
+    <Version>2.0.1</Version>
     <Authors>Robert Witzlib</Authors>
     <Description>
-      Add Backtest v3, rename lots of namespaces
+      Add backtest feature, add trade record
     </Description>
     <Product>MarketDataProvider.Contracts</Product>
     <PackageProjectUrl>https://github.com/rwitzlib/stockmountain-marketviewer</PackageProjectUrl>

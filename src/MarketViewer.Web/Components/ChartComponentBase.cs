@@ -24,7 +24,7 @@ namespace MarketViewer.Web.Components
 
         #region Parameters
         [Parameter] public StocksRequest StocksRequest { get; set; }
-        [Parameter] public int Days { get; set; } = 1;
+        [Parameter] public int Days { get; set; } = 30;
         [Parameter] public string Id { get; set; }
         [Parameter] public string Height { get; set; } = "100%";
         [Parameter] public string Width { get; set; } = "100%";
@@ -53,28 +53,7 @@ namespace MarketViewer.Web.Components
         private IJSInProcessRuntime JsInProcessRuntime;
         #endregion
 
-        #region Override Methods
-        protected override void OnInitialized()
-        {
-            if (StocksRequest != null)
-            {
-                return;
-            }
-
-            var date = ClockComponent.GetTime();
-            var newDate = (DateTimeOffset)date.UtcDateTime;
-
-            StocksRequest = new StocksRequest
-            {
-                Ticker = "SPY",
-                Multiplier = 1,
-                Timespan = Timespan.minute,
-                From = new DateTimeOffset(newDate.Year, newDate.Month, newDate.Day, 0, 0, 0, newDate.Offset),
-                To = newDate
-            };
-
-            JsInProcessRuntime = (IJSInProcessRuntime)JsRuntime;
-        }
+        #region Protected Methods
 
         protected override void OnAfterRender(bool firstRender)
         {
@@ -84,13 +63,10 @@ namespace MarketViewer.Web.Components
                 JsInProcessRuntime = (IJSInProcessRuntime)JsRuntime;
                 ObjectReference = DotNetObjectReference.Create(this);
                 JsInProcessRuntime.InvokeVoid("BuildChart", Id, ObjectReference, EnableScroll);
+                GetChartData();
             }
-
-            GetChartData();
         }
-        #endregion
 
-        #region Protected Methods
         protected async void GetChartData()
         {
             var timestamp = ClockComponent.GetTime();
@@ -169,14 +145,6 @@ namespace MarketViewer.Web.Components
             {
                 
             }
-        }
-
-        protected void SetDateFromRange(int days)
-        {
-            var end = StocksRequest.To.AddDays(-days);
-
-            StocksRequest.From = new DateTimeOffset(end.Year, end.Month, end.Day, 0, 0, 0, end.Offset);
-            GetChartData();
         }
 
         protected async Task ViewStudies()
@@ -261,9 +229,11 @@ namespace MarketViewer.Web.Components
             IsPopoverOpen = false;
             StateHasChanged();
         }
+
         #endregion
 
         #region JavaScript Methods
+
         [JSInvokable]
         public void DrawLine(float price, long timestamp)
         {
@@ -331,9 +301,11 @@ namespace MarketViewer.Web.Components
 
             StateHasChanged();
         }
+
         #endregion
 
         #region Private Methods
+
         private Line DrawLineSegment(List<(float Price, long Timestamp)> points)
         {
             var startCandle = Value.Results.First(q => q.Timestamp == points[0].Timestamp);
@@ -454,6 +426,7 @@ namespace MarketViewer.Web.Components
 
             return line;
         }
+
         #endregion
     }
 }
