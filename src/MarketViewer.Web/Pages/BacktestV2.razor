@@ -6,6 +6,7 @@
 @using MarketViewer.Contracts.Requests
 @using System.Collections.Generic;
 @using MarketViewer.Contracts.Requests.Backtest
+@using MudBlazor.Components.Chart.Models
 
 @inherits ComponentBase;
 
@@ -40,34 +41,17 @@
     </MudExpansionPanels>
 </div>
 
-<MudPaper Style="overflow-y: scroll;">
-    <MudTable Items="@_backtestEntries" FixedHeader="true" Virtualize="true" FixedFooter="true" Loading="@(!_backtestEntries.Any())">
-        <ToolBarContent>
-            <MudDateRangePicker Style="flex-shrink" @bind-DateRange="@_dateRange" MinDate="_minDate" MaxDate="@_maxDate" Margin="Margin.Dense" />
-            <MudButton Class="ma-2" Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.PlayArrow" @onclick="StartBacktesting">Start Backtesting</MudButton>
-            <MudButton Class="ma-2" Style="flex: none;" Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.Clear" @onclick="() => _backtestEntries.Clear()">
-                Remove All Entries
-            </MudButton>
-            <p>Avg. Uptrend %: @PercentHigher</p>
-            <p>Avg. Long Profit: @LongProfit</p>
-            <p>Avg. Downtrend %: @PercentLower</p>
-            <p>Avg. Short Profit: @ShortProfit</p>
-        </ToolBarContent>
-        <HeaderContent>
-            <MudTh Style="z-index: 1500;">Date</MudTh>
-            <MudTh Style="z-index: 1500;">Uptrend %</MudTh>
-            <MudTh Style="z-index: 1500;">Uptrend %</MudTh>
-            <MudTh Style="z-index: 1500;">Downtrend %</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="Date">@context.Date</MudTd>
-            <MudTd DataLabel="Uptrend %">@context.LongRatio</MudTd>
-            <MudTd DataLabel="Uptrend %">@context.LongPositionChange</MudTd>
-            <MudTd DataLabel="Downtrend %">@context.ShortRatio</MudTd>
-            <MudTd DataLabel="Downtrend %">@context.ShortPositionChange</MudTd>
-        </RowTemplate>
-    </MudTable>
-</MudPaper>
+<div>
+    <MudTimeSeriesChart ChartSeries="@_series" @bind-SelectedIndex="Index" Width="100%" Height="350px" ChartOptions="@_options" CanHideSeries TimeLabelSpacing="TimeSpan.FromMinutes(5)" />
+    <MudGrid>
+        <MudItem xs="6">
+            <MudText Typo="Typo.body1" Class="py-3">Selected: @(Index < 0 ? "None" : _series[Index].Name)</MudText>
+        </MudItem>
+        <MudItem xs="6">
+            <MudSlider @bind-Value="_options.LineStrokeWidth" Min="1" Max="10" Color="Color.Info">Line Width: @_options.LineStrokeWidth.ToString()</MudSlider>
+        </MudItem>
+    </MudGrid>
+</div>
 
 @code {
     private DateRange _dateRange { get; set; } = new DateRange(DateTime.Parse("2024-03-05"), DateTime.Parse("2024-03-05"));
@@ -81,12 +65,21 @@
     private DotNetObjectReference<BacktestV2> ObjectReference;
     private IJSInProcessRuntime JsInProcessRuntime;
 
-    private List<BacktestEntry> _backtestEntries { get; set; } = new();
+    private int Index = -1; //default value cannot be 0 -> first selectedindex is 0.
 
-    private double PercentHigher { get; set; } = 0;
-    private double PercentLower { get; set; } = 0;
-    private double LongProfit { get; set; } = 0;
-    private double ShortProfit { get; set; } = 0;
+    private ChartOptions _options = new ChartOptions
+    {
+        YAxisLines = false,
+        YAxisTicks = 500,
+        MaxNumYAxisTicks = 10,
+        YAxisRequireZeroPoint = true,
+        XAxisLines = false,
+        LineStrokeWidth = 1,
+    };
+
+    private TimeSeriesChartSeries _chart3 = new();
+
+    private List<TimeSeriesChartSeries> _series = new();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -140,12 +133,7 @@
 
     private void AddArgument()
     {
-        Argument = new ScanArgumentZone
-            {
-                Id = Guid.NewGuid().ToString(),
-                Operator = "AND",
-                Filters = new List<FilterItem>()
-            };
+        Argument = new ScanArgumentZone(0, "AND");
         JsInProcessRuntime.InvokeVoid("addInitialArgument", PageId, Argument.Id);
     }
 
@@ -161,24 +149,11 @@
 
         var argument = ConvertArgument(Argument);
 
-        var request = new BacktestV2Request
+        var request = new BacktestV3Request
         {
-            Start = (DateTimeOffset)_dateRange.Start,
-            End = (DateTimeOffset)_dateRange.End,
-            PositionSize = 100,
-            Argument = argument,
-            Multiplier = 5,
-            Timespan = Timespan.minute
         };
 
-        var response = await BacktestService.BacktestV2Async(request);
-
-        _backtestEntries = response.Results.ToList();
-
-        PercentHigher = response.LongRatioAvg;
-        PercentLower = response.ShortRatioAvg;
-        LongProfit = response.LongPositionAvgChange;
-        ShortProfit = response.ShortPositionAvgChange;
+        var response = await BacktestService.BacktestV3Async(request);
 
         StateHasChanged();
     }

@@ -26,17 +26,16 @@
                         }
                     }
                 </select>
-                <MudSelect T="int" @bind-Value="Days" SelectedValues="@([1])">
-                    <MudSelectItem Value="@(1)">1D</MudSelectItem>
-                    <MudSelectItem Value="@(2)">2D</MudSelectItem>
-                    <MudSelectItem Value="@(3)">3D</MudSelectItem>
-                    <MudSelectItem Value="@(7)">1W</MudSelectItem>
-                    <MudSelectItem Value="@(14)">2W</MudSelectItem>
-                    <MudSelectItem Value="@(30)">1M</MudSelectItem>
-                    <MudSelectItem Value="@(90)">3M</MudSelectItem>
-                    <MudSelectItem Value="@(180)">6M</MudSelectItem>
-                    <MudSelectItem Value="@(365)">1Y</MudSelectItem>
-                </MudSelect>
+                <select class="form-select" @bind="Days" @bind:after="GetChartData">
+                    <option value="1">1D</option>
+                    <option value="2">2D</option>
+                    <option value="3">3D</option>
+                    <option value="7">1W</option>
+                    <option value="30">1M</option>
+                    <option value="90">3M</option>
+                    <option value="180">6M</option>
+                    <option value="365">1Y</option>
+                </select>
                 <div class="btn-group me-2" role="group" aria-label="volume">
                     @if (IsVolumeEnabled)
                     {

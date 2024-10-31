@@ -34,24 +34,28 @@ namespace MarketViewer.Web.Services
             }
         }
 
-        public async Task<BacktestResponse> BacktestV2Async(BacktestV2Request request)
+        public async Task<BacktestV3Response> BacktestV3Async(BacktestV3Request request)
         {
             try
             {
-                var response = await httpClient.PostAsJsonAsync("api/backtest/v2", request);
+                if (request is null)
+                {
+                    Console.WriteLine("asdf");
+                }
+
+                var response = await httpClient.PostAsJsonAsync("api/backtest/v3", request);
 
                 var json = await response.Content.ReadAsStringAsync();
-                var strategyResponse = JsonSerializer.Deserialize<BacktestResponse>(json, _options);
+                var strategyResponse = JsonSerializer.Deserialize<BacktestV3Response>(json, _options);
 
                 return strategyResponse;
             }
             catch (Exception ex)
             {
                 logger.LogError("Backtesting error: {message}", ex.Message);
-                return new BacktestResponse
+                return new BacktestV3Response
                 {
                     Results = [],
-                    ResultsCount = 0
                 };
             }
         }

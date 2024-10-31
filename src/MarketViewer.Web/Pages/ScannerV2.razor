@@ -138,12 +138,7 @@
 
     private void AddArgument()
     {
-        Argument = new ScanArgumentZone
-        {
-            Id = Guid.NewGuid().ToString(),
-            Operator = "AND",
-            Filters = new List<FilterItem>()
-        };
+        Argument = new ScanArgumentZone(0, "AND");
         JsInProcessRuntime.InvokeVoid("addInitialArgument", PageId, Argument.Id);
     }
 
