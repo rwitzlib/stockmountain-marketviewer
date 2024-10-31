@@ -155,13 +155,13 @@ public class BacktestHandlerV3(
 
                     var holdResults = entry.Results.Where(result => result.BoughtAt == currentTime);
 
-                    var feature = request.Features.FirstOrDefault(q => q.Type == FeatureType.TickerType);
+                    var feature = (request.Features is not null && request.Features.Any()) ? request.Features.FirstOrDefault(q => q.Type == FeatureType.TickerType) : null;
 
                     foreach (var holdResult in holdResults)
                     {
                         var tickerDetails = _marketCache.GetTickerDetails(holdResult.Ticker);
 
-                        if (tickerDetails is null || !feature.Value.Contains(tickerDetails.Type))
+                        if (tickerDetails is null || (feature is not null && !feature.Value.Contains(tickerDetails.Type)))
                         {
                             continue;
                         }
