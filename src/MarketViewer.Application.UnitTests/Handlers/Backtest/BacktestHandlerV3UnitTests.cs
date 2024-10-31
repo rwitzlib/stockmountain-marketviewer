@@ -38,7 +38,7 @@ public class BacktestHandlerV3UnitTests
         _dynamodbClient = new Mock<IDynamoDBContext>();
         var backtestService = new Mock<BacktestService>();
         var marketCache = new Mock<MarketCache>();
-        _classUnderTest = new BacktestHandlerV3(_dynamodbClient.Object, _s3Client.Object, backtestService.Object, marketCache.Object, new NullLogger<BacktestHandlerV3>());
+        //_classUnderTest = new BacktestHandlerV3(_dynamodbClient.Object, _s3Client.Object, backtestService.Object, marketCache.Object, new NullLogger<BacktestHandlerV3>());
     }
 
     [Fact]
