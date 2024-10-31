@@ -41,6 +41,8 @@
             <MudSelectItem Value="@(Timespan.month)">Month</MudSelectItem>
             <MudSelectItem Value="@(Timespan.year)">Year</MudSelectItem>
         </MudSelect>
+
+        <MudTextField @bind-Value="StockTypes" Label="Profit Target Type" Variant="Variant.Text"></MudTextField>
     </MudExpansionPanel>
     <MudExpansionPanel Text="Argument">
         <ScanArgumentComponent @ref="ScanArgumentComponent" PageId="@PageId" Argument="@ScanArgument" Parent="null"></ScanArgumentComponent>
@@ -64,6 +66,7 @@
 
     private DateTime? Start { get; set; } = DateTime.Parse("2024-03-01");
     private DateTime? End { get; set; } = DateTime.Parse("2024-09-30");
+    private string StockTypes { get; set; } = "CS,ETF";
 
     private ScanArgumentComponent ScanArgumentComponent { get; set; }
     private BacktestLineChart BacktestLineChartComponent { get; set; }
@@ -78,7 +81,7 @@
             new Feature
             {
                 Type = FeatureType.TickerType,
-                Value = "CS"
+                Value = StockTypes
             }
         ];
         Request = request;
