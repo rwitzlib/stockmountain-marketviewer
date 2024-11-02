@@ -12,17 +12,14 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Amazon.S3;
 using Amazon.S3.Model;
-using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
-using Amazon.Runtime.Documents;
 using Document = Amazon.DynamoDBv2.DocumentModel.Document;
 using MarketViewer.Contracts.Responses.Backtest;
 
 namespace MarketViewer.Infrastructure.Services;
 
 public class BacktestService(
-    IDynamoDBContext _dbContext,
     IAmazonDynamoDB _dynamodbClient,
     IAmazonS3 _s3Client,
     IAmazonLambda _lambdaClient,
