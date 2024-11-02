@@ -57,9 +57,11 @@ public class BacktestHandlerV3(
             }
 
             var availableFundsHold = request.PositionInfo.StartingBalance;
+            var availableFundsOther = request.PositionInfo.StartingBalance;
             var availableFundsHigh = request.PositionInfo.StartingBalance;
 
             var holdOpenPositions = new List<BacktestEntryResultCollection>();
+            var otherOpenPositions = new List<BacktestEntryResultCollection>();
             var highOpenPositions = new List<BacktestEntryResultCollection>();
 
             var dayRange = GetDateRange(request, validEntries);
@@ -83,6 +85,12 @@ public class BacktestHandlerV3(
                         Bought = [],
                         Sold = []
                     },
+                    Other = request.Exit.Other is null ? null : new BacktestDayDetails
+                    {
+                        StartCashAvailable = availableFundsHigh,
+                        Bought = [],
+                        Sold = []
+                    },
                     High = new BacktestDayDetails
                     {
                         StartCashAvailable = availableFundsHigh,
@@ -96,15 +104,30 @@ public class BacktestHandlerV3(
                     var currentTime = marketOpen.AddMinutes(i);
 
                     SellPositionIfApplicable("hold", holdOpenPositions, currentTime, availableFundsHold, backtestEntryDay);
+                    if (request.Exit.Other is not null)
+                    {
+                        SellPositionIfApplicable("other", otherOpenPositions, currentTime, availableFundsOther, backtestEntryDay);
+                    }
                     SellPositionIfApplicable("high", highOpenPositions, currentTime, availableFundsHigh, backtestEntryDay);
 
                     BuyPositionIfApplicable("hold", entry, currentTime, request, availableFundsHold, holdOpenPositions, backtestEntryDay);
+                    if (request.Exit.Other is not null)
+                    {
+                        BuyPositionIfApplicable("other", entry, currentTime, request, availableFundsOther, otherOpenPositions, backtestEntryDay);
+                    }
                     BuyPositionIfApplicable("high", entry, currentTime, request, availableFundsHigh, highOpenPositions, backtestEntryDay);
                 }
 
                 backtestEntryDay.Hold.OpenPositions = holdOpenPositions.Count;
                 backtestEntryDay.Hold.EndCashAvailable = availableFundsHold;
                 backtestEntryDay.Hold.TotalBalance = holdOpenPositions.Sum(q => q.StartPosition) + backtestEntryDay.Hold.EndCashAvailable;
+
+                if (request.Exit.Other is not null)
+                {
+                    backtestEntryDay.Other.OpenPositions = otherOpenPositions.Count;
+                    backtestEntryDay.Other.EndCashAvailable = availableFundsOther;
+                    backtestEntryDay.Other.TotalBalance = otherOpenPositions.Sum(q => q.StartPosition) + backtestEntryDay.Other.EndCashAvailable;
+                }
 
                 backtestEntryDay.High.OpenPositions = highOpenPositions.Count;
                 backtestEntryDay.High.EndCashAvailable = availableFundsHigh;
@@ -115,6 +138,10 @@ public class BacktestHandlerV3(
 
             var holdWins = backtestDayResults.SelectMany(q => q.Hold.Sold).Where(q => q.Profit > 0);
             var holdLosses = backtestDayResults.SelectMany(q => q.Hold.Sold).Where(q => q.Profit < 0);
+
+            var otherWins = request.Exit.Other is null ? [] : backtestDayResults.SelectMany(q => q.Other.Sold).Where(q => q.Profit > 0);
+            var otherLosses = request.Exit.Other is null ? [] : backtestDayResults.SelectMany(q => q.Other.Sold).Where(q => q.Profit < 0);
+
             var highWins = backtestDayResults.SelectMany(q => q.High.Sold).Where(q => q.Profit > 0);
             var highLosses = backtestDayResults.SelectMany(q => q.High.Sold).Where(q => q.Profit < 0);
 
@@ -134,6 +161,14 @@ public class BacktestHandlerV3(
                         AvgLoss = holdLosses.Average(q => q.Profit),
                         AvgProfit = backtestDayResults.SelectMany(q => q.Hold.Sold).Average(q => q.Profit),
                         SumProfit = backtestDayResults.SelectMany(q => q.Hold.Sold).Sum(q => q.Profit),
+                    },
+                    Other = request.Exit.Other is null ? null : new BacktestEntryStats
+                    {
+                        PositiveTrendRatio = (float)highWins.Count() / (float)(highWins.Count() + highLosses.Count()),
+                        AvgWin = highWins.Average(q => q.Profit),
+                        AvgLoss = highLosses.Average(q => q.Profit),
+                        AvgProfit = backtestDayResults.SelectMany(q => q.High.Sold).Average(q => q.Profit),
+                        SumProfit = backtestDayResults.SelectMany(q => q.High.Sold).Sum(q => q.Profit)
                     },
                     High = new BacktestEntryStats
                     {
@@ -223,8 +258,8 @@ public class BacktestHandlerV3(
         var positionsToSell = type.ToLowerInvariant() switch
         {
             "hold" => openPositions.Where(position => position.Hold.SoldAt == timestamp),
+            "other" => openPositions.Where(position => position.Other.SoldAt == timestamp),
             "high" => openPositions.Where(position => position.High.SoldAt == timestamp),
-            "other" => openPositions.Where(position => position.High.SoldAt == timestamp),
             _ => throw new NotImplementedException()
         };
 
@@ -233,6 +268,7 @@ public class BacktestHandlerV3(
             availableFunds += type.ToLowerInvariant() switch
             {
                 "hold" => position.Hold.EndPosition,
+                "other" => position.Other.EndPosition,
                 "high" => position.High.EndPosition,
                 _ => throw new NotImplementedException()
             };
@@ -256,16 +292,29 @@ public class BacktestHandlerV3(
                     });
                     break;
 
+                case "other":
+                    backtestDay.High.Sold.Add(new BacktestDayPosition
+                    {
+                        Ticker = position.Ticker,
+                        Price = position.Other.EndPrice,
+                        Shares = position.Shares,
+                        Position = position.Other.EndPosition,
+                        Profit = position.Other.Profit,
+                        Timestamp = position.Other.SoldAt,
+                        StoppedOut = position.Other.StoppedOut
+                    });
+                    break;
+                
                 case "high":
                     backtestDay.High.Sold.Add(new BacktestDayPosition
                     {
                         Ticker = position.Ticker,
-                        Price = position.Hold.EndPrice,
+                        Price = position.High.EndPrice,
                         Shares = position.Shares,
-                        Position = position.Hold.EndPosition,
-                        Profit = position.Hold.Profit,
-                        Timestamp = position.Hold.SoldAt,
-                        StoppedOut = position.Hold.StoppedOut
+                        Position = position.High.EndPosition,
+                        Profit = position.High.Profit,
+                        Timestamp = position.High.SoldAt,
+                        StoppedOut = position.High.StoppedOut
                     });
                     break;
 
