@@ -10,6 +10,7 @@ using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.Backtest;
 using MarketViewer.Contracts.Models.ScanV2;
 using MarketViewer.Contracts.Requests.Backtest;
+using MarketViewer.Contracts.Responses.Backtest;
 using MarketViewer.Infrastructure.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -45,17 +46,17 @@ public class BacktestHandlerV3UnitTests
     public async Task BasicRequest()
     {
         // Arrange
-        var request = new BacktestV3Request
+        var request = new BacktestRequestV3
         {
             Start = DateTimeOffset.Parse("2024-10-1"),
             End = DateTimeOffset.Parse("2024-10-3"),
-            PositionInfo = new BacktestPosition
+            PositionInfo = new BacktestPositionInformation
             {
                 StartingBalance = 10000,
                 MaxConcurrentPositions = 10,
                 PositionSize = 1000
             },
-            Exit = new BacktestExit
+            Exit = new BacktestExitInformation
             {
                 Timeframe = new Timeframe
                 {
@@ -84,17 +85,17 @@ public class BacktestHandlerV3UnitTests
     public async Task MaxConcurrentPositions_Is_Hit()
     {
         // Arrange
-        var request = new BacktestV3Request
+        var request = new BacktestRequestV3
         {
             Start = DateTimeOffset.Parse("2024-10-1"),
             End = DateTimeOffset.Parse("2024-10-3"),
-            PositionInfo = new BacktestPosition
+            PositionInfo = new BacktestPositionInformation
             {
                 StartingBalance = 10000,
                 MaxConcurrentPositions = 2,
                 PositionSize = 1000
             },
-            Exit = new BacktestExit
+            Exit = new BacktestExitInformation
             {
                 Timeframe = new Timeframe
                 {
@@ -139,9 +140,9 @@ public class BacktestHandlerV3UnitTests
             });
     }
 
-    private static BacktestEntryV3 GivenValidBacktestEntry(DateTimeOffset date)
+    private static BacktestLambdaResponseV3 GivenValidBacktestEntry(DateTimeOffset date)
     {
-        return new BacktestEntryV3
+        return new BacktestLambdaResponseV3
         {
             Date = date.Date,
             Hold = new BackTestEntryStatsV3

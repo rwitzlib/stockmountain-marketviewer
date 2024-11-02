@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace MarketViewer.Contracts.Requests.Backtest;
 
 [ExcludeFromCodeCoverage]
-public class BacktesterLambdaV2Request
+public class BacktestLambdaRequestV2
 {
     public DateTimeOffset Timestamp { get; set; }
     public bool DetailedResponse { get; set; } = false;

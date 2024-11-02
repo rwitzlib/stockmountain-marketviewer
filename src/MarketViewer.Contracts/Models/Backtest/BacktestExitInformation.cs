@@ -5,7 +5,7 @@ using ValueType = MarketViewer.Contracts.Enums.ValueType;
 namespace MarketViewer.Contracts.Models.Backtest;
 
 [ExcludeFromCodeCoverage]
-public class BacktestExit
+public class BacktestExitInformation
 {
     public Exit StopLoss { get; set; }
     public Exit ProfitTarget { get; set; }

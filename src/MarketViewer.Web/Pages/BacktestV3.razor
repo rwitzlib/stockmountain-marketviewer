@@ -1,7 +1,6 @@
 ﻿@page "/backtest/v3"
 
 @using MarketViewer.Contracts.Enums
-@using MarketViewer.Contracts.Enums.Backtest
 @using MarketViewer.Contracts.Models.Backtest
 @using MarketViewer.Contracts.Models.ScanV2
 @using MarketViewer.Contracts.Models.ScanV2.Operands
@@ -62,7 +61,7 @@
 @code {
     private string PageId { get; set; } = Guid.NewGuid().ToString();
     private ScanArgumentZone ScanArgument { get; set; } = new ScanArgumentZone(0, "AND");
-    private BacktestV3Request Request { get; set; }
+    private BacktestRequestV3 Request { get; set; }
 
     private DateTime? Start { get; set; } = DateTime.Parse("2024-03-01");
     private DateTime? End { get; set; } = DateTime.Parse("2024-09-30");
@@ -76,7 +75,7 @@
     protected override void OnInitialized()
     {
         var json = "{\"Start\":\"2024-03-01\",\"End\":\"2024-09-30\",\"PositionInfo\":{\"StartingBalance\":20000,\"MaxConcurrentPositions\":1000,\"PositionSize\":1000},\"Exit\":{\"StopLoss\":{\"Type\":\"percent\",\"Value\":-5},\"ProfitTarget\":{\"Type\":\"percent\",\"Value\":12.5},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"day\"}},\"DetailedResponse\":true,\"Argument\":{\"Operator\":\"AND\",\"Filters\":[{\"CollectionModifier\":\"ANY\",\"FirstOperand\":{\"Study\":\"rsi\",\"Modifier\":\"Slope\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"lt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":4,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"Study\":\"rsi\",\"Modifier\":\"Slope\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":3,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"Study\":\"macd\",\"Modifier\":\"Slope\",\"Parameters\":\"12,26,9,ema\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":3,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"Study\":\"macd\",\"Modifier\":\"Value\",\"Parameters\":\"12,26,9,ema\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"lt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":2,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"PriceAction\":\"Volume\",\"Modifier\":\"Value\",\"Multiplier\":1,\"Timespan\":\"minute\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":100000},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"PriceAction\":\"Vwap\",\"Modifier\":\"Value\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":2},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"PriceAction\":\"Vwap\",\"Modifier\":\"Value\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"lt\",\"SecondOperand\":{\"Value\":600},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"minute\"}}]}}\r\n";
-        var request = JsonSerializer.Deserialize<BacktestV3Request>(json);
+        var request = JsonSerializer.Deserialize<BacktestRequestV3>(json);
         request.Features = [
             new Feature
             {
