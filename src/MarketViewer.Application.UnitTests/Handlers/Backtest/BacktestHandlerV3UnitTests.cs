@@ -145,7 +145,7 @@ public class BacktestHandlerV3UnitTests
         return new BacktestLambdaResponseV3
         {
             Date = date.Date,
-            Hold = new BackTestEntryStatsV3
+            Hold = new BacktestEntryStats
             {
                 PositiveTrendRatio = 1,
                 AvgWin = 50,
@@ -153,20 +153,20 @@ public class BacktestHandlerV3UnitTests
                 AvgProfit = 50,
                 SumProfit = 50
             },
-            High = new BackTestEntryStatsV3
+            High = new BacktestEntryStats
             {
                 SumProfit = 150
             },
-            Results = new List<BackTestEntryResultCollection>
-            {
-                new BackTestEntryResultCollection()
+            Results =
+            [
+                new BacktestEntryResultCollection()
                 {
                     Ticker = "SPY",
                     StartPrice = 550,
                     Shares = 1,
                     StartPosition = 550,
                     BoughtAt = date,
-                    Hold = new BackTestEntryResultV3
+                    Hold = new BacktestEntryResult
                     {
                         EndPrice = 600,
                         SoldAt = GetEndDate(date, 5, Timespan.day),
@@ -174,7 +174,7 @@ public class BacktestHandlerV3UnitTests
                         EndPosition = 600,
                         Profit = 50
                     },
-                    High = new BackTestEntryResultV3
+                    High = new BacktestEntryResult
                     {
                         EndPrice = 700,
                         SoldAt = GetEndDate(date, 3, Timespan.day),
@@ -183,7 +183,7 @@ public class BacktestHandlerV3UnitTests
                         Profit = 150
                     }
                 }
-            }
+            ]
         };
     }
 

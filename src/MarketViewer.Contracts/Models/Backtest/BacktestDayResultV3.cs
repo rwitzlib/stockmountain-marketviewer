@@ -9,6 +9,7 @@ public class BacktestDayResultV3
     public DateTimeOffset Date { get; set; }
     public BacktestDayDetails Hold { get; set; }
     public BacktestDayDetails High { get; set; }
+    public BacktestDayDetails Other { get; set; }
 }
 
 [ExcludeFromCodeCoverage]

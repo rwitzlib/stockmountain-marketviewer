@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace MarketViewer.Contracts.Responses.Backtest;
 
 [ExcludeFromCodeCoverage]
-public class BacktestResponseV3
+public class BacktestResponseV4
 {
     public string Id { get; set; }
     public float HoldBalance { get; set; }
