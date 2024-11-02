@@ -1,9 +1,12 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace MarketViewer.Contracts.Models.Backtest;
+namespace MarketViewer.Contracts.Responses.Backtest;
 
+/// <summary>
+/// Backtest 
+/// </summary>
 [ExcludeFromCodeCoverage]
-public class BacktestEntryV3
+public class BacktestLambdaResponseV3
 {
     public Guid EntryId { get; set; }
     public DateTime Date { get; set; }

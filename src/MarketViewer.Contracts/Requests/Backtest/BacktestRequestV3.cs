@@ -8,14 +8,14 @@ using System.Diagnostics.CodeAnalysis;
 namespace MarketViewer.Contracts.Requests.Backtest;
 
 [ExcludeFromCodeCoverage]
-public class BacktestV3Request : IRequest<OperationResult<BacktestV3Response>>
+public class BacktestRequestV3 : IRequest<OperationResult<BacktestResponseV3>>
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
     public DateTimeOffset Start { get; set; }
     public DateTimeOffset End { get; set; }
     public bool DetailedResponse { get; set; } = false;
-    public BacktestPosition PositionInfo { get; set; }
-    public BacktestExit Exit { get; set; }
+    public BacktestPositionInformation PositionInfo { get; set; }
+    public BacktestExitInformation Exit { get; set; }
     public IEnumerable<Feature> Features { get; set; }
     public ScanArgument Argument { get; set; }
 }
