@@ -59,8 +59,8 @@ public class BacktestHandlerV3(
             var availableFundsHold = request.PositionInfo.StartingBalance;
             var availableFundsHigh = request.PositionInfo.StartingBalance;
 
-            var holdOpenPositions = new List<BackTestEntryResultCollection>();
-            var highOpenPositions = new List<BackTestEntryResultCollection>();
+            var holdOpenPositions = new List<BacktestEntryResultCollection>();
+            var highOpenPositions = new List<BacktestEntryResultCollection>();
 
             DateTimeOffset[] lastDate = [
                 validEntries.Max(q => q.Results.Max(result => result.Hold.SoldAt)),
@@ -104,7 +104,7 @@ public class BacktestHandlerV3(
                     var currentTime = marketOpen.AddMinutes(i);
 
                     var holdPositionsToSell = holdOpenPositions.Where(position => position.Hold.SoldAt == currentTime);
-                    List<BackTestEntryResultCollection> holdPositionsToRemove = [];
+                    List<BacktestEntryResultCollection> holdPositionsToRemove = [];
                     foreach (var holdPosition in holdPositionsToSell)
                     {
                         availableFundsHold += holdPosition.Hold.EndPosition;
@@ -126,7 +126,7 @@ public class BacktestHandlerV3(
                     }
 
                     var highPositionsToSell = highOpenPositions.Where(position => position.High.SoldAt == currentTime);
-                    List<BackTestEntryResultCollection> highPositionsToRemove = [];
+                    List<BacktestEntryResultCollection> highPositionsToRemove = [];
                     foreach (var highPosition in highPositionsToSell)
                     {
                         availableFundsHigh += highPosition.High.EndPosition;
@@ -228,7 +228,7 @@ public class BacktestHandlerV3(
                     HoldBalance = availableFundsHold,
                     HighBalance = availableFundsHigh,
                     MaxConcurrentPositions = backtestDayResults.Max(result => result.Hold.OpenPositions),
-                    Hold = new BackTestEntryStatsV3
+                    Hold = new BacktestEntryStats
                     {
                         PositiveTrendRatio = (float)holdWins.Count() / (float)(holdWins.Count() + holdLosses.Count()),
                         AvgWin = holdWins.Average(q => q.Profit),
@@ -236,7 +236,7 @@ public class BacktestHandlerV3(
                         AvgProfit = backtestDayResults.SelectMany(q => q.Hold.Sold).Average(q => q.Profit),
                         SumProfit = backtestDayResults.SelectMany(q => q.Hold.Sold).Sum(q => q.Profit),
                     },
-                    High = new BackTestEntryStatsV3
+                    High = new BacktestEntryStats
                     {
                         PositiveTrendRatio = (float)highWins.Count() / (float)(highWins.Count() + highLosses.Count()),
                         AvgWin = highWins.Average(q => q.Profit),

@@ -59,8 +59,8 @@ public class BacktestHandlerV4(
             var availableFundsHold = request.PositionInfo.StartingBalance;
             var availableFundsHigh = request.PositionInfo.StartingBalance;
 
-            var holdOpenPositions = new List<BackTestEntryResultCollection>();
-            var highOpenPositions = new List<BackTestEntryResultCollection>();
+            var holdOpenPositions = new List<BacktestEntryResultCollection>();
+            var highOpenPositions = new List<BacktestEntryResultCollection>();
 
             var dayRange = GetDateRange(request, validEntries);
 
@@ -127,7 +127,7 @@ public class BacktestHandlerV4(
                     HoldBalance = availableFundsHold,
                     HighBalance = availableFundsHigh,
                     MaxConcurrentPositions = backtestDayResults.Max(result => result.Hold.OpenPositions),
-                    Hold = new BackTestEntryStatsV3
+                    Hold = new BacktestEntryStats
                     {
                         PositiveTrendRatio = (float)holdWins.Count() / (float)(holdWins.Count() + holdLosses.Count()),
                         AvgWin = holdWins.Average(q => q.Profit),
@@ -135,7 +135,7 @@ public class BacktestHandlerV4(
                         AvgProfit = backtestDayResults.SelectMany(q => q.Hold.Sold).Average(q => q.Profit),
                         SumProfit = backtestDayResults.SelectMany(q => q.Hold.Sold).Sum(q => q.Profit),
                     },
-                    High = new BackTestEntryStatsV3
+                    High = new BacktestEntryStats
                     {
                         PositiveTrendRatio = (float)highWins.Count() / (float)(highWins.Count() + highLosses.Count()),
                         AvgWin = highWins.Average(q => q.Profit),
@@ -213,51 +213,64 @@ public class BacktestHandlerV4(
 
     private static void SellPositionIfApplicable(
         string type,
-        List<BackTestEntryResultCollection> openPositions,
+        List<BacktestEntryResultCollection> openPositions,
         DateTimeOffset timestamp,
         float availableFunds,
         BacktestDayResultV3 backtestDay)
     {
-        List<BackTestEntryResultCollection> positionsToRemove = [];
+        List<BacktestEntryResultCollection> positionsToRemove = [];
 
-        var positionsToSell = type.ToLowerInvariant() is "hold"
-            ? openPositions.Where(position => position.Hold.SoldAt == timestamp)
-            : openPositions.Where(position => position.High.SoldAt == timestamp);
+        var positionsToSell = type.ToLowerInvariant() switch
+        {
+            "hold" => openPositions.Where(position => position.Hold.SoldAt == timestamp),
+            "high" => openPositions.Where(position => position.High.SoldAt == timestamp),
+            "other" => openPositions.Where(position => position.High.SoldAt == timestamp),
+            _ => throw new NotImplementedException()
+        };
 
         foreach (var position in positionsToSell)
         {
-            availableFunds += type.ToLowerInvariant() is "hold" ? position.Hold.EndPosition : position.High.EndPosition;
+            availableFunds += type.ToLowerInvariant() switch
+            {
+                "hold" => position.Hold.EndPosition,
+                "high" => position.High.EndPosition,
+                _ => throw new NotImplementedException()
+            };
             positionsToRemove.Add(position);
         }
 
         foreach (var position in positionsToRemove)
         {
-            if (type.ToLowerInvariant() is "hold")
+            switch (type.ToLowerInvariant())
             {
-                backtestDay.Hold.Sold.Add(new BacktestDayPosition
-                {
-                    Ticker = position.Ticker,
-                    Price = position.Hold.EndPrice,
-                    Shares = position.Shares,
-                    Position = position.Hold.EndPosition,
-                    Profit = position.Hold.Profit,
-                    Timestamp = position.Hold.SoldAt,
-                    StoppedOut = position.Hold.StoppedOut
-                });
-            }
-            else
-            {
-                backtestDay.High.Sold.Add(new BacktestDayPosition
-                {
-                    Ticker = position.Ticker,
-                    Price = position.Hold.EndPrice,
-                    Shares = position.Shares,
-                    Position = position.Hold.EndPosition,
-                    Profit = position.Hold.Profit,
-                    Timestamp = position.Hold.SoldAt,
-                    StoppedOut = position.Hold.StoppedOut
-                });
-            }
+                case "hold": 
+                    backtestDay.Hold.Sold.Add(new BacktestDayPosition
+                    {
+                        Ticker = position.Ticker,
+                        Price = position.Hold.EndPrice,
+                        Shares = position.Shares,
+                        Position = position.Hold.EndPosition,
+                        Profit = position.Hold.Profit,
+                        Timestamp = position.Hold.SoldAt,
+                        StoppedOut = position.Hold.StoppedOut
+                    });
+                    break;
+                
+                case "high":
+                    backtestDay.High.Sold.Add(new BacktestDayPosition
+                    {
+                        Ticker = position.Ticker,
+                        Price = position.Hold.EndPrice,
+                        Shares = position.Shares,
+                        Position = position.Hold.EndPosition,
+                        Profit = position.Hold.Profit,
+                        Timestamp = position.Hold.SoldAt,
+                        StoppedOut = position.Hold.StoppedOut
+                    });
+                    break;
+
+                default: throw new NotImplementedException();
+            };
 
             openPositions.Remove(position);
         }
@@ -269,7 +282,7 @@ public class BacktestHandlerV4(
         DateTimeOffset timestamp,
         BacktestRequestV3 request,
         float availableFunds,
-        List<BackTestEntryResultCollection> openPositions,
+        List<BacktestEntryResultCollection> openPositions,
         BacktestDayResultV3 backtestDay)
     {
         if (entry is null)
