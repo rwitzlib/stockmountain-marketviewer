@@ -152,6 +152,7 @@ public class BacktestHandlerV3(
                 {
                     Id = request.Id,
                     HoldBalance = availableFundsHold,
+                    OtherBalance = request.Exit.Other is null ? null : availableFundsHold,
                     HighBalance = availableFundsHigh,
                     MaxConcurrentPositions = backtestDayResults.Max(result => result.Hold.OpenPositions),
                     Hold = new BacktestEntryStats
@@ -178,7 +179,8 @@ public class BacktestHandlerV3(
                         AvgProfit = backtestDayResults.SelectMany(q => q.High.Sold).Average(q => q.Profit),
                         SumProfit = backtestDayResults.SelectMany(q => q.High.Sold).Sum(q => q.Profit)
                     },
-                    Results = backtestDayResults
+                    Results = backtestDayResults,
+                    Entries = validEntries
                 }
             };
 
@@ -207,8 +209,6 @@ public class BacktestHandlerV3(
                     ContentBody = JsonSerializer.Serialize(validEntries)
                 }, cancellationToken);
             }
-
-            response.Data.Entries = validEntries;
 
             return response;
         }
