@@ -47,7 +47,7 @@ public class BacktestHandlerV2(
                 days.Count());
 
 
-            var tasks = new List<Task<BacktestEntryV2>>();
+            var tasks = new List<Task<BacktestLambdaResponseV2>>();
             foreach (var day in days)
             {
                 var backtesterLambdaRequest = new BacktestLambdaRequestV2
@@ -127,7 +127,7 @@ public class BacktestHandlerV2(
         }
     }
 
-    private async Task<BacktestEntryV2> BacktestDay(BacktestLambdaRequestV2 request)
+    private async Task<BacktestLambdaResponseV2> BacktestDay(BacktestLambdaRequestV2 request)
     {
         try
         {
@@ -151,7 +151,7 @@ public class BacktestHandlerV2(
             var streamReader = new StreamReader(response.Payload);
             var result = streamReader.ReadToEnd();
 
-            var backtestEntry = JsonSerializer.Deserialize<BacktestEntryV2>(result);
+            var backtestEntry = JsonSerializer.Deserialize<BacktestLambdaResponseV2>(result);
 
             return backtestEntry;
         }

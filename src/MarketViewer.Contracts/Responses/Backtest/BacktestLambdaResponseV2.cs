@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace MarketViewer.Contracts.Responses.Backtest;
 
 [ExcludeFromCodeCoverage]
-public class BacktestEntryV2
+public class BacktestLambdaResponseV2
 {
     public Guid EntryId { get; set; }
     public DateTime Date { get; set; }
