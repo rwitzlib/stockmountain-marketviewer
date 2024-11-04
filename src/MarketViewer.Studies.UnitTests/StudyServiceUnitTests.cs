@@ -85,11 +85,10 @@ namespace MarketViewer.Studies.UnitTests.Services
             var candles = _autoFixture.CreateMany<Bar>(500).ToArray();
 
             // Act
-            var response = StudyService.ComputeStudy(type, null, candles);
+            var response = StudyService.ComputeStudy(type, ["14", "70", "30", "EMA"], candles);
 
             // Assert
             response.Name.Should().Be(type.ToString().ToUpperInvariant());
-            response.Parameters.Should().BeNullOrEmpty();
             response.Results.Should().NotBeNullOrEmpty();
         }
 
