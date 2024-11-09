@@ -29,4 +29,5 @@ jobs:
       solution_directory: ./src
       global_json_file: "./src/global.json"
       terraform_directory: ./tf
+    secrets: inherit
     
