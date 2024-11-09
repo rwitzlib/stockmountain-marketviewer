@@ -2,8 +2,7 @@ name: Nuet Publish
 
 on:
   push:
-    branches:
-        - master
+  
   workflow_dispatch:
 
 jobs:
@@ -21,7 +20,10 @@ jobs:
 
   publish:
     if: github.event_name == 'workflow_dispatch' || github.ref_name == 'master'
-    uses: rwitzlib/github-action-templates/.github/workflows/nuget-publish.yml@master
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     strategy:
       matrix:
         cfg: 
@@ -29,8 +31,12 @@ jobs:
             ./src/MarketViewer.Contracts,
             ./src/MarketViewer.Studies'
           ]
-    with:
-      publish_project: ${{ matrix.cfg }}
-      dotnet_version: '8.0'
-    secrets: inherit
+    steps:
+      - name: Publish Nuget Packages
+        uses: rwitzlib/github-action-templates/.github/actions/nuget-publish@MARK-165-fix-docker-datetime
+        with:
+          publish_project: ${{ matrix.cfg }}
+          dotnet_version: '8.0'
+        env:
+          NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
     
