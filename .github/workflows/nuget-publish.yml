@@ -20,7 +20,6 @@ jobs:
           global_json_file: ./src/global.json
 
   publish:
-    if: github.event_name == 'workflow_dispatch' || github.ref_name == 'master'
     runs-on: ubuntu-latest
     needs:
       - build
