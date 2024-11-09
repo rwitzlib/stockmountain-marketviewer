@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using MarketViewer.Contracts.Models.Backtest;
 
 namespace MarketViewer.Contracts.Responses.Backtest
 {
@@ -9,7 +8,7 @@ namespace MarketViewer.Contracts.Responses.Backtest
     public class BacktestResponse
     {
         public Guid RequestId { get; set; }
-        public IEnumerable<BacktestEntry> Results { get; set; }
+        public IEnumerable<BacktestLambdaResponse> Results { get; set; }
         public int ResultsCount { get; set; }
         public double LongRatioAvg { get; set; }
         public double ShortRatioAvg { get; set; }

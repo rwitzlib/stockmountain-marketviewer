@@ -14,16 +14,16 @@ public static class StudyService
             Parameters = parameters,
             Results = studyType switch
             {
-                StudyType.ema => ExponentialMovingAverage.Compute(candleData, parameters).Lines,
-                StudyType.macd => MovingAverageConvergenceDivergence.Compute(candleData, parameters).Lines,
                 StudyType.sma => SimpleMovingAverage.Compute(candleData, parameters).Lines,
-                StudyType.rsi => RelativeStrengthIndex.Compute(candleData, parameters).Lines,
+                StudyType.ema => ExponentialMovingAverage.Compute(candleData, parameters).Lines,
                 StudyType.vwap => VolumeWeightedAveragePrice.Compute(candleData, null).Lines,
+                StudyType.macd => MovingAverageConvergenceDivergence.Compute(candleData, parameters).Lines,
+                StudyType.rsi => RelativeStrengthIndex.Compute(candleData, parameters).Lines,
                 _ => null
             }
         };
 
-        if (response.Results is null || response.Results.Count == 0)
+        if (response.Results is null || !response.Results.Any())
         {
             return null;
         }

@@ -3,7 +3,6 @@ using Amazon.Lambda.Model;
 using Amazon.S3;
 using FluentValidation;
 using MarketViewer.Contracts.Models;
-using MarketViewer.Contracts.Models.Backtest;
 using MarketViewer.Contracts.Requests.Backtest;
 using MarketViewer.Contracts.Responses.Backtest;
 using MediatR;
@@ -44,10 +43,10 @@ public class BacktestHandler(
             request.End.ToString("yyyy-MM-dd"),
             days.Count());
 
-        var tasks = new List<Task<BacktestEntry>>();
+        var tasks = new List<Task<BacktestLambdaResponse>>();
         foreach (var day in days)
         {
-            var backtesterLambdaRequest = new BacktesterLambdaRequest
+            var backtesterLambdaRequest = new BacktestLambdaRequest
             {
                 Timestamp = day.Date,
                 ExitType = request.ExitType,
@@ -88,7 +87,7 @@ public class BacktestHandler(
         };
     }
 
-    private async Task<BacktestEntry> BacktestDay(BacktesterLambdaRequest request)
+    private async Task<BacktestLambdaResponse> BacktestDay(BacktestLambdaRequest request)
     {
         try
         {
@@ -111,7 +110,7 @@ public class BacktestHandler(
             var streamReader = new StreamReader(response.Payload);
             var result = streamReader.ReadToEnd();
 
-            var backtestEntry = JsonSerializer.Deserialize<BacktestEntry>(result);
+            var backtestEntry = JsonSerializer.Deserialize<BacktestLambdaResponse>(result);
 
             return backtestEntry;
         }

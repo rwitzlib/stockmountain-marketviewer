@@ -10,14 +10,20 @@ using MarketViewer.Contracts.Models;
 using Xunit;
 using FluentAssertions;
 using MarketViewer.Contracts.Requests.Scan;
+using Amazon.S3;
+using MarketViewer.Contracts.Caching;
+using Moq.AutoMock;
 
 namespace MarketViewer.Api.UnitTests.Controllers
 {
     public class ScanControllerUnitTests
     {
         #region Private Fields
+        private AutoMocker _autoMocker;
         private ScanController _classUnderTest;
         private Fixture _autoFixture;
+        private Mock<IAmazonS3> _s3Client;
+        private MarketCache _marketCache;
         private Mock<IMediator> _mediator;
         private Mock<ILogger<ScanController>> _logger;
         #endregion
@@ -25,11 +31,14 @@ namespace MarketViewer.Api.UnitTests.Controllers
         #region Constructor
         public ScanControllerUnitTests()
         {
+            _autoMocker = new AutoMocker();
             _autoFixture = new Fixture();
+            _s3Client = new Mock<IAmazonS3>();
+            _marketCache = _autoMocker.CreateInstance<MarketCache>();
             _mediator = new Mock<IMediator>();
             _logger = new Mock<ILogger<ScanController>>();
 
-            _classUnderTest = new ScanController(_logger.Object, _mediator.Object);
+            _classUnderTest = new ScanController(_s3Client.Object, _marketCache, _logger.Object, _mediator.Object);
         }
         #endregion
 

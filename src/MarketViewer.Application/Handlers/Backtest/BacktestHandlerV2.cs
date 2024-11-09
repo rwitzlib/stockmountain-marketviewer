@@ -23,9 +23,9 @@ public class BacktestHandlerV2(
     //IValidator<BacktestV2Request> validator,
     IAmazonLambda _lambdaClient,
     IDynamoDBContext _dbContext,
-    ILogger<BacktestHandlerV2> _logger) : IRequestHandler<BacktestV2Request, OperationResult<BacktestV2Response>>
+    ILogger<BacktestHandlerV2> _logger) : IRequestHandler<BacktestRequestV2, OperationResult<BacktestResponseV2>>
 {
-    public async Task<OperationResult<BacktestV2Response>> Handle(BacktestV2Request request, CancellationToken cancellationToken)
+    public async Task<OperationResult<BacktestResponseV2>> Handle(BacktestRequestV2 request, CancellationToken cancellationToken)
     {
         try
         {
@@ -47,10 +47,10 @@ public class BacktestHandlerV2(
                 days.Count());
 
 
-            var tasks = new List<Task<BacktestEntryV2>>();
+            var tasks = new List<Task<BacktestLambdaResponseV2>>();
             foreach (var day in days)
             {
-                var backtesterLambdaRequest = new BacktesterLambdaV2Request
+                var backtesterLambdaRequest = new BacktestLambdaRequestV2
                 {
                     Timestamp = day.Date,
                     DetailedResponse = request.DetailedResponse,
@@ -72,10 +72,10 @@ public class BacktestHandlerV2(
                 return GenerateErrorResponse(HttpStatusCode.NotFound, ["No results."]);
             }
 
-            var response = new OperationResult<BacktestV2Response>
+            var response = new OperationResult<BacktestResponseV2>
             {
                 Status = HttpStatusCode.OK,
-                Data = new BacktestV2Response
+                Data = new BacktestResponseV2
                 {
                     Id = request.Id,
                     Hold = new BackTestEntryStatsV2
@@ -119,7 +119,7 @@ public class BacktestHandlerV2(
             _logger.LogError("Error: {}", ex.Message);
             _logger.LogError("Stacktrace: {}", ex.StackTrace);
 
-            return new OperationResult<BacktestV2Response>
+            return new OperationResult<BacktestResponseV2>
             {
                 Status = HttpStatusCode.InternalServerError,
                 ErrorMessages = [ex.Message]
@@ -127,7 +127,7 @@ public class BacktestHandlerV2(
         }
     }
 
-    private async Task<BacktestEntryV2> BacktestDay(BacktesterLambdaV2Request request)
+    private async Task<BacktestLambdaResponseV2> BacktestDay(BacktestLambdaRequestV2 request)
     {
         try
         {
@@ -151,7 +151,7 @@ public class BacktestHandlerV2(
             var streamReader = new StreamReader(response.Payload);
             var result = streamReader.ReadToEnd();
 
-            var backtestEntry = JsonSerializer.Deserialize<BacktestEntryV2>(result);
+            var backtestEntry = JsonSerializer.Deserialize<BacktestLambdaResponseV2>(result);
 
             return backtestEntry;
         }
@@ -161,9 +161,9 @@ public class BacktestHandlerV2(
         }
     }
 
-    private static OperationResult<BacktestV2Response> GenerateErrorResponse(HttpStatusCode status, IEnumerable<string> errors)
+    private static OperationResult<BacktestResponseV2> GenerateErrorResponse(HttpStatusCode status, IEnumerable<string> errors)
     {
-        return new OperationResult<BacktestV2Response>
+        return new OperationResult<BacktestResponseV2>
         {
             Status = status,
             ErrorMessages = errors
