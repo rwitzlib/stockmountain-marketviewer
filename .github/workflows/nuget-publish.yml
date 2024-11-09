@@ -1,0 +1,36 @@
+name: Nuet Publish
+
+on:
+  push:
+    branches:
+        - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Dotnet Build
+        uses: rwitzlib/github-action-templates/.github/actions/dotnet-build@MARK-165-fix-docker-datetime
+        with:
+          project_directory: ./src
+          global_json_file: ./src/global.json
+
+  publish:
+    if: github.event_name == 'workflow_dispatch' || github.ref_name == 'master'
+    uses: rwitzlib/github-action-templates/.github/workflows/nuget-publish.yml@master
+    strategy:
+      matrix:
+        cfg: 
+          [
+            ./src/MarketViewer.Contracts,
+            ./src/MarketViewer.Studies'
+          ]
+    with:
+      publish_project: ${{ matrix.cfg }}
+      dotnet_version: '8.0'
+    secrets: inherit
+    
