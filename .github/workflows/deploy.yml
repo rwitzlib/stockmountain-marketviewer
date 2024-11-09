@@ -9,47 +9,27 @@ on:
         default: dev
 
 jobs:
-  api:
-    uses: rwitzlib/github-action-templates/.github/workflows/dotnet-docker-terraform-validate.yml@MARK-165-fix-docker-datetime
-    with:
-      environment: ${{ inputs.environment || 'dev'}}
-      ecr_repo: lad-${{ inputs.environment || 'dev'}}-marketviewer-api
-      dockerfile: ./src/MarketViewer.Api.Dockerfile
-      context: ./src
-      project_directory: ./src
-      global_json_file: ./src/global.json
-      terraform_directory: ./tf
-    secrets: inherit
-
-  web:
-    uses: rwitzlib/github-action-templates/.github/workflows/dotnet-docker-terraform-validate.yml@MARK-165-fix-docker-datetime
-    with:
-      environment: ${{ inputs.environment || 'dev'}}
-      ecr_repo: lad-${{ inputs.environment || 'dev'}}-marketviewer-web
-      dockerfile: ./src/MarketViewer.Web.Dockerfile
-      context: ./src
-      project_directory: ./src
-      global_json_file: ./src/global.json
-      terraform_directory: ./tf
-    secrets: inherit
-
   deploy:
-    needs:
-      - api
-      - web
-    uses: rwitzlib/github-action-templates/.github/workflows/terraform-deploy.yml@master
+    uses: rwitzlib/github-action-templates/.github/workflows/container-deployment.yml@v1.0.0
     with:
       environment: ${{ inputs.environment || 'dev'}}
+      docker: |
+        [
+          {
+            "name": "api",
+            "ecr_repo": "lad-${{ inputs.environment || 'dev'}}-marketviewer-api",
+            "dockerfile": "./src/MarketViewer.Api.Dockerfile",
+            "context": "./src",
+          },
+          {
+            "name": "web",
+            "ecr_repo": "lad-${{ inputs.environment || 'dev'}}-marketviewer-web",
+            "dockerfile": "./src/MarketViewer.Web.Dockerfile",
+            "context": "./src",
+          }
+        ]
+      solution_directory: ./src
+      global_json_file: "./src/global.json"
       terraform_directory: ./tf
-    secrets: inherit
-
-  publish_contracts:
-    if: github.event_name == 'workflow_dispatch' || github.ref_name == 'master'
-    needs:
-      - api
-    uses: rwitzlib/github-action-templates/.github/workflows/nuget-publish.yml@master
-    with:
-      publish_project: ./src/MarketViewer.Contracts
-      dotnet_version: '8.0'
     secrets: inherit
     

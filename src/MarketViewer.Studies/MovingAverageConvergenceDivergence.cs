@@ -8,128 +8,89 @@ public class MovingAverageConvergenceDivergence : Study<MovingAverageConvergence
     private static int FastWeight { get; set; } = 9;
     private static int SlowWeight { get; set; } = 26;
     private static int SignalWeight { get; set; } = 9;
-    private static string Type { get; set; } = "EMA";
-    private static string[] ValidTypes { get; set; } = ["SMA", "EMA"];
+    private static string Type { get; set; } = "ema";
+    private static string[] ValidTypes { get; set; } = ["sma", "ema", "wilders"];
 
-    protected override List<List<LineEntry>> Initialize(Bar[] data)
+    #region Protected Methods
+
+    protected override List<List<LineEntry>> Initialize(Bar[] candles)
     {
-        if (data.Length < FastWeight 
-            || data.Length < SlowWeight 
-            || data.Length < SignalWeight)
-        {
-            ErrorMessages.Add("Not enough candle data.");
-            return null;
-        }
-
         var macdSeries = new List<LineEntry>();
         var signalSeries = new List<LineEntry>();
 
-        var offset = SlowWeight - FastWeight;
-        
-        switch (Type.ToUpperInvariant())
+        if (candles.Length < FastWeight || candles.Length < SlowWeight || candles.Length < SignalWeight)
         {
-            case "SMA":
-                {
-                    var fastSeries = Study<SimpleMovingAverage>.Compute(data, FastWeight).Lines[0];
-                    var slowSeries = Study<SimpleMovingAverage>.Compute(data, SlowWeight).Lines[0];
+            ErrorMessages.Add("Not enough candle data.");
+            return [
+                macdSeries,
+                signalSeries
+            ];
+        }
 
-                    if (fastSeries.Count - slowSeries.Count != offset)
-                    {
-                        break;
-                    }
+        List<float> fastValues = [];
+        List<float> slowValues = [];
+        List<float> macdValues = [];
+        List<float> signalValues = [];
 
-                    for (var i = 0; i < slowSeries.Count; i++)
-                    {
-                        macdSeries.Add(new LineEntry
-                        {
-                            Value = fastSeries[i + offset].Value - slowSeries[i].Value,
-                            Timestamp = fastSeries[i + offset].Timestamp
-                        });
-                    }
-                
-                    if (macdSeries.Count < SignalWeight)
-                    {
-                        return null;
-                    }
-                
-                    // Calculate SMA on MACD for Signal
-                    for (var i = SignalWeight - 1; i < macdSeries.Count; i++)
-                    {
-                        float movingAvgValue = 0;
-                        for (var j = 0; j < SignalWeight; j++)
-                        {
-                            movingAvgValue += macdSeries[i - j].Value;
-                        }
-                        movingAvgValue /= SignalWeight;
+        for (int i = 0; i < candles.Length; i++)
+        {
+            if (i < FastWeight - 1)
+            {
+                continue;
+            }
 
-                        signalSeries.Add(new LineEntry
-                        {
-                            Timestamp = macdSeries[i].Timestamp,
-                            Value = movingAvgValue
-                        });
-                    }
-                
-                    break;
-                }
+            var fastValue = Type.ToLowerInvariant() switch
+            {
+                "sma" => GetSimpleMovingAverage(candles, i, FastWeight),
+                "ema" => GetExponentialMovingAverage(candles, fastValues, i, FastWeight),
+                "wilders" => GetWildersMovingAverage(candles, fastValues, i, FastWeight),
+                _ => throw new NotImplementedException()
+            };
+            fastValues.Add(fastValue);
 
-            case "EMA":
-                {                
-                    var fastSeries = ExponentialMovingAverage.Compute(data, FastWeight).Lines[0];
-                    var slowSeries = ExponentialMovingAverage.Compute(data, SlowWeight).Lines[0];
- 
-                    if (fastSeries.Count - slowSeries.Count != offset)
-                    {
-                        break;
-                    }
+            if (i < SlowWeight - 1)
+            {
+                continue;
+            }
 
-                    for (var i = 0; i < slowSeries.Count; i++)
-                    {
-                        macdSeries.Add(new LineEntry
-                        { 
-                            Value = fastSeries[i + offset].Value - slowSeries[i].Value,
-                            Timestamp = fastSeries[i + offset].Timestamp
-                        });
-                    }
+            var slowValue = Type.ToLowerInvariant() switch
+            {
+                "sma" => GetSimpleMovingAverage(candles, i, SlowWeight),
+                "ema" => GetExponentialMovingAverage(candles, slowValues, i, SlowWeight),
+                "wilders" => GetWildersMovingAverage(candles, slowValues, i, SlowWeight),
+                _ => throw new NotImplementedException()
+            };
+            slowValues.Add(slowValue);
 
-                    if (macdSeries.Count < SignalWeight)
-                    {
-                        return null;
-                    }
+            var macdValue = fastValue - slowValue;
+            macdValues.Add(macdValue);
 
-                    // Get Initial SMA
-                    float simpleMovingAverage = 0;
-                    for (var i = 0; i < SignalWeight; i++)
-                    {
-                        simpleMovingAverage += macdSeries[i].Value;
-                    }
-                    simpleMovingAverage /= SignalWeight;
+            macdSeries.Add(new LineEntry
+            {
+                Value = macdValue,
+                Timestamp = candles[i].Timestamp,
+            });
 
-                    // Set Initial SMA as first EMA
-                    signalSeries.Add(new LineEntry
-                    {
-                        Timestamp = macdSeries[SignalWeight - 1].Timestamp,
-                        Value = simpleMovingAverage
-                    });
+            if (macdValues.Count < SignalWeight)
+            {
+                continue;
+            }
 
-                    // Calculate Constant
-                    var weightFactor = 2f / (SignalWeight + 1);
+            var signalOffsetIndex = (SlowWeight - 1) + (SignalWeight - 1);
+            var signalValue = Type.ToLowerInvariant() switch
+            {
+                "sma" => macdValues.ToList().GetRange(i - signalOffsetIndex, SignalWeight).Sum() / SignalWeight,
+                "ema" => GetExponentialMovingAverage(candles, signalValues, i, SignalWeight),
+                "wilders" => GetWildersMovingAverage(candles, signalValues, i, SignalWeight),
+                _ => throw new NotImplementedException()
+            };
+            signalValues.Add(signalValue);
 
-                    // Calculate EMA series
-                    for (var i = SignalWeight; i < macdSeries.Count; i++)
-                    {
-                        var previousExponentialMovingAvg = signalSeries[^1].Value;
-
-                        var currentExponentialMovingAvg = weightFactor * (macdSeries[i].Value - previousExponentialMovingAvg) + previousExponentialMovingAvg;
-
-                        signalSeries.Add(new LineEntry
-                        {
-                            Timestamp = macdSeries[i].Timestamp,
-                            Value = currentExponentialMovingAvg
-                        });
-                    }
-                
-                    break;
-                }
+            signalSeries.Add(new LineEntry
+            {
+                Value = signalValue,
+                Timestamp = candles[i].Timestamp,
+            });
         }
 
         return
@@ -177,9 +138,9 @@ public class MovingAverageConvergenceDivergence : Study<MovingAverageConvergence
             return false;
         }
 
-        if (ValidTypes.Contains(parameters[3].ToString(), StringComparer.InvariantCultureIgnoreCase))
+        if (ValidTypes.Contains(parameters[3].ToString().ToLowerInvariant()))
         {
-            Type = parameters[3].ToString() ?? string.Empty;
+            Type = parameters[3].ToString().ToLowerInvariant() ?? string.Empty;
         }
         else
         {
@@ -189,4 +150,45 @@ public class MovingAverageConvergenceDivergence : Study<MovingAverageConvergence
 
         return true;
     }
+
+    #endregion
+
+    #region Private Methods
+
+    private static float GetSimpleMovingAverage(IEnumerable<Bar> candles, int index, int weight)
+    {
+        var value = candles.ToList().GetRange(index - (weight - 1), weight).Sum(q => q.Close) / weight;
+
+        return value;
+    }
+
+    private static float GetExponentialMovingAverage(IEnumerable<Bar> candles, List<float> series, int index, int weight)
+    {
+        if (!series.Any())
+        {
+            return GetSimpleMovingAverage(candles, index, weight);
+        }
+
+        var smoothingFactor = 2f / (weight + 1);
+
+        var value = (candles.ToArray()[index].Close * smoothingFactor) + (series.Last() * (1 - smoothingFactor));
+
+        return value;
+    }
+
+    private static float GetWildersMovingAverage(IEnumerable<Bar> candles, List<float> series, int index, int weight)
+    {
+        if (!series.Any())
+        {
+            return GetSimpleMovingAverage(candles, index, weight);
+        }
+
+        var smoothingFactor = 1f / weight;
+
+        var value = (candles.ToArray()[index].Close * smoothingFactor) + (series.Last() * (1 - smoothingFactor));
+
+        return value;
+    }
+
+    #endregion
 }

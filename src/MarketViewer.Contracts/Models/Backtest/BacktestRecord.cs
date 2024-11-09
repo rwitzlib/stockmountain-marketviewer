@@ -3,6 +3,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MarketViewer.Contracts.Models.Backtest;
 
+/// <summary>
+/// Database record for storing information about backtest results.
+/// </summary>
 [ExcludeFromCodeCoverage]
 [DynamoDBTable("lad-dev-marketviewer-backtest-store")]
 public class BacktestRecord

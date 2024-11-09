@@ -2,8 +2,11 @@
 
 namespace MarketViewer.Contracts.Models.Backtest;
 
+/// <summary>
+/// asdf
+/// </summary>
 [ExcludeFromCodeCoverage]
-public class BacktestPosition
+public class BacktestPositionInformation
 {
     public float StartingBalance { get; set; }
     public int MaxConcurrentPositions { get; set; }

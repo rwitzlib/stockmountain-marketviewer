@@ -14,9 +14,9 @@
 
     [Parameter] public string Height { get; set; }
     [Parameter] public string Width { get; set; }
-    [Parameter] public BacktestV3Request Request { get; set; }
+    [Parameter] public BacktestRequestV3 Request { get; set; }
 
-    public BacktestV3Response Response { get; set; }
+    public BacktestResponseV3 Response { get; set; }
 
     private List<Line> Lines { get; set; } = [];
     private string Id { get; set; } = Guid.NewGuid().ToString();

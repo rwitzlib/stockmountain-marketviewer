@@ -12,22 +12,20 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Amazon.S3;
 using Amazon.S3.Model;
-using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
-using Amazon.Runtime.Documents;
 using Document = Amazon.DynamoDBv2.DocumentModel.Document;
+using MarketViewer.Contracts.Responses.Backtest;
 
 namespace MarketViewer.Infrastructure.Services;
 
 public class BacktestService(
-    IDynamoDBContext _dbContext,
     IAmazonDynamoDB _dynamodbClient,
     IAmazonS3 _s3Client,
     IAmazonLambda _lambdaClient,
     ILogger<BacktestService> _logger)
 {
-    public bool CheckForBacktestHistory(BacktestV3Request request, out BacktestRecord record)
+    public bool CheckForBacktestHistory(BacktestRequestV3 request, out BacktestRecord record)
     {
         record = null;
         
@@ -86,7 +84,7 @@ public class BacktestService(
         }
     }
 
-    public async Task<List<BacktestEntryV3>> GetBacktestResultsFromLambda(BacktestV3Request request)
+    public async Task<List<BacktestLambdaResponseV3>> GetBacktestResultsFromLambda(BacktestRequestV3 request)
     {
         var days = request.End == request.Start ? [request.Start] : Enumerable.Range(0, (request.End - request.Start).Days + 1)
             .Select(day => request.Start.AddDays(day))
@@ -97,10 +95,10 @@ public class BacktestService(
             request.End.ToString("yyyy-MM-dd"),
             days.Count());
 
-        var tasks = new List<Task<BacktestEntryV3>>();
+        var tasks = new List<Task<BacktestLambdaResponseV3>>();
         foreach (var day in days)
         {
-            var backtesterLambdaRequest = new BacktesterLambdaV3Request
+            var backtesterLambdaRequest = new BacktestLambdaRequestV3
             {
                 Date = day.Date,
                 DetailedResponse = request.DetailedResponse,
@@ -117,7 +115,7 @@ public class BacktestService(
         return lambdaResults.ToList();
     }
 
-    public async Task<List<BacktestEntryV3>> GetBacktestResultsFromS3(BacktestRecord record)
+    public async Task<List<BacktestLambdaResponseV3>> GetBacktestResultsFromS3(BacktestRecord record)
     {
         try
         {
@@ -135,7 +133,7 @@ public class BacktestService(
             using var streamReader = new StreamReader(s3Response.ResponseStream);
             var json = await streamReader.ReadToEndAsync();
 
-            var s3Results = JsonSerializer.Deserialize<IEnumerable<BacktestEntryV3>>(json);
+            var s3Results = JsonSerializer.Deserialize<IEnumerable<BacktestLambdaResponseV3>>(json);
             s3Results.ToList().ForEach(q => q.CreditsUsed = 0);
 
             return s3Results.ToList();
@@ -146,7 +144,7 @@ public class BacktestService(
         }
     }
 
-    private async Task<BacktestEntryV3> BacktestDay(BacktesterLambdaV3Request request)
+    private async Task<BacktestLambdaResponseV3> BacktestDay(BacktestLambdaRequestV3 request)
     {
         try
         {
@@ -170,7 +168,7 @@ public class BacktestService(
             var streamReader = new StreamReader(response.Payload);
             var result = streamReader.ReadToEnd();
 
-            var backtestEntry = JsonSerializer.Deserialize<BacktestEntryV3>(result);
+            var backtestEntry = JsonSerializer.Deserialize<BacktestLambdaResponseV3>(result);
 
             return backtestEntry;
         }

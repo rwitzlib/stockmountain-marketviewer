@@ -34,7 +34,7 @@ namespace MarketViewer.Web.Services
             }
         }
 
-        public async Task<BacktestV3Response> BacktestV3Async(BacktestV3Request request)
+        public async Task<BacktestResponseV3> BacktestV3Async(BacktestRequestV3 request)
         {
             try
             {
@@ -46,14 +46,14 @@ namespace MarketViewer.Web.Services
                 var response = await httpClient.PostAsJsonAsync("api/backtest/v3", request);
 
                 var json = await response.Content.ReadAsStringAsync();
-                var strategyResponse = JsonSerializer.Deserialize<BacktestV3Response>(json, _options);
+                var strategyResponse = JsonSerializer.Deserialize<BacktestResponseV3>(json, _options);
 
                 return strategyResponse;
             }
             catch (Exception ex)
             {
                 logger.LogError("Backtesting error: {message}", ex.Message);
-                return new BacktestV3Response
+                return new BacktestResponseV3
                 {
                     Results = [],
                 };
