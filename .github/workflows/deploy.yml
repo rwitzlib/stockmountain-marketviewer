@@ -10,7 +10,7 @@ on:
 
 jobs:
   deploy:
-    uses: rwitzlib/github-action-templates/.github/workflows/container-deployment.yml@MARK-165-fix-docker-datetime
+    uses: rwitzlib/github-action-templates/.github/workflows/container-deployment.yml@v1.0.0
     with:
       environment: ${{ inputs.environment || 'dev'}}
       docker: |

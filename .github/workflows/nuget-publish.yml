@@ -14,7 +14,7 @@ jobs:
       contents: read
     steps:
       - name: Dotnet Build
-        uses: rwitzlib/github-action-templates/.github/actions/dotnet-build@MARK-165-fix-docker-datetime
+        uses: rwitzlib/github-action-templates/.github/actions/dotnet-build@v1.0.0
         with:
           project_directory: ./src
           global_json_file: ./src/global.json
@@ -36,10 +36,10 @@ jobs:
           ]
     steps:
       - name: Publish Nuget Packages
-        uses: rwitzlib/github-action-templates/.github/actions/nuget-publish@MARK-165-fix-docker-datetime
+        uses: rwitzlib/github-action-templates/.github/actions/nuget-publish@v1.0.0
         with:
           publish_project: ${{ matrix.cfg }}
-          dotnet_version: '8.0'
+          global_json_file: ./src/global.json
         env:
           NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
     
