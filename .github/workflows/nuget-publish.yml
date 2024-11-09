@@ -33,7 +33,7 @@ jobs:
       - name: Publish Nuget Packages
         uses: rwitzlib/github-action-templates/.github/actions/nuget-publish@v1.0.0
         with:
-          publish_project: ${{ matrix.project }}
+          project_name: ${{ matrix.project }}
           global_json_file: ./src/global.json
         env:
           NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
