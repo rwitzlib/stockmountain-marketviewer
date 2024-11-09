@@ -1,5 +1,6 @@
 ﻿using MarketViewer.Contracts.Models.Study;
 using Polygon.Client.Models;
+using System.Reflection.Metadata.Ecma335;
 
 namespace MarketViewer.Studies;
 
@@ -7,45 +8,31 @@ public class ExponentialMovingAverage : Study<ExponentialMovingAverage>
 {
     private static int Weight { get; set; }
 
-    protected override List<List<LineEntry>> Initialize(Bar[] candleData)
+    #region Protected Methods
+
+    protected override List<List<LineEntry>> Initialize(Bar[] candles)
     {
-        if (candleData.Length < Weight)
+        var series = new List<LineEntry>();
+        
+        if (candles.Length < Weight)
         {
             ErrorMessages.Add("Not enough candle data.");
-            return null;
+            return [series];
         }
 
-        var series = new List<LineEntry>();
-
-        // Get Initial SMA
-        float simpleMovingAverage = 0;
-        for (var i = 0; i < Weight; i++)
+        for (int i = 0; i < candles.Length; i++)
         {
-            simpleMovingAverage += candleData[i].Close;
-        }
-        simpleMovingAverage /= Weight;
+            if (i < Weight - 1)
+            {
+                continue;
+            }
 
-        // Set Initial SMA as first EMA
-        series.Add(new LineEntry
-        {
-            Timestamp = candleData[Weight - 1].Timestamp,
-            Value = simpleMovingAverage
-        });
-
-        // Calculate Constant
-        var weightFactor = 2f / (Weight + 1);
-
-        // Calculate EMA series
-        for (var i = Weight; i < candleData.Length; i++)
-        {
-            var previousExponentialMovingAvg = series[^1].Value;
-
-            var currentExponentialMovingAvg = weightFactor * (candleData[i].Close - previousExponentialMovingAvg) + previousExponentialMovingAvg;
+            var value = GetExponentialMovingAverage(candles, series, i, Weight);
 
             series.Add(new LineEntry
             {
-                Timestamp = candleData[i].Timestamp,
-                Value = currentExponentialMovingAvg
+                Timestamp = candles[i].Timestamp,
+                Value = value
             });
         }
 
@@ -72,4 +59,31 @@ public class ExponentialMovingAverage : Study<ExponentialMovingAverage>
         
         return true;
     }
+
+    #endregion
+
+    #region Private Methods
+
+    private static float GetSimpleMovingAverage(IEnumerable<Bar> candles, int index, int weight)
+    {
+        var value = candles.ToList().GetRange(index - (weight - 1), weight).Sum(q => q.Close) / weight;
+
+        return value;
+    }
+
+    private static float GetExponentialMovingAverage(IEnumerable<Bar> candles, List<LineEntry> series, int index, int weight)
+    {
+        if (!series.Any())
+        {
+            return GetSimpleMovingAverage(candles, index, weight);
+        }
+
+        var smoothingFactor = 2f / (weight + 1);
+
+        var value = (candles.ToArray()[index].Close * smoothingFactor) + (series.Last().Value * (1 - smoothingFactor));
+
+        return value;
+    }
+
+    #endregion
 }

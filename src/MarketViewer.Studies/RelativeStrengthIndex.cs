@@ -1,8 +1,5 @@
-﻿using Amazon.DynamoDBv2.Model;
-using MarketViewer.Contracts.Models.Study;
+﻿using MarketViewer.Contracts.Models.Study;
 using Polygon.Client.Models;
-using System.Reflection.Metadata;
-using System.Security.Cryptography;
 
 namespace MarketViewer.Studies;
 
@@ -11,8 +8,8 @@ public class RelativeStrengthIndex : Study<RelativeStrengthIndex>
     private static int Weight { get; set; } = 14;
     private static int OverboughtLevel { get; set; } = 70;
     private static int OversoldLevel { get; set; } = 30;
-    private static string Type { get; set; } = "EMA";
-    private static string[] ValidTypes { get; set; } = ["SMA", "EMA", "Wilders"];
+    private static string Type { get; set; } = "ema";
+    private static string[] ValidTypes { get; set; } = ["sma", "ema", "wilders"];
 
     protected override bool ValidateParameters(IReadOnlyList<object> parameters)
     {
@@ -52,13 +49,13 @@ public class RelativeStrengthIndex : Study<RelativeStrengthIndex>
             return false;
         }
 
-        if (ValidTypes.Contains(parameters[3].ToString(), StringComparer.InvariantCultureIgnoreCase))
+        if (ValidTypes.Contains(parameters[3].ToString().ToLowerInvariant()))
         {
-            Type = parameters[3].ToString() ?? string.Empty;
+            Type = parameters[3].ToString().ToLowerInvariant() ?? string.Empty;
         }
         else
         {
-            ErrorMessages.Add("Fourth parameter (moving average type) must be SMA, EMA, or Wilders.");
+            ErrorMessages.Add("Fourth parameter (moving average type) must be 'SMA', 'EMA', or 'Wilders'.");
             return false;
         }
 
@@ -99,7 +96,7 @@ public class RelativeStrengthIndex : Study<RelativeStrengthIndex>
                 downMoves.Add(Math.Abs(value));
             }
 
-            if (upMoves.Count < Weight && downMoves.Count < Weight)
+            if (upMoves.Count < Weight || downMoves.Count < Weight)
             {
                 continue;
             }
@@ -146,14 +143,6 @@ public class RelativeStrengthIndex : Study<RelativeStrengthIndex>
         return (avgUp, avgDown);
     }
 
-    /// <summary>
-    /// Calculate Exponential Moving Average. See https://www.macroption.com/rsi-calculation/
-    /// </summary>
-    /// <param name="series"></param>
-    /// <param name="upMoves"></param>
-    /// <param name="downMoves"></param>
-    /// <param name="index"></param>
-    /// <returns></returns>
     private static (float, float) GetExponentialMovingAverageRSI(
         List<LineEntry> series,
         List<float> upMoves,
@@ -175,13 +164,6 @@ public class RelativeStrengthIndex : Study<RelativeStrengthIndex>
         return (avgUp, avgDown);
     }
 
-    /// <summary>
-    /// Calculate Wilders Moving Average. See https://www.macroption.com/rsi-calculation/
-    /// </summary>
-    /// <param name="upMoves"></param>
-    /// <param name="downMoves"></param>
-    /// <param name="index"></param>
-    /// <returns></returns>
     private static (float, float) GetWildersMovingAverageRSI(List<LineEntry> series,
         List<float> upMoves,
         List<float> downMoves,

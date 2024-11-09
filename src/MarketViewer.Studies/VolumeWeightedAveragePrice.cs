@@ -5,6 +5,8 @@ namespace MarketViewer.Studies;
 
 public class VolumeWeightedAveragePrice : Study<VolumeWeightedAveragePrice>
 {
+    #region Protected Methods
+
     protected override List<List<LineEntry>> Initialize(Bar[] candleData)
     {
         var series = new List<LineEntry>();
@@ -51,4 +53,6 @@ public class VolumeWeightedAveragePrice : Study<VolumeWeightedAveragePrice>
         ErrorMessages.Add("Too many parameters.");
         return false;
     }
+
+    #endregion
 }
