@@ -51,6 +51,7 @@
         var baseSeries = new List<LineEntry>();
         var holdEntries = new List<LineEntry>();
         var highEntries = new List<LineEntry>();
+        var otherEntries = new List<LineEntry>();
 
         foreach (var result in Response.Results)
         {
@@ -76,6 +77,12 @@
                 Value = result.High.TotalBalance,
                 Timestamp = result.Date.ToUnixTimeSeconds()
             });
+
+            otherEntries.Add(new LineEntry
+            {
+                Value = result.Other.TotalBalance,
+                Timestamp = result.Date.ToUnixTimeSeconds()
+            });
         }
 
         Lines.Add(new Line
@@ -99,12 +106,20 @@
             Series = highEntries
         });
 
+        Lines.Add(new Line
+        {
+            Color = "orange",
+            Width = 1,
+            Series = otherEntries
+        });
+
         foreach (var line in Lines)
         {
             var json = JsonSerializer.Serialize(line);
             await JsRuntime.InvokeVoidAsync("CreateLineChart", Id, json, 0);
         }
 
+        await JsRuntime.InvokeVoidAsync("AddStudyToLegend", Id, "Other", Lines[3].Color);
         await JsRuntime.InvokeVoidAsync("AddStudyToLegend", Id, "High", Lines[2].Color);
         await JsRuntime.InvokeVoidAsync("AddStudyToLegend", Id, "Hold", Lines[1].Color);
         await JsRuntime.InvokeVoidAsync("AddStudyToLegend", Id, "SPY", Lines[0].Color);
@@ -117,6 +132,7 @@
             var json = JsonSerializer.Serialize(line);
             await JsRuntime.InvokeVoidAsync("DeleteLineChart", Id, json);
         }
+        await JsRuntime.InvokeVoidAsync("RemoveStudyFromLegend", Id, "Other");
         await JsRuntime.InvokeVoidAsync("RemoveStudyFromLegend", Id, "High");
         await JsRuntime.InvokeVoidAsync("RemoveStudyFromLegend", Id, "Hold");
         await JsRuntime.InvokeVoidAsync("RemoveStudyFromLegend", Id, "SPY");
