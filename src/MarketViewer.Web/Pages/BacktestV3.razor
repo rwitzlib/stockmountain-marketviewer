@@ -22,14 +22,14 @@
         <MudDatePicker Label="Start Date" @bind-Date="Start" />
         <MudDatePicker Label="End Date" @bind-Date="End" />
         <MudNumericField @bind-Value="Request.PositionInfo.StartingBalance" Label="Starting Balance" Variant="Variant.Text" Min="0"/>
-        <MudNumericField @bind-Value="Request.PositionInfo.MaxConcurrentPositions" Label="Max Concurrent Positions" Variant="Variant.Text" Min="1" Max="100" />
-        <MudNumericField @bind-Value="Request.PositionInfo.PositionSize" Label="Position Size" Variant="Variant.Text" Min="0" Max="10" />
+        <MudNumericField @bind-Value="Request.PositionInfo.MaxConcurrentPositions" Label="Max Concurrent Positions" Variant="Variant.Text" Min="1" />
+        <MudNumericField @bind-Value="Request.PositionInfo.PositionSize" Label="Position Size" Variant="Variant.Text" Min="1" />
         
         <MudTextField @bind-Value="Request.Exit.StopLoss.Type" Label="Stop Loss Type" Variant="Variant.Text"></MudTextField>
         <MudNumericField @bind-Value="Request.Exit.StopLoss.Value" Label="Stop Loss Value" Variant="Variant.Text"/>
         
         <MudTextField @bind-Value="Request.Exit.ProfitTarget.Type" Label="Profit Target Type" Variant="Variant.Text"></MudTextField>
-        <MudNumericField @bind-Value="Request.Exit.ProfitTarget.Value" Label="Profit Target Value" Variant="Variant.Text" Min="0" Max="10" />
+        <MudNumericField @bind-Value="Request.Exit.ProfitTarget.Value" Label="Profit Target Value" Variant="Variant.Text" Min="1" />
 
         <MudNumericField @bind-Value="Request.Exit.Timeframe.Multiplier" Label="Timeframe Multiplier" Variant="Variant.Text"/>
         <MudSelect T="Timespan" @bind-Value="Request.Exit.Timeframe.Timespan" SelectedValues="@([Timespan.day])">
@@ -85,6 +85,47 @@
         ];
         Request = request;
 
+        request.Exit.Other = [
+            new FilterV2
+            {
+                CollectionModifier = "ALL",
+                FirstOperand = new StudyOperand
+                {
+                    Study = StudyType.rsi,
+                    Parameters = "14,70,30,ema",
+                    Modifier = OperandModifier.Value,
+                    Multiplier = 1,
+                    Timespan = Timespan.hour
+                },
+                Operator = FilterOperator.gt,
+                SecondOperand = new FixedOperand{
+                    Value = 70
+                },
+                Timeframe = new Timeframe{
+                    Multiplier = 1
+                }
+            },
+            new FilterV2
+            {
+                CollectionModifier = "ALL",
+                FirstOperand = new StudyOperand
+                {
+                    Study = StudyType.macd,
+                    Parameters = "12,26,9,ema",
+                    Modifier = OperandModifier.Value,
+                    Multiplier = 1,
+                    Timespan = Timespan.hour
+                },
+                Operator = FilterOperator.gt,
+                SecondOperand = new FixedOperand{
+                    Value = 0
+                },
+                Timeframe = new Timeframe{
+                    Multiplier = 1
+                }
+            }
+        ];
+
         ScanArgument.Filters.Add(new FilterItem
         {
             CollectionModifier = "ANY",
@@ -92,6 +133,7 @@
             FirstOperand = new StudyOperand
             {
                 Study = StudyType.rsi,
+                Parameters = "14,70,30,ema",
                 Modifier = OperandModifier.Slope,
                 Multiplier = 1,
                 Timespan = Timespan.hour
@@ -116,6 +158,7 @@
             FirstOperand = new StudyOperand
             {
                 Study = StudyType.rsi,
+                Parameters = "14,70,30,ema",
                 Modifier = OperandModifier.Slope,
                 Multiplier = 1,
                 Timespan = Timespan.hour
