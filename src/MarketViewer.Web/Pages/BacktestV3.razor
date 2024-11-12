@@ -88,7 +88,26 @@
         request.Exit.Other = [
             new FilterV2
             {
-                CollectionModifier = "ALL",
+                CollectionModifier = "ANY",
+                FirstOperand = new StudyOperand
+                {
+                    Study = StudyType.macd,
+                    Parameters = "12,26,9,ema",
+                    Modifier = OperandModifier.Value,
+                    Multiplier = 1,
+                    Timespan = Timespan.hour
+                },
+                Operator = FilterOperator.gt,
+                SecondOperand = new FixedOperand{
+                    Value = 0
+                },
+                Timeframe = new Timeframe{
+                    Multiplier = 2
+                }
+            },
+            new FilterV2
+            {
+                CollectionModifier = "ANY",
                 FirstOperand = new StudyOperand
                 {
                     Study = StudyType.rsi,
@@ -102,21 +121,21 @@
                     Value = 70
                 },
                 Timeframe = new Timeframe{
-                    Multiplier = 1
+                    Multiplier = 2
                 }
             },
             new FilterV2
             {
-                CollectionModifier = "ALL",
+                CollectionModifier = "ANY",
                 FirstOperand = new StudyOperand
                 {
-                    Study = StudyType.macd,
-                    Parameters = "12,26,9,ema",
-                    Modifier = OperandModifier.Value,
+                    Study = StudyType.rsi,
+                    Parameters = "14,70,30,ema",
+                    Modifier = OperandModifier.Slope,
                     Multiplier = 1,
                     Timespan = Timespan.hour
                 },
-                Operator = FilterOperator.gt,
+                Operator = FilterOperator.lt,
                 SecondOperand = new FixedOperand{
                     Value = 0
                 },

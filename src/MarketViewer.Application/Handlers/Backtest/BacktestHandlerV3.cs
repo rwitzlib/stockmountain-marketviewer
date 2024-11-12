@@ -151,33 +151,35 @@ public class BacktestHandlerV3(
                 Data = new BacktestResponseV3
                 {
                     Id = request.Id,
-                    HoldBalance = availableFundsHold,
-                    OtherBalance = request.Exit.Other is null ? null : availableFundsOther,
-                    HighBalance = availableFundsHigh,
-                    MaxConcurrentPositions = backtestDayResults.Max(result => result.Hold.OpenPositions),
                     Hold = new BacktestEntryStats
                     {
+                        EndBalance = availableFundsHold,
+                        SumProfit = availableFundsHold - request.PositionInfo.StartingBalance,
                         PositiveTrendRatio = (float)holdWins.Count() / (float)(holdWins.Count() + holdLosses.Count()),
                         AvgWin = holdWins.Any() ? holdWins.Average(q => q.Profit) : 0,
                         AvgLoss = holdLosses.Any() ? holdLosses.Average(q => q.Profit) : 0,
-                        AvgProfit = backtestDayResults.SelectMany(q => q.Hold.Sold).Average(q => q.Profit),
-                        SumProfit = backtestDayResults.SelectMany(q => q.Hold.Sold).Sum(q => q.Profit),
+                        //AvgProfit = backtestDayResults.SelectMany(q => q.Hold.Sold).Average(q => q.Profit),
+                        MaxConcurrentPositions = backtestDayResults.Max(result => result.Hold.OpenPositions)
                     },
                     High = new BacktestEntryStats
                     {
+                        EndBalance = availableFundsHigh,
+                        SumProfit = availableFundsHigh - request.PositionInfo.StartingBalance,
                         PositiveTrendRatio = (float)highWins.Count() / (float)(highWins.Count() + highLosses.Count()),
                         AvgWin = highWins.Any() ? highWins.Average(q => q.Profit) : 0,
                         AvgLoss = highLosses.Any() ? highLosses.Average(q => q.Profit) : 0,
-                        AvgProfit = backtestDayResults.SelectMany(q => q.High.Sold).Average(q => q.Profit),
-                        SumProfit = backtestDayResults.SelectMany(q => q.High.Sold).Sum(q => q.Profit)
+                        //AvgProfit = backtestDayResults.SelectMany(q => q.High.Sold).Average(q => q.Profit),
+                        MaxConcurrentPositions = backtestDayResults.Max(result => result.High.OpenPositions)
                     },
                     Other = request.Exit.Other is null ? null : new BacktestEntryStats
                     {
+                        EndBalance = availableFundsOther,
+                        SumProfit = availableFundsOther - request.PositionInfo.StartingBalance,
                         PositiveTrendRatio = (float)otherWins.Count() / (float)(otherWins.Count() + otherLosses.Count()),
                         AvgWin = otherWins.Any() ? otherWins.Average(q => q.Profit) : 0,
                         AvgLoss = otherLosses.Any() ? otherLosses.Average(q => q.Profit) : 0,
-                        AvgProfit = backtestDayResults.SelectMany(q => q.Other.Sold).Average(q => q.Profit),
-                        SumProfit = backtestDayResults.SelectMany(q => q.Other.Sold).Sum(q => q.Profit)
+                        //AvgProfit = backtestDayResults.SelectMany(q => q.Other.Sold).Average(q => q.Profit),
+                        MaxConcurrentPositions = backtestDayResults.Max(result => result.Other.OpenPositions)
                     },
                     Results = backtestDayResults,
                     Entries = validEntries
@@ -192,7 +194,7 @@ public class BacktestHandlerV3(
                 CreditsUsed = validEntries.Where(result => result is not null).Sum(result => result.CreditsUsed),
                 HoldProfit = response.Data.Hold.SumProfit,
                 HighProfit = response.Data.High.SumProfit,
-                RequestDetails = $"{JsonSerializer.Serialize(request.Exit)}{JsonSerializer.Serialize(request.Argument)}",
+                //RequestDetails = $"{JsonSerializer.Serialize(request.Exit)}{JsonSerializer.Serialize(request.Argument)}",
                 StartDate = int.Parse(request.Start.ToString("yyyyMMdd")),
                 EndDate = int.Parse(request.End.ToString("yyyyMMdd")),
                 //S3ObjectName = record is null ? Guid.NewGuid().ToString() : record.S3ObjectName
