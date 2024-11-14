@@ -44,22 +44,22 @@
         <MudTextField @bind-Value="StockTypes" Label="Profit Target Type" Variant="Variant.Text"></MudTextField>
     </MudExpansionPanel>
     <MudExpansionPanel Text="Argument">
-        <ScanArgumentComponent @ref="ScanArgumentComponent" PageId="@PageId" Argument="@ScanArgument" Parent="null"></ScanArgumentComponent>
+        <ScanArgumentComponent @ref="ScanArgumentComponent" PageId="@Id" Argument="@ScanArgument" Parent="null"></ScanArgumentComponent>
     </MudExpansionPanel>
 </MudExpansionPanels>
 
 <MudPaper Elevation="0" style="height: 75%; width: 100%">
-    <MudPaper id=@($"{PageId}-container") style="height: 100%; width: 100%;">
-        <MudCard id=@($"{PageId}-parameters") Square="true">
+    <MudPaper id=@($"{Id}-container") style="height: 100%; width: 100%;">
+        <MudCard id=@($"{Id}-parameters") Square="true">
             <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="PlotLines">Plot Lines</MudButton>
             <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="RemoveLines">Clear</MudButton>
         </MudCard>
-        <BacktestLineChart @ref="BacktestLineChartComponent" Request="@Request" Height="75%" Width="100%"></BacktestLineChart>
+        <BacktestLineChart @ref="BacktestLineChartComponent" Id="@Id" Request="@Request" Height="75%" Width="100%"></BacktestLineChart>
     </MudPaper>
 </MudPaper>
 
 @code {
-    private string PageId { get; set; } = Guid.NewGuid().ToString();
+    private string Id { get; set; } = Guid.NewGuid().ToString();
     private ScanArgumentZone ScanArgument { get; set; } = new ScanArgumentZone(0, "AND");
     private BacktestRequestV3 Request { get; set; }
 
@@ -74,7 +74,7 @@
 
     protected override void OnInitialized()
     {
-        var json = "{\"Start\":\"2024-03-01\",\"End\":\"2024-09-30\",\"PositionInfo\":{\"StartingBalance\":20000,\"MaxConcurrentPositions\":1000,\"PositionSize\":1000},\"Exit\":{\"StopLoss\":{\"Type\":\"percent\",\"Value\":-5},\"ProfitTarget\":{\"Type\":\"percent\",\"Value\":12.5},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"day\"}},\"DetailedResponse\":true,\"Argument\":{\"Operator\":\"AND\",\"Filters\":[{\"CollectionModifier\":\"ANY\",\"FirstOperand\":{\"Study\":\"rsi\",\"Modifier\":\"Slope\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"lt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":4,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"Study\":\"rsi\",\"Modifier\":\"Slope\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":3,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"Study\":\"macd\",\"Modifier\":\"Slope\",\"Parameters\":\"12,26,9,ema\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":3,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"Study\":\"macd\",\"Modifier\":\"Value\",\"Parameters\":\"12,26,9,ema\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"lt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":2,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"PriceAction\":\"Volume\",\"Modifier\":\"Value\",\"Multiplier\":1,\"Timespan\":\"minute\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":100000},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"PriceAction\":\"Vwap\",\"Modifier\":\"Value\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":2},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"PriceAction\":\"Vwap\",\"Modifier\":\"Value\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"lt\",\"SecondOperand\":{\"Value\":600},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"minute\"}}]}}\r\n";
+        var json = "{\"Start\":\"2024-03-01\",\"End\":\"2024-09-30\",\"PositionInfo\":{\"StartingBalance\":20000,\"MaxConcurrentPositions\":1000,\"PositionSize\":5000},\"Exit\":{\"StopLoss\":{\"Type\":\"percent\",\"Value\":-5},\"ProfitTarget\":{\"Type\":\"percent\",\"Value\":20},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"day\"}},\"DetailedResponse\":true,\"Argument\":{\"Operator\":\"AND\",\"Filters\":[{\"CollectionModifier\":\"ANY\",\"FirstOperand\":{\"Study\":\"rsi\",\"Modifier\":\"Slope\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"lt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":4,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"Study\":\"rsi\",\"Modifier\":\"Slope\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":3,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"Study\":\"macd\",\"Modifier\":\"Slope\",\"Parameters\":\"12,26,9,ema\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":3,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"Study\":\"macd\",\"Modifier\":\"Value\",\"Parameters\":\"12,26,9,ema\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"lt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":2,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"PriceAction\":\"Volume\",\"Modifier\":\"Value\",\"Multiplier\":1,\"Timespan\":\"minute\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":100000},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"PriceAction\":\"Vwap\",\"Modifier\":\"Value\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":2},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"PriceAction\":\"Vwap\",\"Modifier\":\"Value\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"lt\",\"SecondOperand\":{\"Value\":600},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"minute\"}}]}}\r\n";
         var request = JsonSerializer.Deserialize<BacktestRequestV3>(json);
         request.Features = [
             new Feature
@@ -88,7 +88,7 @@
         request.Exit.Other = [
             new FilterV2
             {
-                CollectionModifier = "ANY",
+                CollectionModifier = "ALL",
                 FirstOperand = new StudyOperand
                 {
                     Study = StudyType.macd,
@@ -102,7 +102,7 @@
                     Value = 0
                 },
                 Timeframe = new Timeframe{
-                    Multiplier = 2
+                    Multiplier = 6
                 }
             },
             new FilterV2
@@ -121,26 +121,7 @@
                     Value = 70
                 },
                 Timeframe = new Timeframe{
-                    Multiplier = 2
-                }
-            },
-            new FilterV2
-            {
-                CollectionModifier = "ANY",
-                FirstOperand = new StudyOperand
-                {
-                    Study = StudyType.rsi,
-                    Parameters = "14,70,30,ema",
-                    Modifier = OperandModifier.Slope,
-                    Multiplier = 1,
-                    Timespan = Timespan.hour
-                },
-                Operator = FilterOperator.lt,
-                SecondOperand = new FixedOperand{
-                    Value = 0
-                },
-                Timeframe = new Timeframe{
-                    Multiplier = 1
+                    Multiplier = 6
                 }
             }
         ];
