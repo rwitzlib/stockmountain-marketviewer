@@ -14,12 +14,12 @@
 
     [Parameter] public string Height { get; set; }
     [Parameter] public string Width { get; set; }
+    [Parameter] public string Id { get; set; }
     [Parameter] public BacktestRequestV3 Request { get; set; }
 
     public BacktestResponseV3 Response { get; set; }
 
     private List<Line> Lines { get; set; } = [];
-    private string Id { get; set; } = Guid.NewGuid().ToString();
     private DotNetObjectReference<BacktestLineChart> ObjectReference;
     private IJSInProcessRuntime JsInProcessRuntime;
 
