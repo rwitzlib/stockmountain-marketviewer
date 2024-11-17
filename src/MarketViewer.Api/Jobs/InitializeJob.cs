@@ -5,15 +5,16 @@ using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Responses;
 using Polygon.Client.Requests;
-using Polygon.Client;
 using Quartz;
 using System.Diagnostics;
 using System.Text.Json;
 using Polygon.Client.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace MarketViewer.Api.Jobs;
 
 public class InitializeJob(
+    IMemoryCache _memoryCache,
     MarketCache _marketCache,
     IAmazonS3 _amazonS3Client,
     IPolygonClient _polygonClient,
@@ -22,6 +23,8 @@ public class InitializeJob(
 {
     public async Task Execute(IJobExecutionContext context)
     {
+        _memoryCache.Dispose();
+        _memoryCache = new MemoryCache(new MemoryCacheOptions());
         var jobDataMap = context.JobDetail.JobDataMap;
         if (!jobDataMap.TryGetString("date", out var dateString))
         {
@@ -30,77 +33,76 @@ public class InitializeJob(
         }
         var date = DateTimeOffset.Parse(dateString);
 
-        var sp = new Stopwatch();
-        sp.Start();
-
-        _logger.LogInformation("Started populating data at: {time}.", date);
-
         try
         {
-            var request = new GetObjectRequest
-            {
-                BucketName = "lad-dev-marketviewer",
-                Key = "tickerdetails/stocks.json"
-            };
-            var s3Response = await _amazonS3Client.GetObjectAsync(request);
+            _logger.LogInformation("Started populating data at: {time}.", date);
+            
+            var sp = new Stopwatch();
+            sp.Start();
 
-            using var streamReader = new StreamReader(s3Response.ResponseStream);
-            var json = await streamReader.ReadToEndAsync();
-
-            var tickerDetailsList = JsonSerializer.Deserialize<IEnumerable<Polygon.Client.Models.TickerDetails>>(json);
-
-            foreach (var tickerDetails in tickerDetailsList)
-            {
-                _marketCache.SetTickerDetails(tickerDetails);
-            }
-
-            var tickers = tickerDetailsList.Select(tickerDetails => tickerDetails.Ticker);
-
-            _marketCache.SetTickers(tickers);
-            _marketCache.SetTickersByTimespan(date, Timespan.minute, tickers);
-            _marketCache.SetTickersByTimespan(date, Timespan.hour, tickers);
-
-            _logger.LogInformation("Finished populating ticker data.");
+            var tickers = await PopulateTickersAndTickerDetails(date);
 
             var batchSize = int.TryParse(Environment.GetEnvironmentVariable("BATCH_SIZE"), out int size) ? size : 500;
-            
-            for (int i = 0; i < tickers.Count(); i += batchSize)
-            {
-                var tasks = new List<Task>();
 
-                var batch = tickers.Take(new Range(i, i + batchSize));
+            await PopulateStocksResponses(tickers, batchSize, Timespan.minute, date);
+            await PopulateStocksResponses(tickers, batchSize, Timespan.hour, date);
 
-                foreach (var ticker in batch)
-                {
-                    tasks.Add(Task.Run(() => PopulateStocksResponse(ticker, 1, Timespan.minute, date)));
-                }
-                await Task.WhenAll(tasks);
-            }
-            _logger.LogInformation("Finished populating minute data.");
+            sp.Stop();
 
-            for (int i = 0; i < tickers.Count(); i += batchSize)
-            {
-                var tasks = new List<Task>();
-
-                var batch = tickers.Take(new Range(i, i + batchSize));
-
-                foreach (var ticker in batch)
-                {
-                    tasks.Add(Task.Run(() => PopulateStocksResponse(ticker, 1, Timespan.hour, date)));
-                }
-                await Task.WhenAll(tasks);
-            }
-            _logger.LogInformation("Finished populating hourly data.");
+            _logger.LogInformation("Finished populating at: {time}.", date);
+            _logger.LogInformation("Time elapsed: {elapsed}ms.", sp.ElapsedMilliseconds);
         }
         catch (Exception ex)
         {
-            _logger.LogError("DataInitialize - Error getting populating data: {message}", ex.Message);
+            _logger.LogError("Error populating data: {message}", ex.Message);
+        }
+    }
+
+    private async Task<IEnumerable<string>> PopulateTickersAndTickerDetails(DateTimeOffset date)
+    {
+        var request = new GetObjectRequest
+        {
+            BucketName = "lad-dev-marketviewer",
+            Key = "tickerdetails/stocks.json"
+        };
+        var s3Response = await _amazonS3Client.GetObjectAsync(request);
+
+        using var streamReader = new StreamReader(s3Response.ResponseStream);
+        var json = await streamReader.ReadToEndAsync();
+
+        var tickerDetailsList = JsonSerializer.Deserialize<IEnumerable<Polygon.Client.Models.TickerDetails>>(json);
+
+        foreach (var tickerDetails in tickerDetailsList)
+        {
+            _marketCache.SetTickerDetails(tickerDetails);
         }
 
-        sp.Stop();
+        var tickers = tickerDetailsList.Select(tickerDetails => tickerDetails.Ticker);
 
-        _logger.LogInformation("Finished populating at: {time}.", date);
-        _logger.LogInformation("Time elapsed: {elapsed}ms.", sp.ElapsedMilliseconds);
+        _marketCache.SetTickers(tickers);
+        _marketCache.SetTickersByTimespan(date, Timespan.minute, tickers);
+        _marketCache.SetTickersByTimespan(date, Timespan.hour, tickers);
+
+        _logger.LogInformation("Finished populating Tickers and TickerDetails.");
+
+        return tickers;
+    }
+
+    private async Task PopulateStocksResponses(IEnumerable<string> tickers, int batchSize, Timespan timespan, DateTimeOffset date)
+    {
+        for (int i = 0; i < tickers.Count(); i += batchSize)
+        {
+            var tasks = new List<Task>();
+
+            var batch = tickers.Take(new Range(i, i + batchSize));
+
+            foreach (var ticker in batch)
+            {
+                tasks.Add(Task.Run(() => PopulateStocksResponse(ticker, 1, timespan, date)));
+            }
+            await Task.WhenAll(tasks);
+        }
+        _logger.LogInformation("Finished populating {timespan} data.", timespan);
     }
 
     private async Task PopulateStocksResponse(string ticker, int multiplier, Timespan timespan, DateTimeOffset date)
