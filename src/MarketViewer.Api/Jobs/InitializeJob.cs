@@ -23,8 +23,8 @@ public class InitializeJob(
 {
     public async Task Execute(IJobExecutionContext context)
     {
-        _memoryCache.Dispose();
-        _memoryCache = new MemoryCache(new MemoryCacheOptions());
+        //_memoryCache.Dispose();
+        //_memoryCache = new MemoryCache(new MemoryCacheOptions());
         var jobDataMap = context.JobDetail.JobDataMap;
         if (!jobDataMap.TryGetString("date", out var dateString))
         {
