@@ -1,4 +1,5 @@
-﻿using MarketViewer.Contracts.Enums;
+﻿using MarketViewer.Contracts.Converters;
+using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.ScanV2.Operands;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
@@ -6,6 +7,7 @@ using System.Text.Json.Serialization;
 namespace MarketViewer.Contracts.Models.ScanV2;
 
 [ExcludeFromCodeCoverage]
+[JsonConverter(typeof(FilterConverter))]
 public class FilterV2
 {
     public string CollectionModifier { get; set; }
