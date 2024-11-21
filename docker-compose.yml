@@ -5,16 +5,9 @@ services:
       context: ./src
       dockerfile: MarketViewer.Api.Dockerfile
     ports:
-      - '8000:80'
-      - '8001:443'
+      - '8000:8080'
     environment:
       - ASPNETCORE_ENVIRONMENT=dev
-      - ASPNETCORE_URLS=https://+;http://+
-      - ASPNETCORE_HTTPS_PORT='8001'
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/MarketViewer.Api.pfx
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
-    volumes:
-      - ${USERPROFILE}/.aspnet/https:/https:ro
     env_file:
       - ./src/MarketViewer.Api/dev.env
     networks:
@@ -25,18 +18,13 @@ services:
       context: ./src
       dockerfile: MarketViewer.Web.Dockerfile
       args:
-        - Environment=docker
+        - Environment=dev
     depends_on:
       - marketviewer-api
     ports:
-      - '8100:80'
-      - '8101:443'
+      - '8100:8080'
     environment:
       - ASPNETCORE_ENVIRONMENT=dev
-      - ASPNETCORE_URLS=https://+;http://+
-      - ASPNETCORE_HTTPS_PORT='8101'
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/MarketViewer.Api.pfx
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
     networks:
       - marketviewer
 
