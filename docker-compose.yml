@@ -4,14 +4,17 @@ services:
     build:
       context: ./src
       dockerfile: MarketViewer.Api.Dockerfile
-      args:
-        - PRIVATE_NUGET_REGISTRY=https://gitlab.com/api/v4/groups/66690872/-/packages/nuget/index.json
-        - PRIVATE_NUGET_REGISTRY_USER=rwitzlib
-        - PRIVATE_NUGET_REGISTRY_PASS=
     ports:
-      - '3001:8080'
+      - '8000:80'
+      - '8001:443'
     environment:
       - ASPNETCORE_ENVIRONMENT=dev
+      - ASPNETCORE_URLS=https://+;http://+
+      - ASPNETCORE_HTTPS_PORT='8001'
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/MarketViewer.Api.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
+    volumes:
+      - ${USERPROFILE}/.aspnet/https:/https:ro
     env_file:
       - ./src/MarketViewer.Api/dev.env
     networks:
@@ -22,18 +25,18 @@ services:
       context: ./src
       dockerfile: MarketViewer.Web.Dockerfile
       args:
-        - PRIVATE_NUGET_REGISTRY=https://gitlab.com/api/v4/groups/66690872/-/packages/nuget/index.json
-        - PRIVATE_NUGET_REGISTRY_USER=rwitzlib
-        - PRIVATE_NUGET_REGISTRY_PASS=
         - Environment=docker
     depends_on:
       - marketviewer-api
     ports:
-      - '3002:8080'
+      - '8100:80'
+      - '8101:443'
     environment:
       - ASPNETCORE_ENVIRONMENT=dev
-    env_file:
-      - ./src/MarketViewer.Web/dev.env
+      - ASPNETCORE_URLS=https://+;http://+
+      - ASPNETCORE_HTTPS_PORT='8101'
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/MarketViewer.Api.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
     networks:
       - marketviewer
 
