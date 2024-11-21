@@ -11,7 +11,10 @@ using MarketViewer.Application.Handlers;
 using MarketViewer.Contracts.Converters;
 using MarketViewer.Api.Binders;
 using System.Text.Json.Serialization;
-using MarketViewer.Contracts.Enums;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using MarketViewer.Api.Healthcheck;
+using System.Text.Json;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace MarketViewer.Api;
 
@@ -36,60 +39,17 @@ public class Program
         builder.Services.AddMediatR(q => q.RegisterServicesFromAssemblies(microserviceApplicationAssemblies))
             .AddAutoMapper(microserviceApplicationAssemblies)
             .AddMemoryCache()
-            .AddSignalR(); 
-        
-        builder.Services.AddQuartz()
+            .RegisterApplication()
+            .RegisterCore()
+            .RegisterInfrastructure(builder.Configuration)
+            .AddSignalR();
+
+        var jobs = builder.Services.AddQuartz()
             .AddQuartzHostedService(opt =>
             {
                 opt.WaitForJobsToComplete = true;
             })
-            .RegisterApplication()
-            .RegisterCore()
-            .RegisterInfrastructure(builder.Configuration);
-
-        var now = DateTimeOffset.Now;
-        var minuteStartTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 1, 0, now.Offset);
-        // Start at 9:01, 10:01, etc. to get the minute before: 9:00, 10:00, etc.
-        var hourStartTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.AddHours(1).Hour, 1, 1, 0, now.Offset);
-
-        var initJob = JobBuilder.Create<InitializeJob>()
-            .WithIdentity("ticker")
-            .UsingJobData("date", DateTimeOffset.Now.ToString())
-            .Build();
-
-        var snapshotMinuteJob = JobBuilder.Create<SnapshotJob>()
-            .WithIdentity("snapshotMinute")
-            .UsingJobData("timespan", Timespan.minute.ToString())
-            .Build();
-
-        var snapshotHourJob = JobBuilder.Create<SnapshotJob>()
-            .WithIdentity("snapshotHour")
-            .UsingJobData("timespan", Timespan.hour.ToString())
-            .Build();
-
-        var initTrigger = TriggerBuilder.Create()
-            .WithIdentity("trigger1")
-            .StartNow()
-            .ForJob(initJob)
-            .Build();
-        
-        var snapshopMinuteTrigger = TriggerBuilder.Create()
-            .WithIdentity("trigger2")
-            .StartAt(minuteStartTime)
-            .WithSimpleSchedule(schedule => schedule
-                .WithIntervalInMinutes(1)
-                .RepeatForever())
-            .ForJob(snapshotMinuteJob)
-            .Build();
-
-        var snapshotHourTrigger = TriggerBuilder.Create()
-            .WithIdentity("trigger3")
-            .StartAt(hourStartTime)
-            .WithSimpleSchedule(schedule => schedule
-                .WithIntervalInHours(1)
-                .RepeatForever())
-            .ForJob(snapshotHourJob)
-            .Build();
+            .RegisterMarketDataJobs();
 
         builder.Services.AddControllers(options =>
         {
@@ -105,18 +65,21 @@ public class Program
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
+        builder.Services.AddHealthChecks()
+            .AddCheck<PingHealthCheck>("Ping", tags: ["healthcheck"]);
 
         var app = builder.Build();
 
         var schedulerFactory = app.Services.GetRequiredService<ISchedulerFactory>();
         var scheduler = await schedulerFactory.GetScheduler();
 
-        await scheduler.ScheduleJob(initJob, initTrigger);
-        await scheduler.ScheduleJob(snapshotMinuteJob, snapshopMinuteTrigger);
-        await scheduler.ScheduleJob(snapshotHourJob, snapshotHourTrigger);
+        foreach (var (jobDetail, jobTrigger) in jobs)
+        {
+            await scheduler.ScheduleJob(jobDetail, jobTrigger);
+        }
 
         // Configure the HTTP request pipeline.
-        if (IsDevelopment(app.Environment.EnvironmentName))
+        if (app.Environment.IsEnvironment("dev") || app.Environment.IsEnvironment("local"))
         {
             app.UseSwagger();
             app.UseSwaggerUI();
@@ -129,6 +92,16 @@ public class Program
 
         app.UseHttpsRedirection();
 
+        app.MapHealthChecks("/health", new HealthCheckOptions
+        {
+            Predicate = q => q.Tags.Contains("healthcheck"),
+            ResponseWriter = async (context, report) =>
+            {
+                var result = report.Entries.All(check => check.Value.Status == HealthStatus.Healthy);
+                await context.Response.WriteAsync(result ? "Healthy" : "Unhealthy");
+            }
+        });
+
         app.UseWebSockets();
         app.UseRouting();
         app.UseAuthorization();
@@ -136,19 +109,5 @@ public class Program
         app.MapControllers();
 
         app.Run();
-    }
-
-    private static bool IsDevelopment(string environment)
-    {
-        return environment switch
-        {
-            "docker" => true,
-            "local" => true,
-            "dev" => true,
-            "qa" => false,
-            "cert" => false,
-            "prod" => false,
-            _ => false
-        };
     }
 }
