@@ -51,13 +51,13 @@ resource "aws_dynamodb_table" "user" {
   }
 
   attribute {
-    name = "Token"
+    name = "ApiKey"
     type = "S"
   }
 
   global_secondary_index {
-    name            = "TokenIndex"
-    hash_key        = "Token"
+    name            = "ApiKeyIndex"
+    hash_key        = "ApiKey"
     write_capacity  = 1
     read_capacity   = 1
     projection_type = "ALL"
