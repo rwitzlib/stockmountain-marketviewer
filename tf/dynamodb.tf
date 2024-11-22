@@ -37,6 +37,33 @@ resource "aws_dynamodb_table" "backtest" {
   }
 }
 
+
+resource "aws_dynamodb_table" "user" {
+  name           = "${var.team}-${var.environment}-${var.service_name}-user-store"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 1
+  write_capacity = 1
+  hash_key       = "Id"
+
+  attribute {
+    name = "Id"
+    type = "S"
+  }
+
+  attribute {
+    name = "Token"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "TokenIndex"
+    hash_key        = "Token"
+    write_capacity  = 1
+    read_capacity   = 1
+    projection_type = "ALL"
+  }
+}
+
 resource "aws_dynamodb_table" "trade" {
   name           = "${var.team}-${var.environment}-${var.service_name}-trade-store"
   billing_mode   = "PROVISIONED"
