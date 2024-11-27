@@ -10,6 +10,7 @@
 	<PackageReference Include="MarketDataProvider.Clients" Version="1.0.0" />
 	<PackageReference Include="Polly" Version="8.4.2" />
 	<PackageReference Include="Polly.Extensions" Version="8.4.2" />
+	<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.11" />
   </ItemGroup>
 
   <ItemGroup>

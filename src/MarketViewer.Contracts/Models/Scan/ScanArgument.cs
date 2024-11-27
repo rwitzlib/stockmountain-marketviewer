@@ -10,5 +10,5 @@ public class ScanArgument
 {
     public string Operator { get; set; }
     public List<FilterV2> Filters { get; set; }
-    public ScanArgument Argument { get; set; }
+    public ScanArgument? Argument { get; set; }
 }
