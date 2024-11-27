@@ -13,7 +13,6 @@ using MarketViewer.Api.Binders;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using MarketViewer.Api.Healthcheck;
-using System.Text.Json;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace MarketViewer.Api;
@@ -50,6 +49,12 @@ public class Program
                 opt.WaitForJobsToComplete = true;
             })
             .RegisterMarketDataJobs();
+
+        //var context = new DynamoDBContext(new AmazonDynamoDBClient());
+        //builder.Services.AddDbContext<DynamoDBContext>(options => options.use)
+
+        //builder.Services.AddIdentityApiEndpoints<IdentityUser>()
+        //    .add
 
         builder.Services.AddControllers(options =>
         {
@@ -102,11 +107,17 @@ public class Program
             }
         });
 
+        //app.MapIdentityApi<IdentityUser>();
+
         app.UseWebSockets();
         app.UseRouting();
+
+        //app.RegisterMiddleware();
+
         app.UseAuthorization();
         app.UseEndpoints(q => q.MapHub<ChatHub>("/chathub"));
         app.MapControllers();
+
 
         app.Run();
     }

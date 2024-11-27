@@ -1,0 +1,162 @@
+﻿@page "/tools/aggregateViewer"
+@using Amazon
+@using Amazon.S3
+@using Amazon.S3.Model
+@using Polygon.Client
+@using Polygon.Client.Models
+@using Polygon.Client.Requests
+@using Polygon.Client.Responses
+
+
+@inherits ComponentBase;
+
+<PageTitle>Aggregate Viewer</PageTitle>
+
+<div>
+    <MudTextField T="string" Label="S3 Key" Required="true" RequiredError="S3 Key Is Required." @bind-Value="_objectKey" />
+    <MudTextField T="string" Label="Timespan" Required="true" RequiredError="Timespan Is Required." @bind-Value="_timespan" />
+    <MudButton Variant="Variant.Filled" OnClick="SearchAggregateS3">Load</MudButton>
+    @if (_searching)
+    {
+        <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true" />
+    }
+</div>
+
+<MudGrid Spacing="6" Justify="Justify.Center" Style="overflow: auto">
+    <MudItem>
+        <MudTable T="StocksResponse" Items="@_s3StocksResponses" Hover="true" Striped="true" Virtualize="true" Filter="new Func<StocksResponse,bool>(FilterFunc1)"
+                  MultiSelection="true" SelectionChangeable="true" SelectedItems="_selectedItems" SelectOnRowClick="true" OnRowClick="SearchAggregatePolygon">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">S3 Aggregates</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh><MudTableSortLabel T="StocksResponse">Ticker</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel T="StocksResponse">Candles</MudTableSortLabel></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Ticker">@context.Ticker</MudTd>
+                <MudTd DataLabel="Count">@context.Results.Count()</MudTd>
+            </RowTemplate>
+            <ChildRowContent>
+                @if (_selectedItems.Any() && _selectedItems.First().Ticker == context.Ticker)
+                {
+                    <MudTr>
+                        <td colspan="4">
+                            <MudCard Elevation="0">
+                                <MudCardHeader>
+                                    <CardHeaderContent>
+                                        <MudText Typo="Typo.body1">Candles for <strong>@context.Ticker</strong></MudText>
+                                    </CardHeaderContent>
+                                </MudCardHeader>
+                                <MudCardContent Class="pa-0">
+                                    <MudTable Items="@context.Results" Context="CandleContext" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0" Height="350px">
+                                        <ColGroup>
+                                            <col />
+                                            <col />
+                                        </ColGroup>
+                                        <HeaderContent>
+                                            <MudTh><MudTableSortLabel SortLabel="timestamp" T="Bar">Timestamp</MudTableSortLabel></MudTh>
+                                            <MudTh><MudTableSortLabel SortLabel="close" T="Bar">Close</MudTableSortLabel></MudTh>
+                                        </HeaderContent>
+                                        <RowTemplate>
+                                            <MudTd DataLabel="Address Line 1">@DateTimeOffset.FromUnixTimeMilliseconds(CandleContext.Timestamp).ToOffset(TimeSpan.FromHours(-6))</MudTd>
+                                            <MudTd DataLabel="Address Line 2">@CandleContext.Close</MudTd>
+                                        </RowTemplate>
+                                    </MudTable>
+                                </MudCardContent>
+                            </MudCard>
+                        </td>
+                    </MudTr>
+                }
+            </ChildRowContent>
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
+        </MudTable>
+    </MudItem>
+    <MudItem Style="overflow: auto">
+        @if (_selectedItems.Any() && _polygonStocksResponse is not null)
+        {
+            <MudTable Items="@_polygonStocksResponse.Results" Hover="true" Striped="true">
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6">Polygon Aggregate for @_polygonStocksResponse.Ticker</MudText>
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh><MudTableSortLabel SortLabel="timestamp" T="Bar">Timestamp</MudTableSortLabel></MudTh>
+                    <MudTh><MudTableSortLabel SortLabel="close" T="Bar">Close</MudTableSortLabel></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Ticker">@DateTimeOffset.FromUnixTimeMilliseconds(context.Timestamp).ToOffset(TimeSpan.FromHours(-6))</MudTd>
+                    <MudTd DataLabel="Count">@context.Close</MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        }
+    </MudItem>
+</MudGrid>
+
+@code {
+    private string _searchString = "";
+    private HashSet<StocksResponse> _selectedItems = [];
+    private bool _searching = false;
+
+    private string _objectKey = "2024-11-26-h-stocks.json";
+    private string _timespan = "hour";
+    private List<StocksResponse> _s3StocksResponses = [];
+    private PolygonAggregateResponse _polygonStocksResponse = null;
+
+    private async Task SearchAggregateS3()
+    {
+        _searching = true;
+        StateHasChanged();
+        using var client = new HttpClient
+            {
+                BaseAddress = new Uri("https://localhost:7158")
+            };
+
+        var responses = await client.GetAsync($"api/tools/s3/lad-dev-marketviewer/{_objectKey}");
+
+        var json = await responses.Content.ReadAsStringAsync();
+
+        _s3StocksResponses = JsonSerializer.Deserialize<List<StocksResponse>>(json);
+        _searching = false;
+    }
+
+    private async Task SearchAggregatePolygon(TableRowClickEventArgs<StocksResponse> tableRowClickEventArgs)
+    {
+        if (tableRowClickEventArgs.Item is null)
+        {
+            return;
+        }
+
+        _searching = true;
+        StateHasChanged();
+        var client = new PolygonClient("l579VMLmo01f1BkAK9kBP8WF0myHGQMK");
+
+        _polygonStocksResponse = await client.GetAggregates(new PolygonAggregateRequest
+        {
+            Ticker = tableRowClickEventArgs.Item.Ticker,
+            Multiplier = 1,
+            Timespan = "hour",
+            From = _timespan is "hour" ? "2024-09-20" : "2024-11-25",
+            To = "2024-11-26"
+        });
+
+        _searching = false;
+    }
+
+    private bool FilterFunc1(StocksResponse element) => FilterFunc(element, _searchString);
+
+    private bool FilterFunc(StocksResponse element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Ticker.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+}

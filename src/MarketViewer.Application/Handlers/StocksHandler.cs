@@ -18,6 +18,7 @@ public class StocksHandler(IMarketDataRepository repository) : IRequestHandler<S
 {
     public async Task<OperationResult<StocksResponse>> Handle(StocksRequest request, CancellationToken cancellationToken)
     {
+        
         if (!ValidateAggregateRequest(request, out var errorMessages))
         {
             return new OperationResult<StocksResponse>

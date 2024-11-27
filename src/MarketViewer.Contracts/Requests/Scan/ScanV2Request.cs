@@ -11,6 +11,7 @@ namespace MarketViewer.Contracts.Requests.Scan;
 [ExcludeFromCodeCoverage]
 public class ScanV2Request : IRequest<OperationResult<ScanResponse>>
 {
-    public ScanArgument Argument { get; set; }
-    public DateTimeOffset Timestamp { get; set; }
+    public ScanArgument? Argument { get; set; }
+    public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.Now;
+    public List<string>? Tickers { get; set; }
 }

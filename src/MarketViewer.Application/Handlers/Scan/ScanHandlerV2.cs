@@ -54,6 +54,11 @@ public class ScanHandlerV2(
                 };
             }
 
+            if (request.Tickers?.Count > 0)
+            {
+                stocksResponseCollection = stocksResponseCollection.FilterByTicker(request.Tickers);
+            }
+
             var items = await ApplyScanToArgument(request.Argument, stocksResponseCollection);
 
             sp.Stop();
