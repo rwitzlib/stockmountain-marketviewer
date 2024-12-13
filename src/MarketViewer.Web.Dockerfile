@@ -23,4 +23,3 @@ COPY ./$PROJECT_DIRECTORY/nginx.conf /etc/nginx/nginx.conf
 RUN sed -i "s/replaceme/${Environment}/" /etc/nginx/nginx.conf
 
 EXPOSE 8080
-EXPOSE 443
