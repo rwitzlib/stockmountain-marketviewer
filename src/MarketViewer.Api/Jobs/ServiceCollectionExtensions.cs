@@ -30,6 +30,7 @@ public static class ServiceCollectionExtensions
         var snapshotMinuteJob = JobBuilder.Create<SnapshotJob>()
             .WithIdentity("snapshotMinute")
             .UsingJobData("timespan", Timespan.minute.ToString())
+            .StoreDurably(true)
             .Build();
 
         var snapshotMinuteTrigger = TriggerBuilder.Create()
@@ -46,6 +47,7 @@ public static class ServiceCollectionExtensions
         var snapshotHourJob = JobBuilder.Create<SnapshotJob>()
             .WithIdentity("snapshotHour")
             .UsingJobData("timespan", Timespan.hour.ToString())
+            .StoreDurably(true)
             .Build();
 
         var snapshotHourTrigger = TriggerBuilder.Create()
