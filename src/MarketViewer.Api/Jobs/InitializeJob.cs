@@ -9,12 +9,10 @@ using Quartz;
 using System.Diagnostics;
 using System.Text.Json;
 using Polygon.Client.Interfaces;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace MarketViewer.Api.Jobs;
 
 public class InitializeJob(
-    IMemoryCache _memoryCache,
     MarketCache _marketCache,
     IAmazonS3 _amazonS3Client,
     IPolygonClient _polygonClient,
@@ -23,8 +21,6 @@ public class InitializeJob(
 {
     public async Task Execute(IJobExecutionContext context)
     {
-        //_memoryCache.Dispose();
-        //_memoryCache = new MemoryCache(new MemoryCacheOptions());
         var jobDataMap = context.JobDetail.JobDataMap;
         if (!jobDataMap.TryGetString("date", out var dateString))
         {
@@ -55,6 +51,46 @@ public class InitializeJob(
         catch (Exception ex)
         {
             _logger.LogError("Error populating data: {message}", ex.Message);
+        }
+        finally
+        {
+            var now = DateTimeOffset.Now;
+            var minuteStartTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 1, 0, now.Offset);
+            // Start at 9:01, 10:01, etc. to get the minute before: 9:00, 10:00, etc.
+            var hourStartTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.AddHours(1).Hour, 1, 1, 0, now.Offset);
+
+            var snapshotMinuteJob = JobBuilder.Create<SnapshotJob>()
+            .WithIdentity("SnapshotMinute")
+            .UsingJobData("timespan", Timespan.minute.ToString())
+            .StoreDurably(true)
+            .Build();
+
+            var snapshotMinuteTrigger = TriggerBuilder.Create()
+                .WithIdentity("SnapshotMinuteTrigger")
+                .WithSimpleSchedule(schedule => schedule
+                    .WithIntervalInMinutes(1)
+                    .RepeatForever())
+                .ForJob(snapshotMinuteJob)
+                .StartAt(minuteStartTime)
+                .Build();
+
+            var snapshotHourJob = JobBuilder.Create<SnapshotJob>()
+                .WithIdentity("SnapshotHour")
+                .UsingJobData("timespan", Timespan.hour.ToString())
+                .StoreDurably(true)
+                .Build();
+
+            var snapshotHourTrigger = TriggerBuilder.Create()
+                .WithIdentity("SnapshotHourTrigger")
+                .WithSimpleSchedule(schedule => schedule
+                    .WithIntervalInHours(1)
+                    .RepeatForever())
+                .ForJob(snapshotHourJob)
+                .StartAt(hourStartTime)
+                .Build();
+
+            await context.Scheduler.ScheduleJob(snapshotMinuteJob, snapshotMinuteTrigger);
+            await context.Scheduler.ScheduleJob(snapshotHourJob, snapshotHourTrigger);
         }
     }
 

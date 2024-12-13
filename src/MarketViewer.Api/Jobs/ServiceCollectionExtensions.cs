@@ -1,5 +1,6 @@
 ﻿using Quartz;
 using MarketViewer.Contracts.Enums;
+using Quartz.Listener;
 
 namespace MarketViewer.Api.Jobs;
 
@@ -9,13 +10,10 @@ public static class ServiceCollectionExtensions
     {
         List<(IJobDetail, ITrigger)> jobs = [];
 
-        var now = DateTimeOffset.Now;
-        var minuteStartTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 1, 0, now.Offset);
-        // Start at 9:01, 10:01, etc. to get the minute before: 9:00, 10:00, etc.
-        var hourStartTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.AddHours(1).Hour, 1, 1, 0, now.Offset);
+        var initJobKey = JobKey.Create("InitJob", "Pipeline");
 
         var initJob = JobBuilder.Create<InitializeJob>()
-            .WithIdentity("ticker")
+            .WithIdentity(initJobKey)
             .UsingJobData("date", DateTimeOffset.Now.ToString())
             .Build();
 
@@ -26,40 +24,6 @@ public static class ServiceCollectionExtensions
             .Build();
 
         jobs.Add((initJob, initTrigger));
-
-        var snapshotMinuteJob = JobBuilder.Create<SnapshotJob>()
-            .WithIdentity("snapshotMinute")
-            .UsingJobData("timespan", Timespan.minute.ToString())
-            .StoreDurably(true)
-            .Build();
-
-        var snapshotMinuteTrigger = TriggerBuilder.Create()
-            .WithIdentity("snapshotMinuteTrigger")
-            .StartAt(minuteStartTime)
-            .WithSimpleSchedule(schedule => schedule
-                .WithIntervalInMinutes(1)
-                .RepeatForever())
-            .ForJob(snapshotMinuteJob)
-            .Build();
-
-        jobs.Add((snapshotMinuteJob, snapshotMinuteTrigger));
-
-        var snapshotHourJob = JobBuilder.Create<SnapshotJob>()
-            .WithIdentity("snapshotHour")
-            .UsingJobData("timespan", Timespan.hour.ToString())
-            .StoreDurably(true)
-            .Build();
-
-        var snapshotHourTrigger = TriggerBuilder.Create()
-            .WithIdentity("snapshotHourTrigger")
-            .StartAt(hourStartTime)
-            .WithSimpleSchedule(schedule => schedule
-                .WithIntervalInHours(1)
-                .RepeatForever())
-            .ForJob(snapshotHourJob)
-            .Build();
-
-        jobs.Add((snapshotHourJob, snapshotHourTrigger));
 
         return jobs;
     }
