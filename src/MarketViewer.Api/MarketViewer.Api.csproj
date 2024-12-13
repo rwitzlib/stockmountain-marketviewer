@@ -8,9 +8,13 @@
 
   <ItemGroup>
     <Compile Remove="Clients\**" />
+    <Compile Remove="Converters\**" />
     <Content Remove="Clients\**" />
+    <Content Remove="Converters\**" />
     <EmbeddedResource Remove="Clients\**" />
+    <EmbeddedResource Remove="Converters\**" />
     <None Remove="Clients\**" />
+    <None Remove="Converters\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -35,10 +39,6 @@
     <None Update="docker.env">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Converters\" />
   </ItemGroup>
 
   <ItemGroup>

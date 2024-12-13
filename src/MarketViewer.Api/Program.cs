@@ -13,7 +13,6 @@ using MarketViewer.Api.Binders;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using MarketViewer.Api.Healthcheck;
-using System.Text.Json;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace MarketViewer.Api;
@@ -25,10 +24,9 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        DotNetEnv.Env.Load($"{builder.Environment.EnvironmentName}.env");
+        DotNetEnv.Env.Load($"../../../../{builder.Environment.EnvironmentName}.env");
         builder.Configuration.AddEnvironmentVariables();
 
-        // Add services to the container.
         var microserviceApplicationAssemblies = new[]
         {
             typeof(StocksHandler).Assembly,
