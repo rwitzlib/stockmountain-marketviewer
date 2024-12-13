@@ -79,7 +79,7 @@ public class MovingAverageConvergenceDivergence : Study<MovingAverageConvergence
             var signalOffsetIndex = SlowWeight - 1;
             var signalValue = Type.ToLowerInvariant() switch
             {
-                "sma" => macdValues.ToList().GetRange(i - signalOffsetIndex, SignalWeight).Sum() / SignalWeight,
+                "sma" => GetSimpleMovingAverage(macdValues, i - signalOffsetIndex, SignalWeight),
                 "ema" => GetExponentialMovingAverage(macdValues, signalValues, i - signalOffsetIndex, SignalWeight),
                 "wilders" => GetWildersMovingAverage(macdValues, signalValues, i - signalOffsetIndex, SignalWeight),
                 _ => throw new NotImplementedException()
