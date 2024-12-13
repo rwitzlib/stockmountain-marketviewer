@@ -21,7 +21,6 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection RegisterInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-
         var redisUrl = configuration.GetSection("Urls").GetValue<string>("RedisUrl");
         var marketDataProviderUrl = configuration.GetSection("Urls").GetValue<string>("MarketDataProviderUrl");
         var token = configuration.GetSection("Tokens").GetValue<string>("PolygonApi");
@@ -43,14 +42,14 @@ public static class ServiceCollectionExtensions
             client.BaseAddress = new Uri(marketDataProviderUrl);
         });
 
-        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").Equals("Local"))
-        {
-            services.AddTransient<IMarketDataRepository, MockAggregateService>();
-        }
-        else
-        {
+        //if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").Equals("Local"))
+        //{
+        //    services.AddTransient<IMarketDataRepository, MockAggregateService>();
+        //}
+        //else
+        //{
             services.AddTransient<IMarketDataRepository, MarketDataRepository>();
-        }
+        //}
 
         return services;
     }
