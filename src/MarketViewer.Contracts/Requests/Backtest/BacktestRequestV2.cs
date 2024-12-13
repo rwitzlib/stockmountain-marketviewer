@@ -1,7 +1,7 @@
 ﻿using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Models.Backtest;
-using MarketViewer.Contracts.Models.ScanV2;
+using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Responses.Backtest;
 using MediatR;
 using System.Diagnostics.CodeAnalysis;

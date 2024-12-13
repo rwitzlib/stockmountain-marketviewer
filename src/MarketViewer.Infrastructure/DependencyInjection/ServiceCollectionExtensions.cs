@@ -21,7 +21,6 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection RegisterInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-
         var redisUrl = configuration.GetSection("Urls").GetValue<string>("RedisUrl");
         var marketDataProviderUrl = configuration.GetSection("Urls").GetValue<string>("MarketDataProviderUrl");
         var token = configuration.GetSection("Tokens").GetValue<string>("PolygonApi");
