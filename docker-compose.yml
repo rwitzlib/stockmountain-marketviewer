@@ -1,33 +1,34 @@
 name: marketviewer
 services:
   marketviewer-api:
+    container_name: marketviewer-backend
     build:
       context: ./src
       dockerfile: MarketViewer.Api.Dockerfile
     ports:
-      - '8000:8080'
+      - '7158:8080'
     environment:
-      - ASPNETCORE_ENVIRONMENT=dev
+      - ASPNETCORE_ENVIRONMENT=docker
     env_file:
-      - ./src/MarketViewer.Api/dev.env
+      - ../../docker.env
     networks:
       - marketviewer
   
   marketviewer-web:
+    container_name: marketviewer-frontend
     build:
       context: ./src
       dockerfile: MarketViewer.Web.Dockerfile
-      args:
-        - Environment=dev
     depends_on:
       - marketviewer-api
     ports:
-      - '8100:8080'
+      - '7025:8080'
     environment:
-      - ASPNETCORE_ENVIRONMENT=dev
+      - ASPNETCORE_ENVIRONMENT=docker
     networks:
       - marketviewer
 
 networks:
   marketviewer:
     name: marketviewer
+    driver: bridge

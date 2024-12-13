@@ -1,37 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace MarketViewer.Infrastructure
+namespace MarketViewer.Infrastructure;
+
+public static class DateUtilities
 {
-    public static class DateUtilities
+    public static List<DateTime> GetMarketOpenDays(DateTimeOffset start, DateTimeOffset end)
     {
-        public static List<DateTime> GetMarketOpenDays(DateTimeOffset start, DateTimeOffset end)
+        var dates = new List<DateTime>();
+
+        var days = (end.Date - start.Date).Days;
+
+        for (int i = 0; i <= days; i++)
         {
-            var dates = new List<DateTime>();
+            var currentDay = start.AddDays(i).Date;
 
-            var days = (end.Date - start.Date).Days;
-
-            for (int i = 0; i <= days; i++)
+            if (currentDay.DayOfWeek != DayOfWeek.Saturday && currentDay.DayOfWeek != DayOfWeek.Sunday)
             {
-                var currentDay = start.AddDays(i).Date;
-
-                if (currentDay.DayOfWeek != DayOfWeek.Saturday && currentDay.DayOfWeek != DayOfWeek.Sunday)
-                {
-                    dates.Add(currentDay);
-                }
+                dates.Add(currentDay);
             }
-
-            return dates;
         }
 
-        public static DateTimeOffset EndOfDay(this DateTimeOffset date)
-        {
-            return new DateTimeOffset(date.Year, date.Month, date.Day, 23, 59, 0, date.Offset);
-        }
+        return dates;
+    }
 
-        public static DateTimeOffset StartOfDay(this DateTimeOffset date)
-        {
-            return new DateTimeOffset(date.Year, date.Month, date.Day, 0, 0, 0, date.Offset);
-        }
+    public static DateTimeOffset EndOfDay(this DateTimeOffset date)
+    {
+        return new DateTimeOffset(date.Year, date.Month, date.Day, 23, 59, 0, date.Offset);
+    }
+
+    public static DateTimeOffset StartOfDay(this DateTimeOffset date)
+    {
+        return new DateTimeOffset(date.Year, date.Month, date.Day, 0, 0, 0, date.Offset);
     }
 }

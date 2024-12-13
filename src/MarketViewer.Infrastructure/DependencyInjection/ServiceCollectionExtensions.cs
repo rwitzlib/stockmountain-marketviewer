@@ -42,14 +42,14 @@ public static class ServiceCollectionExtensions
             client.BaseAddress = new Uri(marketDataProviderUrl);
         });
 
-        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").Equals("Local"))
-        {
-            services.AddTransient<IMarketDataRepository, MockAggregateService>();
-        }
-        else
-        {
+        //if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").Equals("Local"))
+        //{
+        //    services.AddTransient<IMarketDataRepository, MockAggregateService>();
+        //}
+        //else
+        //{
             services.AddTransient<IMarketDataRepository, MarketDataRepository>();
-        }
+        //}
 
         return services;
     }

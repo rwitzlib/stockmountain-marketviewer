@@ -88,8 +88,6 @@ public class Program
            .AllowAnyMethod()
            .AllowAnyHeader());
 
-        app.UseHttpsRedirection();
-
         app.MapHealthChecks("/health", new HealthCheckOptions
         {
             Predicate = q => q.Tags.Contains("healthcheck"),
