@@ -8,6 +8,7 @@ using MarketViewer.Application.Handlers.Backtest;
 using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.Backtest;
+using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Models.ScanV2;
 using MarketViewer.Contracts.Requests.Backtest;
 using MarketViewer.Contracts.Responses.Backtest;

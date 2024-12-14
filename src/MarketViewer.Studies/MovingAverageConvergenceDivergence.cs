@@ -76,12 +76,12 @@ public class MovingAverageConvergenceDivergence : Study<MovingAverageConvergence
                 continue;
             }
 
-            var signalOffsetIndex = (SlowWeight - 1) + (SignalWeight - 1);
+            var signalOffsetIndex = SlowWeight - 1;
             var signalValue = Type.ToLowerInvariant() switch
             {
-                "sma" => macdValues.ToList().GetRange(i - signalOffsetIndex, SignalWeight).Sum() / SignalWeight,
-                "ema" => GetExponentialMovingAverage(candles, signalValues, i, SignalWeight),
-                "wilders" => GetWildersMovingAverage(candles, signalValues, i, SignalWeight),
+                "sma" => GetSimpleMovingAverage(macdValues, i - signalOffsetIndex, SignalWeight),
+                "ema" => GetExponentialMovingAverage(macdValues, signalValues, i - signalOffsetIndex, SignalWeight),
+                "wilders" => GetWildersMovingAverage(macdValues, signalValues, i - signalOffsetIndex, SignalWeight),
                 _ => throw new NotImplementedException()
             };
             signalValues.Add(signalValue);
@@ -162,6 +162,13 @@ public class MovingAverageConvergenceDivergence : Study<MovingAverageConvergence
         return value;
     }
 
+    private static float GetSimpleMovingAverage(IEnumerable<float> candles, int index, int weight)
+    {
+        var value = candles.ToList().GetRange(index - (weight - 1), weight).Sum(q => q) / weight;
+
+        return value;
+    }
+
     private static float GetExponentialMovingAverage(IEnumerable<Bar> candles, List<float> series, int index, int weight)
     {
         if (!series.Any())
@@ -176,6 +183,20 @@ public class MovingAverageConvergenceDivergence : Study<MovingAverageConvergence
         return value;
     }
 
+    private static float GetExponentialMovingAverage(IEnumerable<float> candles, List<float> series, int index, int weight)
+    {
+        if (!series.Any())
+        {
+            return GetSimpleMovingAverage(candles, index, weight);
+        }
+
+        var smoothingFactor = 2f / (weight + 1);
+
+        var value = (candles.ToArray()[index] * smoothingFactor) + (series.Last() * (1 - smoothingFactor));
+
+        return value;
+    }
+
     private static float GetWildersMovingAverage(IEnumerable<Bar> candles, List<float> series, int index, int weight)
     {
         if (!series.Any())
@@ -186,6 +207,20 @@ public class MovingAverageConvergenceDivergence : Study<MovingAverageConvergence
         var smoothingFactor = 1f / weight;
 
         var value = (candles.ToArray()[index].Close * smoothingFactor) + (series.Last() * (1 - smoothingFactor));
+
+        return value;
+    }
+
+    private static float GetWildersMovingAverage(IEnumerable<float> candles, List<float> series, int index, int weight)
+    {
+        if (!series.Any())
+        {
+            return GetSimpleMovingAverage(candles, index, weight);
+        }
+
+        var smoothingFactor = 1f / weight;
+
+        var value = (candles.ToArray()[index] * smoothingFactor) + (series.Last() * (1 - smoothingFactor));
 
         return value;
     }
