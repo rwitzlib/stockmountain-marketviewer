@@ -1,4 +1,4 @@
-﻿using MarketViewer.Contracts.Models.ScanV2;
+﻿using MarketViewer.Contracts.Models.Scan;
 
 namespace MarketViewer.Web.Models;
 

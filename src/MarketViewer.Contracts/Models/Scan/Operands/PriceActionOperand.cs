@@ -1,4 +1,5 @@
 ﻿using MarketViewer.Contracts.Enums;
+using MarketViewer.Contracts.Enums.Scan;
 using MarketViewer.Contracts.Models.ScanV2.Operands;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
