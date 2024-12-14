@@ -9,12 +9,12 @@ using Moq.AutoMock;
 using System.Text.Json;
 using System.Net;
 using Microsoft.Extensions.Logging.Abstractions;
-using MarketViewer.Core.Scanner;
 using MarketViewer.Core.ScanV2;
 using MarketViewer.Contracts.Requests.Scan;
 using MarketViewer.Contracts.Models.ScanV2;
 using MarketViewer.Contracts.Enums.Scan;
 using MarketViewer.Application.Handlers.Scan;
+using MarketViewer.Core.Scan;
 
 namespace MarketViewer.Application.UnitTests.Handlers
 {

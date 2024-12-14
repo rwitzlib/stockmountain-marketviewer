@@ -1,10 +1,11 @@
-﻿using MarketViewer.Contracts.Enums;
+﻿using MarketViewer.Contracts.Enums.Scan;
 using MarketViewer.Contracts.Models.ScanV2;
+using MarketViewer.Core.Scan.Filters;
 using MarketViewer.Core.Scanner.Filters;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MarketViewer.Core.Scanner
+namespace MarketViewer.Core.Scan
 {
     [ExcludeFromCodeCoverage]
     public class ScanFilterFactory(IServiceProvider serviceProvider)
