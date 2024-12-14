@@ -1,10 +1,11 @@
 using MarketViewer.Contracts.Enums.Scan;
 using MarketViewer.Contracts.Models.ScanV2;
 using MarketViewer.Contracts.Responses;
+using MarketViewer.Core.Scanner.Filters;
 using MarketViewer.Studies;
 using Microsoft.Extensions.Logging;
 
-namespace MarketViewer.Core.Scanner.Filters
+namespace MarketViewer.Core.Scan.Filters
 {
     public class PriceFilter(ILogger<PriceFilter> logger) : IFilter
     {
@@ -29,13 +30,13 @@ namespace MarketViewer.Core.Scanner.Filters
                     _ => false,
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError($"Error filtering by Price on {response.Ticker}: {ex.Message}");
                 return false;
             }
         }
-        
+
         protected static bool FilterByValue(Filter filter, StocksResponse response)
         {
             var candleData = response.Results;

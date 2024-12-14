@@ -1,9 +1,10 @@
 ﻿using MarketViewer.Contracts.Enums.Scan;
 using MarketViewer.Contracts.Models.ScanV2;
 using MarketViewer.Contracts.Responses;
+using MarketViewer.Core.Scanner.Filters;
 using Microsoft.Extensions.Logging;
 
-namespace MarketViewer.Core.Scanner.Filters
+namespace MarketViewer.Core.Scan.Filters
 {
     public class VolumeFilter(ILogger<VolumeFilter> logger) : IFilter
     {
@@ -36,7 +37,7 @@ namespace MarketViewer.Core.Scanner.Filters
                 return false;
             }
         }
-        
+
         protected static bool FilterByValue(Filter filter, StocksResponse response)
         {
             var candleData = response.Results;

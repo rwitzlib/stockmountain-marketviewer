@@ -1,5 +1,5 @@
 ﻿using MarketViewer.Contracts.Models.Backtest;
-using MarketViewer.Contracts.Models.ScanV2;
+using MarketViewer.Contracts.Models.Scan;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MarketViewer.Contracts.Requests.Backtest;
