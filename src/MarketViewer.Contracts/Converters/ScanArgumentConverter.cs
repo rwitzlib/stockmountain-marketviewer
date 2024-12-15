@@ -18,15 +18,28 @@ public class ScanArgumentConverter : JsonConverter<ScanArgument>
 
     public override void Write(Utf8JsonWriter writer, ScanArgument value, JsonSerializerOptions options)
     {
-        if (value is null)
+        writer.WriteStartObject();
+
+        writer.WriteString("Operator", value.Operator);
+
+        if (value.Filters is not null)
         {
-            writer.WriteNullValue();
+            writer.WritePropertyName("Filters");
+            writer.WriteStartArray();
+            foreach (var filter in value.Filters)
+            {
+                JsonSerializer.Serialize(writer, filter, options);
+            }
+            writer.WriteEndArray();
         }
-        else
+
+        if (value.Argument is not null)
         {
-            var json = JsonSerializer.Serialize(value, options);
-            writer.WriteRawValue(json);
+            writer.WritePropertyName("Argument");
+            JsonSerializer.Serialize(writer, value.Argument, options);
         }
+
+        writer.WriteEndObject();
     }
 
     private static ScanArgument ParseArgument(JsonElement jsonElement, JsonSerializerOptions options)

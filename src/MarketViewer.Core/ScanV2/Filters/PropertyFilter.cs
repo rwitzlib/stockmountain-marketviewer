@@ -1,5 +1,5 @@
 ﻿using MarketViewer.Contracts.Caching;
-using MarketViewer.Contracts.Models.ScanV2;
+using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Models.ScanV2.Operands;
 using MarketViewer.Contracts.Responses;
 
