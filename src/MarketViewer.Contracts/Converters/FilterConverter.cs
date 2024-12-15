@@ -1,4 +1,5 @@
-﻿using MarketViewer.Contracts.Enums.Scan;
+﻿using Amazon.DynamoDBv2;
+using MarketViewer.Contracts.Enums.Scan;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Models.ScanV2;
 using MarketViewer.Contracts.Models.ScanV2.Operands;
@@ -22,15 +23,68 @@ public class FilterConverter : JsonConverter<FilterV2>
 
     public override void Write(Utf8JsonWriter writer, FilterV2 value, JsonSerializerOptions options)
     {
-        if (value is null)
+        writer.WriteStartObject();
+
+        if (value.CollectionModifier is not null)
         {
-            writer.WriteNullValue();
+            writer.WriteString("CollectionModifier", value.CollectionModifier);
         }
-        else
+
+        if (value.FirstOperand is not null)
         {
-            var json = JsonSerializer.Serialize(value, options);
-            writer.WriteRawValue(json);
+            writer.WritePropertyName("FirstOperand");
+
+            switch (value.FirstOperand)
+            {
+                case FixedOperand:
+                    JsonSerializer.Serialize(writer, value.FirstOperand as FixedOperand, options);
+                    break;
+                case PriceActionOperand:
+                    JsonSerializer.Serialize(writer, value.FirstOperand as PriceActionOperand, options);
+                    break;
+                case PropertyOperand:
+                    JsonSerializer.Serialize(writer, value.FirstOperand as PropertyOperand, options);
+                    break;
+                case StudyOperand:
+                    JsonSerializer.Serialize(writer, value.FirstOperand as StudyOperand, options);
+                    break;
+                default:
+                    break;
+            }
         }
+
+        writer.WriteString("Operator", value.Operator.ToString());
+
+        if (value.SecondOperand is not null)
+        {
+            writer.WritePropertyName("SecondOperand");
+
+            switch (value.SecondOperand)
+            {
+                case FixedOperand:
+                    JsonSerializer.Serialize(writer, value.SecondOperand as FixedOperand, options);
+                    break;
+                case PriceActionOperand:
+                    JsonSerializer.Serialize(writer, value.SecondOperand as PriceActionOperand, options);
+                    break;
+                case PropertyOperand:
+                    JsonSerializer.Serialize(writer, value.SecondOperand as PropertyOperand, options);
+                    break;
+                case StudyOperand:
+                    JsonSerializer.Serialize(writer, value.SecondOperand as StudyOperand, options);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        if (value.Timeframe is not null)
+        {
+            writer.WritePropertyName("Timeframe");
+            JsonSerializer.Serialize(writer, value.Timeframe, options);
+        }
+
+        writer.WriteEndObject();
     }
 
     public static FilterV2 ParseFilter(JsonElement jsonElement, JsonSerializerOptions options)

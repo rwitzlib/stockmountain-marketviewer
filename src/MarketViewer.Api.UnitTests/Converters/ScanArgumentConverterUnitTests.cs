@@ -19,7 +19,7 @@ public class ScanArgumentConverterUnitTests
 {
     private readonly JsonSerializerOptions _options = new JsonSerializerOptions
     {
-        
+        PropertyNameCaseInsensitive = true
     };
 
     public ScanArgumentConverterUnitTests()
