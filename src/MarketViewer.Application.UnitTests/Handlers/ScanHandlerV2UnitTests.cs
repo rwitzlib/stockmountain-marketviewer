@@ -22,7 +22,7 @@ namespace MarketViewer.Application.UnitTests.Handlers;
 public class ScanHandlerV2UnitTests
 {
     private readonly ScanHandlerV2 _classUnderTest;
-    private readonly MarketCache _marketCache;
+    private readonly MemoryMarketCache _marketCache;
     private readonly LiveCache _liveCache;
     private readonly HistoryCache _historyCache;
 
@@ -31,7 +31,7 @@ public class ScanHandlerV2UnitTests
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
         var s3Client = new AmazonS3Client(RegionEndpoint.USEast2);
 
-        _marketCache = new MarketCache(memoryCache, s3Client);
+        _marketCache = new MemoryMarketCache(memoryCache, s3Client);
         _liveCache = new LiveCache(_marketCache, new NullLogger<LiveCache>());
         _historyCache = new HistoryCache(_marketCache, new NullLogger<HistoryCache>());
 

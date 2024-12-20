@@ -13,7 +13,7 @@ namespace MarketViewer.Api.Controllers
 {
     [ApiController]
     [Route("api/scan")]
-    public class ScanController(IAmazonS3 s3Client, MarketCache _marketCache, ILogger<ScanController> _logger, IMediator _mediator) : ControllerBase
+    public class ScanController(IAmazonS3 s3Client, MemoryMarketCache _marketCache, ILogger<ScanController> _logger, IMediator _mediator) : ControllerBase
     {
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]

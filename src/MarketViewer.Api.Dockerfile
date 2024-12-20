@@ -16,4 +16,10 @@ EXPOSE 443
 
 COPY --from=publish /src/publish/* .
 
+RUN apk update \
+    && apk upgrade \
+    && apk add --no-cache tzdata
+
+ENV TZ="America/New_York"
+
 ENTRYPOINT ["dotnet", "MarketViewer.Api.dll"]
