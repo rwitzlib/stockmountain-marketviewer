@@ -8,7 +8,7 @@ using System.Diagnostics;
 namespace MarketViewer.Api.Jobs;
 
 public class SnapshotJob(
-    MarketCache _marketCache,
+    IMarketCache _marketCache,
     IPolygonClient _polygonClient,
     ILogger<SnapshotJob> _logger) : IJob
 {

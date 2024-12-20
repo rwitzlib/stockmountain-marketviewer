@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,10 +27,10 @@ public class BacktestHandlerV3(
     IDynamoDBContext _dbContext,
     IAmazonS3 _s3Client,
     BacktestService _backtestService,
-    MarketCache _marketCache,
+    MemoryMarketCache _marketCache,
     ILogger<BacktestHandlerV3> _logger) : IRequestHandler<BacktestRequestV3, OperationResult<BacktestResponseV3>>
 {
-    private readonly TimeZoneInfo _marketTimeZone = TimeZoneInfo.FindSystemTimeZoneById("CST");
+    private readonly TimeZoneInfo _marketTimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
 
     public async Task<OperationResult<BacktestResponseV3>> Handle(BacktestRequestV3 request, CancellationToken cancellationToken)
     {
@@ -70,9 +69,9 @@ public class BacktestHandlerV3(
 
             foreach (var day in dayRange)
             {
-                var offset = _marketTimeZone.IsDaylightSavingTime(day.Date) ? TimeSpan.FromHours(-5) : TimeSpan.FromHours(-6);
-                var marketOpen = new DateTimeOffset(day.Year, day.Month, day.Day, 8, 30, 0, offset);
-                var marketClose = new DateTimeOffset(day.Year, day.Month, day.Day, 15, 0, 0, offset);
+                var offset = _marketTimeZone.IsDaylightSavingTime(day.Date) ? TimeSpan.FromHours(-4) : TimeSpan.FromHours(-5);
+                var marketOpen = new DateTimeOffset(day.Year, day.Month, day.Day, 9, 30, 0, offset);
+                var marketClose = new DateTimeOffset(day.Year, day.Month, day.Day, 16, 0, 0, offset);
 
                 var entry = validEntries.FirstOrDefault(q => q.Date == day.Date);
 
@@ -102,6 +101,15 @@ public class BacktestHandlerV3(
                 for (int i = 0; i < (marketClose - marketOpen).TotalMinutes; i++)
                 {
                     var currentTime = marketOpen.AddMinutes(i);
+
+                    if (day.Date.ToString("yyyy-MM-dd") == "2024-10-05")
+                    {
+                        if (currentTime.ToString("hh:mm") == "09:31")
+                        {
+
+                        }
+                    }
+
 
                     SellPositionIfApplicable("hold", holdOpenPositions, currentTime, ref availableFundsHold, backtestEntryDay);
                     if (request.Exit.Other is not null)
@@ -190,7 +198,7 @@ public class BacktestHandlerV3(
             {
                 Id = request.Id,
                 CustomerId = Guid.Empty.ToString(),
-                Date = DateTimeOffset.Now.ToString("yyyy-MM-dd hh:mm z"),
+                CreatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd hh:mm z"),
                 CreditsUsed = validEntries.Where(result => result is not null).Sum(result => result.CreditsUsed),
                 HoldProfit = response.Data.Hold.SumProfit,
                 HighProfit = response.Data.High.SumProfit,
@@ -258,6 +266,10 @@ public class BacktestHandlerV3(
     {
         List<BacktestEntryResultCollection> positionsToRemove = [];
 
+        if (timestamp.Date.ToString("yyyy-MM-dd") == "2024-09-04")
+        {
+
+        }
         var positionsToSell = type.ToLowerInvariant() switch
         {
             "hold" => openPositions.Where(position => position.Hold.SoldAt == timestamp),

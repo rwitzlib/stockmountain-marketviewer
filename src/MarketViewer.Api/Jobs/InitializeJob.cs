@@ -13,7 +13,7 @@ using Polygon.Client.Interfaces;
 namespace MarketViewer.Api.Jobs;
 
 public class InitializeJob(
-    MarketCache _marketCache,
+    IMarketCache _marketCache,
     IAmazonS3 _amazonS3Client,
     IPolygonClient _polygonClient,
     IMapper _mapper,

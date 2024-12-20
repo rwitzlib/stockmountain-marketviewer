@@ -38,7 +38,7 @@ public class Program
             .AddAutoMapper(microserviceApplicationAssemblies)
             .AddMemoryCache()
             .RegisterApplication()
-            .RegisterCore()
+            .RegisterCore(builder.Configuration)
             .RegisterInfrastructure(builder.Configuration)
             .AddSignalR();
 

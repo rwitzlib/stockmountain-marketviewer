@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace MarketViewer.Infrastructure.Services;
 
 public class HistoryCache(
-    MarketCache _marketCache,
+    MemoryMarketCache _marketCache,
     ILogger<HistoryCache> _logger)
 {
     private const int MINIMUM_REQUIRED_CANDLES = 30;
