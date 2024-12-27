@@ -27,7 +27,7 @@ public class BacktestHandlerV3(
     IDynamoDBContext _dbContext,
     IAmazonS3 _s3Client,
     BacktestService _backtestService,
-    MemoryMarketCache _marketCache,
+    IMarketCache _marketCache,
     ILogger<BacktestHandlerV3> _logger) : IRequestHandler<BacktestRequestV3, OperationResult<BacktestResponseV3>>
 {
     private readonly TimeZoneInfo _marketTimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
