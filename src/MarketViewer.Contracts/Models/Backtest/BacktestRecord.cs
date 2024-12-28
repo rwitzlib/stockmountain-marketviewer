@@ -26,7 +26,7 @@ public class BacktestRecord
     public float HighProfit { get; set; }
     [DynamoDBGlobalSecondaryIndexHashKey]
     public string RequestDetails { get; set; }
-    public int StartDate { get; set; }
-    public int EndDate { get; set; }
+    public string StartDate { get; set; }
+    public string EndDate { get; set; }
     public string S3ObjectName { get; set; }
 }

@@ -3,87 +3,86 @@ using MarketViewer.Contracts.Requests.Backtest;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace MarketViewer.Api.Controllers
+namespace MarketViewer.Api.Controllers;
+
+[ApiController]
+[Route("api/backtest/v4")]
+public class BacktestV4Controller(IMediator mediator, ILogger<BacktestV4Controller> logger) : ControllerBase
 {
-    [ApiController]
-    [Route("api/backtest/v4")]
-    public class BacktestV4Controller(IMediator mediator, ILogger<BacktestV4Controller> logger) : ControllerBase
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> StartBacktest([FromBody] BacktestRequestV3 request)
     {
-        [HttpPost]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> StartBacktest([FromBody] BacktestRequestV3 request)
+        try
         {
-            try
-            {
-                var response = await mediator.Send(request);
+            var response = await mediator.Send(request);
 
-                return response.Status switch
-                {
-                    HttpStatusCode.OK => Ok(response.Data),
-                    HttpStatusCode.BadRequest => BadRequest(response.ErrorMessages),
-                    _ => StatusCode(StatusCodes.Status500InternalServerError, response.ErrorMessages)
-                };
-            }
-            catch (Exception e)
+            return response.Status switch
             {
-                logger.LogError("Exception: {message}", e.Message);
-                return StatusCode(StatusCodes.Status500InternalServerError, new List<string> { "Internal error." });
-            }
+                HttpStatusCode.OK => Ok(response.Data),
+                HttpStatusCode.BadRequest => BadRequest(response.ErrorMessages),
+                _ => StatusCode(StatusCodes.Status500InternalServerError, response.ErrorMessages)
+            };
         }
-
-        [HttpGet]
-        [Route("v4/{id}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetBacktestResult(string id, [FromBody] GetBacktestResultRequest request)
+        catch (Exception e)
         {
-            try
-            {
-                request.Id = id;
-
-                var response = await mediator.Send(request);
-
-                return response.Status switch
-                {
-                    HttpStatusCode.OK => Ok(response.Data),
-                    HttpStatusCode.BadRequest => BadRequest(response.ErrorMessages),
-                    _ => StatusCode(StatusCodes.Status500InternalServerError, response.ErrorMessages)
-                };
-            }
-            catch (Exception e)
-            {
-                logger.LogError("Exception: {message}", e.Message);
-                return StatusCode(StatusCodes.Status500InternalServerError, new List<string> { "Internal error." });
-            }
+            logger.LogError("Exception: {message}", e.Message);
+            return StatusCode(StatusCodes.Status500InternalServerError, new List<string> { "Internal error." });
         }
+    }
 
-        [HttpGet]
-        [Route("v4")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> ListBacktestResults([FromBody] BacktestRequestV3 request)
+    [HttpGet]
+    [Route("v4/{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetBacktestResult(string id, [FromBody] GetBacktestResultRequest request)
+    {
+        try
         {
-            try
-            {
-                var response = await mediator.Send(request);
+            request.Id = id;
 
-                return response.Status switch
-                {
-                    HttpStatusCode.OK => Ok(response.Data),
-                    HttpStatusCode.BadRequest => BadRequest(response.ErrorMessages),
-                    _ => StatusCode(StatusCodes.Status500InternalServerError, response.ErrorMessages)
-                };
-            }
-            catch (Exception e)
+            var response = await mediator.Send(request);
+
+            return response.Status switch
             {
-                logger.LogError("Exception: {message}", e.Message);
-                return StatusCode(StatusCodes.Status500InternalServerError, new List<string> { "Internal error." });
-            }
+                HttpStatusCode.OK => Ok(response.Data),
+                HttpStatusCode.BadRequest => BadRequest(response.ErrorMessages),
+                _ => StatusCode(StatusCodes.Status500InternalServerError, response.ErrorMessages)
+            };
+        }
+        catch (Exception e)
+        {
+            logger.LogError("Exception: {message}", e.Message);
+            return StatusCode(StatusCodes.Status500InternalServerError, new List<string> { "Internal error." });
+        }
+    }
+
+    [HttpGet]
+    [Route("v4")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ListBacktestResults([FromBody] BacktestRequestV3 request)
+    {
+        try
+        {
+            var response = await mediator.Send(request);
+
+            return response.Status switch
+            {
+                HttpStatusCode.OK => Ok(response.Data),
+                HttpStatusCode.BadRequest => BadRequest(response.ErrorMessages),
+                _ => StatusCode(StatusCodes.Status500InternalServerError, response.ErrorMessages)
+            };
+        }
+        catch (Exception e)
+        {
+            logger.LogError("Exception: {message}", e.Message);
+            return StatusCode(StatusCodes.Status500InternalServerError, new List<string> { "Internal error." });
         }
     }
 }
