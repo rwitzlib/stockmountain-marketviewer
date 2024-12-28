@@ -34,7 +34,7 @@ public class BacktestV4Controller(IMediator mediator, ILogger<BacktestV4Controll
     }
 
     [HttpGet]
-    [Route("v4/{id}")]
+    [Route("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -61,12 +61,12 @@ public class BacktestV4Controller(IMediator mediator, ILogger<BacktestV4Controll
         }
     }
 
-    [HttpGet]
-    [Route("v4")]
+    [HttpPost]
+    [Route("list")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> ListBacktestResults([FromBody] BacktestRequestV3 request)
+    public async Task<IActionResult> ListBacktestResults([FromBody] BacktestRequestV3 request) // TODO: add a new request type for listing backtest results
     {
         try
         {
