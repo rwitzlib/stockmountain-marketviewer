@@ -16,7 +16,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -38,16 +37,22 @@ public class BacktestHandlerV3(
         try
         {
             List<BacktestLambdaResponseV3> entries = [];
+            List<BacktestLambdaResponseV3> s3Entries = [];
 
             if (_backtestService.CheckForBacktestHistory(CompressRequestDetails(request), out var record))
             {
-                if (request.Start.Date < DateTime.Parse(record.StartDate))
+                s3Entries = await _backtestService.GetBacktestResultsFromS3(record);
+
+                var startDate = s3Entries.Min(q => q.Date);
+                var endDate = s3Entries.Max(q => q.Date);
+
+                if (request.Start.Date < startDate)
                 {
                     var missingEntries = await _backtestService.GetBacktestResultsFromLambda(new BacktestRequestV3
                     {
                         Id = request.Id,
                         Start = request.Start,
-                        End = DateTime.Parse(record.StartDate).AddDays(-1),
+                        End = startDate.AddDays(-1),
                         PositionInfo = request.PositionInfo,
                         Exit = request.Exit,
                         Features = request.Features,
@@ -56,15 +61,14 @@ public class BacktestHandlerV3(
                     entries.AddRange(missingEntries);
                 }
 
-                var s3Results = await _backtestService.GetBacktestResultsFromS3(record);
-                entries.AddRange(s3Results);
+                entries.AddRange(s3Entries);
 
-                if (request.End.Date > DateTime.Parse(record.EndDate))
+                if (request.End.Date > endDate)
                 {
                     var missingEntries = await _backtestService.GetBacktestResultsFromLambda(new BacktestRequestV3
                     {
                         Id = request.Id,
-                        Start = DateTime.Parse(record.EndDate).AddDays(1),
+                        Start = endDate.AddDays(1),
                         End = request.End,
                         PositionInfo = request.PositionInfo,
                         Exit = request.Exit,
@@ -95,23 +99,6 @@ public class BacktestHandlerV3(
             var highOpenPositions = new List<BacktestEntryResultCollection>();
 
             var dayRange = GetDateRange(request, relevantEntries);
-
-            //if (!dayRange.Any())
-            //{
-            //    return new OperationResult<BacktestResponseV3>
-            //    {
-            //        Status = HttpStatusCode.OK,
-            //        Data = new BacktestResponseV3
-            //        {
-            //            Id = request.Id,
-            //            Hold = null,
-            //            High = null,
-            //            Other = null,
-            //            Results = [],
-            //            Entries = []
-            //        }
-            //    };
-            //}
 
             var backtestDayResults = new List<BacktestDayResultV3>();
 
@@ -235,11 +222,9 @@ public class BacktestHandlerV3(
 
             var newRecord = new BacktestRecord
             {
-                Id = record is null ? Guid.NewGuid().ToString() : record.Id,
+                Id = request.Id,
                 CustomerId = Guid.Empty.ToString(),
                 CreatedAt = DateTimeOffset.Now.ToString("yyyy-MM-ddThh:mmZ"),
-                StartDate = request.Start.ToString("yyyy-MM-dd"),
-                EndDate = request.End.ToString("yyyy-MM-dd"),
                 CreditsUsed = relevantEntries.Where(result => result is not null).Sum(result => result.CreditsUsed),
                 S3ObjectName = record is null ? Guid.NewGuid().ToString() : record.S3ObjectName,
                 HoldProfit = response.Data.Hold.SumProfit,
@@ -249,12 +234,15 @@ public class BacktestHandlerV3(
 
             await _dbContext.SaveAsync(newRecord, cancellationToken);
 
-            var s3Response = await _s3Client.PutObjectAsync(new PutObjectRequest
+            if (s3Entries.Count < entries.Count)
             {
-                BucketName = "lad-dev-marketviewer",
-                Key = $"backtestResults/{newRecord.S3ObjectName}",
-                ContentBody = JsonSerializer.Serialize(entries)
-            }, cancellationToken);
+                var s3Response = await _s3Client.PutObjectAsync(new PutObjectRequest
+                {
+                    BucketName = "lad-dev-marketviewer",
+                    Key = $"backtestResults/{newRecord.S3ObjectName}",
+                    ContentBody = JsonSerializer.Serialize(entries)
+                }, cancellationToken);
+            }
 
             return response;
         }
