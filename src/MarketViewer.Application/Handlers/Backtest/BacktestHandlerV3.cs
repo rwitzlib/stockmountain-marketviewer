@@ -1,7 +1,6 @@
 ﻿using Amazon.DynamoDBv2.DataModel;
 using Amazon.S3;
 using Amazon.S3.Model;
-
 using FluentValidation;
 using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Models;
@@ -9,15 +8,15 @@ using MarketViewer.Contracts.Models.Backtest;
 using MarketViewer.Contracts.Requests.Backtest;
 using MarketViewer.Contracts.Responses.Backtest;
 using MarketViewer.Infrastructure.Services;
-
 using MediatR;
-
 using Microsoft.Extensions.Logging;
-
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,30 +27,65 @@ public class BacktestHandlerV3(
     IDynamoDBContext _dbContext,
     IAmazonS3 _s3Client,
     BacktestService _backtestService,
-    MarketCache _marketCache,
+    IMarketCache _marketCache,
     ILogger<BacktestHandlerV3> _logger) : IRequestHandler<BacktestRequestV3, OperationResult<BacktestResponseV3>>
 {
-    private readonly TimeZoneInfo _marketTimeZone = TimeZoneInfo.FindSystemTimeZoneById("CST");
+    private readonly TimeZoneInfo _marketTimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
 
     public async Task<OperationResult<BacktestResponseV3>> Handle(BacktestRequestV3 request, CancellationToken cancellationToken)
     {
         try
         {
             List<BacktestLambdaResponseV3> entries = [];
+            List<BacktestLambdaResponseV3> s3Entries = [];
 
-            //if (_backtestService.CheckForBacktestHistory(request, out var record))
-            //{
-            //    entries = await _backtestService.GetBacktestResultsFromS3(record);
-            //}
+            if (_backtestService.CheckForBacktestHistory(CompressRequestDetails(request), out var record))
+            {
+                s3Entries = await _backtestService.GetBacktestResultsFromS3(record);
 
-            if (entries.Count <= 0)
+                var startDate = s3Entries.Min(q => q.Date);
+                var endDate = s3Entries.Max(q => q.Date);
+
+                if (request.Start.Date < startDate)
+                {
+                    var missingEntries = await _backtestService.GetBacktestResultsFromLambda(new BacktestRequestV3
+                    {
+                        Id = request.Id,
+                        Start = request.Start,
+                        End = startDate.AddDays(-1),
+                        PositionInfo = request.PositionInfo,
+                        Exit = request.Exit,
+                        Features = request.Features,
+                        Argument = request.Argument
+                    });
+                    entries.AddRange(missingEntries);
+                }
+
+                entries.AddRange(s3Entries);
+
+                if (request.End.Date > endDate)
+                {
+                    var missingEntries = await _backtestService.GetBacktestResultsFromLambda(new BacktestRequestV3
+                    {
+                        Id = request.Id,
+                        Start = endDate.AddDays(1),
+                        End = request.End,
+                        PositionInfo = request.PositionInfo,
+                        Exit = request.Exit,
+                        Features = request.Features,
+                        Argument = request.Argument
+                    });
+                    entries.AddRange(missingEntries);
+                }
+            }
+            else
             {
                 entries = await _backtestService.GetBacktestResultsFromLambda(request);
             }
 
-            var validEntries = entries.Where(q => q.Date >= request.Start && q.Date <= request.End);
+            var relevantEntries = entries.Where(q => q.Date >= request.Start && q.Date <= request.End);
 
-            if (validEntries is null || !validEntries.Any())
+            if (relevantEntries is null || !relevantEntries.Any())
             {
                 return GenerateErrorResponse(HttpStatusCode.NotFound, ["No results."]);
             }
@@ -64,17 +98,17 @@ public class BacktestHandlerV3(
             var otherOpenPositions = new List<BacktestEntryResultCollection>();
             var highOpenPositions = new List<BacktestEntryResultCollection>();
 
-            var dayRange = GetDateRange(request, validEntries);
+            var dayRange = GetDateRange(request, relevantEntries);
 
             var backtestDayResults = new List<BacktestDayResultV3>();
 
             foreach (var day in dayRange)
             {
-                var offset = _marketTimeZone.IsDaylightSavingTime(day.Date) ? TimeSpan.FromHours(-5) : TimeSpan.FromHours(-6);
-                var marketOpen = new DateTimeOffset(day.Year, day.Month, day.Day, 8, 30, 0, offset);
-                var marketClose = new DateTimeOffset(day.Year, day.Month, day.Day, 15, 0, 0, offset);
+                var offset = _marketTimeZone.IsDaylightSavingTime(day.Date) ? TimeSpan.FromHours(-4) : TimeSpan.FromHours(-5);
+                var marketOpen = new DateTimeOffset(day.Year, day.Month, day.Day, 9, 30, 0, offset);
+                var marketClose = new DateTimeOffset(day.Year, day.Month, day.Day, 16, 0, 0, offset);
 
-                var entry = validEntries.FirstOrDefault(q => q.Date == day.Date);
+                var entry = relevantEntries.FirstOrDefault(q => q.Date == day.Date);
 
                 var backtestEntryDay = new BacktestDayResultV3
                 {
@@ -155,34 +189,34 @@ public class BacktestHandlerV3(
                     {
                         EndBalance = availableFundsHold,
                         SumProfit = availableFundsHold - request.PositionInfo.StartingBalance,
-                        PositiveTrendRatio = (float)holdWins.Count() / (float)(holdWins.Count() + holdLosses.Count()),
+                        PositiveTrendRatio = holdWins.Any() ? (float)holdWins.Count() / (float)(holdWins.Count() + holdLosses.Count()) : 0,
                         AvgWin = holdWins.Any() ? holdWins.Average(q => q.Profit) : 0,
                         AvgLoss = holdLosses.Any() ? holdLosses.Average(q => q.Profit) : 0,
                         //AvgProfit = backtestDayResults.SelectMany(q => q.Hold.Sold).Average(q => q.Profit),
-                        MaxConcurrentPositions = backtestDayResults.Max(result => result.Hold.OpenPositions)
+                        MaxConcurrentPositions = backtestDayResults.Any() ? backtestDayResults.Max(result => result.Hold.OpenPositions) : 0
                     },
                     High = new BacktestEntryStats
                     {
                         EndBalance = availableFundsHigh,
                         SumProfit = availableFundsHigh - request.PositionInfo.StartingBalance,
-                        PositiveTrendRatio = (float)highWins.Count() / (float)(highWins.Count() + highLosses.Count()),
+                        PositiveTrendRatio = highWins.Any() ? (float)highWins.Count() / (float)(highWins.Count() + highLosses.Count()) : 0,
                         AvgWin = highWins.Any() ? highWins.Average(q => q.Profit) : 0,
                         AvgLoss = highLosses.Any() ? highLosses.Average(q => q.Profit) : 0,
                         //AvgProfit = backtestDayResults.SelectMany(q => q.High.Sold).Average(q => q.Profit),
-                        MaxConcurrentPositions = backtestDayResults.Max(result => result.High.OpenPositions)
+                        MaxConcurrentPositions = backtestDayResults.Any() ? backtestDayResults.Max(result => result.High.OpenPositions) : 0
                     },
                     Other = request.Exit.Other is null ? null : new BacktestEntryStats
                     {
                         EndBalance = availableFundsOther,
                         SumProfit = availableFundsOther - request.PositionInfo.StartingBalance,
-                        PositiveTrendRatio = (float)otherWins.Count() / (float)(otherWins.Count() + otherLosses.Count()),
+                        PositiveTrendRatio = otherWins.Any() ? (float)otherWins.Count() / (float)(otherWins.Count() + otherLosses.Count()) : 0,
                         AvgWin = otherWins.Any() ? otherWins.Average(q => q.Profit) : 0,
                         AvgLoss = otherLosses.Any() ? otherLosses.Average(q => q.Profit) : 0,
                         //AvgProfit = backtestDayResults.SelectMany(q => q.Other.Sold).Average(q => q.Profit),
-                        MaxConcurrentPositions = backtestDayResults.Max(result => result.Other.OpenPositions)
+                        MaxConcurrentPositions = backtestDayResults.Any() ? backtestDayResults.Max(result => result.Other.OpenPositions) : 0
                     },
                     Results = backtestDayResults,
-                    Entries = validEntries
+                    Entries = relevantEntries
                 }
             };
 
@@ -190,27 +224,25 @@ public class BacktestHandlerV3(
             {
                 Id = request.Id,
                 CustomerId = Guid.Empty.ToString(),
-                Date = DateTimeOffset.Now.ToString("yyyy-MM-dd hh:mm z"),
-                CreditsUsed = validEntries.Where(result => result is not null).Sum(result => result.CreditsUsed),
+                CreatedAt = DateTimeOffset.Now.ToString("yyyy-MM-ddThh:mmZ"),
+                CreditsUsed = relevantEntries.Where(result => result is not null).Sum(result => result.CreditsUsed),
+                S3ObjectName = record is null ? Guid.NewGuid().ToString() : record.S3ObjectName,
                 HoldProfit = response.Data.Hold.SumProfit,
                 HighProfit = response.Data.High.SumProfit,
-                //RequestDetails = $"{JsonSerializer.Serialize(request.Exit)}{JsonSerializer.Serialize(request.Argument)}",
-                StartDate = int.Parse(request.Start.ToString("yyyyMMdd")),
-                EndDate = int.Parse(request.End.ToString("yyyyMMdd")),
-                //S3ObjectName = record is null ? Guid.NewGuid().ToString() : record.S3ObjectName
+                RequestDetails = CompressRequestDetails(request)
             };
 
             await _dbContext.SaveAsync(newRecord, cancellationToken);
 
-            //if (record is null)
-            //{
-            //    var s3Response = await _s3Client.PutObjectAsync(new PutObjectRequest
-            //    {
-            //        BucketName = "lad-dev-marketviewer",
-            //        Key = $"backtestResults/{newRecord.S3ObjectName}",
-            //        ContentBody = JsonSerializer.Serialize(validEntries)
-            //    }, cancellationToken);
-            //}
+            if (s3Entries.Count < entries.Count)
+            {
+                var s3Response = await _s3Client.PutObjectAsync(new PutObjectRequest
+                {
+                    BucketName = "lad-dev-marketviewer",
+                    Key = $"backtestResults/{newRecord.S3ObjectName}",
+                    ContentBody = JsonSerializer.Serialize(entries)
+                }, cancellationToken);
+            }
 
             return response;
         }
@@ -227,6 +259,18 @@ public class BacktestHandlerV3(
         }
     }
 
+    private static string CompressRequestDetails(BacktestRequestV3 request)
+    {
+        var requestDetails = $"{JsonSerializer.Serialize(request.PositionInfo)}{JsonSerializer.Serialize(request.Exit)}{JsonSerializer.Serialize(request.Argument)}";
+        var bytes = Encoding.UTF8.GetBytes(requestDetails);
+        using var outputStream = new MemoryStream();
+        using (var compressionStream = new GZipStream(outputStream, CompressionMode.Compress))
+        {
+            compressionStream.Write(bytes, 0, bytes.Length);
+        }
+        return Convert.ToBase64String(outputStream.ToArray());
+    }
+
     private static OperationResult<BacktestResponseV3> GenerateErrorResponse(HttpStatusCode status, IEnumerable<string> errors)
     {
         return new OperationResult<BacktestResponseV3>
@@ -238,14 +282,30 @@ public class BacktestHandlerV3(
 
     private static IEnumerable<DateTimeOffset> GetDateRange(BacktestRequestV3 request, IEnumerable<BacktestLambdaResponseV3> entries)
     {
-        DateTimeOffset[] lastDate = [
-            entries.Max(q => q.Results.Max(result => result.Hold.SoldAt)),
-            entries.Max(q => q.Results.Max(result => result.High.SoldAt)),
-            entries.Max(q => q.Results.Max(result => result.Other.SoldAt))
-        ];
+        var entriesWithDates = entries.Where(q => q.Results.Any());
 
-        return Enumerable.Range(0, (lastDate.Max() - request.Start).Days + 1)
-            .Select(day => request.Start.AddDays(day))
+        if (!entriesWithDates.Any())
+        {
+            return [];
+        }
+
+        var lastDate = new DateTimeOffset[]
+        {
+            entriesWithDates.Max(q => q.Results.Max(result => result.Hold.SoldAt)),
+            entriesWithDates.Max(q => q.Results.Max(result => result.High.SoldAt)),
+            entriesWithDates.Max(q => q.Results.Max(result => result.Other.SoldAt))
+        };
+
+        if (lastDate.Length <= 0)
+        {
+            return [];
+        }
+
+        var maxDate = lastDate.Max();
+        var startDate = request.Start;
+
+        return Enumerable.Range(0, (maxDate - startDate).Days + 1)
+            .Select(day => startDate.AddDays(day))
             .Where(day => day.DayOfWeek != DayOfWeek.Sunday && day.DayOfWeek != DayOfWeek.Saturday);
     }
 
@@ -344,69 +404,38 @@ public class BacktestHandlerV3(
 
         var results = entry.Results.Where(result => result.BoughtAt == timestamp);
 
-        var feature = (request.Features is not null && request.Features.Any()) 
-            ? request.Features.FirstOrDefault(q => q.Type == FeatureType.TickerType) : null;
+        var feature = request.Features?.FirstOrDefault(q => q.Type == FeatureType.TickerType);
 
         foreach (var result in results)
         {
             var tickerDetails = _marketCache.GetTickerDetails(result.Ticker);
 
-            if (tickerDetails is null)
+            if (tickerDetails is null || (feature != null && !feature.Value.Contains(tickerDetails.Type)) ||
+                availableFunds < request.PositionInfo.PositionSize || openPositions.Count >= request.PositionInfo.MaxConcurrentPositions)
             {
                 continue;
             }
 
-            if (feature is not null && !feature.Value.Contains(tickerDetails.Type))
+            var backtestDayPosition = new BacktestDayPosition
             {
-                continue;
-            }
-
-            if (availableFunds < request.PositionInfo.PositionSize || openPositions.Count >= request.PositionInfo.MaxConcurrentPositions)
-            {
-                continue;
-            }
+                Ticker = result.Ticker,
+                Price = result.StartPrice,
+                Shares = result.Shares,
+                Position = result.StartPosition,
+                Timestamp = result.BoughtAt,
+            };
 
             switch (type.ToLowerInvariant())
             {
                 case "hold":
-                    {
-                        backtestDay.Hold.Bought.Add(new BacktestDayPosition
-                        {
-                            Ticker = result.Ticker,
-                            Price = result.StartPrice,
-                            Shares = result.Shares,
-                            Position = result.StartPosition,
-                            Timestamp = result.BoughtAt,
-                        });
-                    }
+                    backtestDay.Hold.Bought.Add(backtestDayPosition);
                     break;
-
                 case "high":
-                    {
-                        backtestDay.High.Bought.Add(new BacktestDayPosition
-                        {
-                            Ticker = result.Ticker,
-                            Price = result.StartPrice,
-                            Shares = result.Shares,
-                            Position = result.StartPosition,
-                            Timestamp = result.BoughtAt,
-                        });
-                    }
+                    backtestDay.High.Bought.Add(backtestDayPosition);
                     break;
-
                 case "other":
-                    {
-                        backtestDay.Other.Bought.Add(new BacktestDayPosition
-                        {
-                            Ticker = result.Ticker,
-                            Price = result.StartPrice,
-                            Shares = result.Shares,
-                            Position = result.StartPosition,
-                            Timestamp = result.BoughtAt,
-                        });
-                    }
+                    backtestDay.Other.Bought.Add(backtestDayPosition);
                     break;
-
                 default:
                     throw new NotImplementedException();
             }

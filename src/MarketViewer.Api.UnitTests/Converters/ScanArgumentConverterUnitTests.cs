@@ -1,15 +1,10 @@
 ﻿using FluentAssertions;
 using MarketViewer.Contracts.Converters;
 using MarketViewer.Contracts.Enums;
+using MarketViewer.Contracts.Enums.Scan;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Models.ScanV2;
-using MarketViewer.Contracts.Models.ScanV2.Operands;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace MarketViewer.Api.UnitTests.Converters;
@@ -18,7 +13,7 @@ public class ScanArgumentConverterUnitTests
 {
     private readonly JsonSerializerOptions _options = new JsonSerializerOptions
     {
-        
+        PropertyNameCaseInsensitive = true
     };
 
     public ScanArgumentConverterUnitTests()

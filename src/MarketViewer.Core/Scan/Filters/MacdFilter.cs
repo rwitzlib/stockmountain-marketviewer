@@ -1,12 +1,12 @@
-﻿using MarketViewer.Contracts.Enums;
-using MarketViewer.Contracts.Enums.Scan;
+﻿using MarketViewer.Contracts.Enums.Scan;
 using MarketViewer.Contracts.Models.ScanV2;
 using MarketViewer.Contracts.Responses;
+using MarketViewer.Core.Scanner.Filters;
 using MarketViewer.Studies;
 using Microsoft.Extensions.Logging;
 using Polly;
 
-namespace MarketViewer.Core.Scanner.Filters
+namespace MarketViewer.Core.Scan.Filters
 {
     public class MacdFilter(ILogger<MacdFilter> logger) : IFilter
     {
@@ -69,7 +69,7 @@ namespace MarketViewer.Core.Scanner.Filters
                 _ => false
             };
         }
-        
+
         protected static bool FilterBySlope(Filter filter, StocksResponse response)
         {
             var candleData = response.Results.ToArray();

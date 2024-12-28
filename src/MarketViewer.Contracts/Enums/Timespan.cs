@@ -2,7 +2,7 @@
 
 namespace MarketViewer.Contracts.Enums;
 
-[JsonConverter(typeof(JsonStringEnumConverter))]
+[JsonConverter(typeof(JsonStringEnumConverter<Timespan>))]
 public enum Timespan
 {
     minute,

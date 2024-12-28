@@ -1,5 +1,4 @@
-﻿using Amazon.DynamoDBv2.DataModel;
-using Amazon.Lambda.Model;
+﻿using Amazon.Lambda.Model;
 using Amazon.Lambda;
 using MarketViewer.Contracts.Models.Backtest;
 using MarketViewer.Contracts.Requests.Backtest;
@@ -25,13 +24,13 @@ public class BacktestService(
     IAmazonLambda _lambdaClient,
     ILogger<BacktestService> _logger)
 {
-    public bool CheckForBacktestHistory(BacktestRequestV3 request, out BacktestRecord record)
+    public bool CheckForBacktestHistory(string compressedRequest, out BacktestRecord record)
     {
         record = null;
         
         try
         {
-            if (request is null || request.Exit is null || request.Argument is null)
+            if (string.IsNullOrWhiteSpace(compressedRequest))
             {
                 return false;
             }
@@ -41,28 +40,13 @@ public class BacktestService(
                 TableName = "lad-dev-marketviewer-backtest-store",
                 IndexName = "RequestIndex",
                 KeyConditionExpression = "RequestDetails = :request",
-                FilterExpression = "StartDate <= :start AND EndDate >= :end",
                 ExpressionAttributeValues =
                 {
                     {
                         ":request",
                         new AttributeValue
                         {
-                            S = $"{JsonSerializer.Serialize(request.Exit)}{JsonSerializer.Serialize(request.Argument)}"
-                        }
-                    },
-                    {
-                        ":start",
-                        new AttributeValue
-                        {
-                            N = $"{request.Start:yyyyMMdd}"
-                        }
-                    },
-                    {
-                        ":end",
-                        new AttributeValue
-                        {
-                            N = $"{request.End:yyyyMMdd}"
+                            S = compressedRequest
                         }
                     }
                 }
@@ -101,7 +85,6 @@ public class BacktestService(
             var backtesterLambdaRequest = new BacktestLambdaRequestV3
             {
                 Date = day.Date,
-                DetailedResponse = request.DetailedResponse,
                 PositionInfo = request.PositionInfo,
                 Exit = request.Exit,
                 Features = request.Features,
