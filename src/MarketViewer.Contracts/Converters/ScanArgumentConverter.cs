@@ -1,37 +1,48 @@
-﻿using MarketViewer.Contracts.Enums;
-using MarketViewer.Contracts.Models.Scan;
-using MarketViewer.Contracts.Models.ScanV2.Operands;
-using Newtonsoft.Json;
+﻿using MarketViewer.Contracts.Models.Scan;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace MarketViewer.Contracts.Converters;
 
-public class ScanArgumentConverter : System.Text.Json.Serialization.JsonConverter<ScanArgument>
+public class ScanArgumentConverter : JsonConverter<ScanArgument>
 {
     public override ScanArgument Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         var document = JsonDocument.ParseValue(ref reader);
         var jsonElement = document.RootElement;
 
-        var argument = ParseArgument(jsonElement);
+        var argument = ParseArgument(jsonElement, options);
 
         return argument;
     }
 
     public override void Write(Utf8JsonWriter writer, ScanArgument value, JsonSerializerOptions options)
     {
-        if (value is null)
+        writer.WriteStartObject();
+
+        writer.WriteString("Operator", value.Operator);
+
+        if (value.Filters is not null)
         {
-            writer.WriteNullValue();
+            writer.WritePropertyName("Filters");
+            writer.WriteStartArray();
+            foreach (var filter in value.Filters)
+            {
+                JsonSerializer.Serialize(writer, filter, options);
+            }
+            writer.WriteEndArray();
         }
-        else
+
+        if (value.Argument is not null)
         {
-            var json = JsonConvert.SerializeObject(value);
-            writer.WriteRawValue(json);
+            writer.WritePropertyName("Argument");
+            JsonSerializer.Serialize(writer, value.Argument, options);
         }
+
+        writer.WriteEndObject();
     }
 
-    private static ScanArgument ParseArgument(JsonElement jsonElement)
+    private static ScanArgument ParseArgument(JsonElement jsonElement, JsonSerializerOptions options)
     {
         if (jsonElement.ValueKind == JsonValueKind.Null)
         {
@@ -42,7 +53,7 @@ public class ScanArgumentConverter : System.Text.Json.Serialization.JsonConverte
 
         if (jsonElement.TryGetProperty("Argument", out var argument))
         {
-            scanArgument.Argument = ParseArgument(argument);
+            scanArgument.Argument = ParseArgument(argument, options);
         }
 
         if (jsonElement.TryGetProperty("Operator", out var argOperator))
@@ -60,7 +71,7 @@ public class ScanArgumentConverter : System.Text.Json.Serialization.JsonConverte
             for (int i = 0; i < count; i++)
             {
                 enumerator.MoveNext();
-                scanArgument.Filters.Add(FilterConverter.ParseFilter(enumerator.Current));
+                scanArgument.Filters.Add(FilterConverter.ParseFilter(enumerator.Current, options));
             }
         }
 

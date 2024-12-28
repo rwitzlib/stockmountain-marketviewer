@@ -101,7 +101,7 @@ public class BacktestHandlerV2(
             {
                 Id = request.Id,
                 CustomerId = Guid.Empty.ToString(),
-                Date = DateTimeOffset.Now.ToString("yyyy-MM-dd hh:mm z"),
+                CreatedAt = DateTimeOffset.Now.ToString("yyyy-MM-dd hh:mm z"),
                 CreditsUsed = results.Where(result => result is not null).Sum(result => result.CreditsUsed),
                 HoldProfit = response.Data.Hold.SumProfit,
                 HighProfit = response.Data.High.SumProfit,

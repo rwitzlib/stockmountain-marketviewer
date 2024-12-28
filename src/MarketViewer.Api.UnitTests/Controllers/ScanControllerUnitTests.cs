@@ -23,7 +23,7 @@ namespace MarketViewer.Api.UnitTests.Controllers
         private ScanController _classUnderTest;
         private Fixture _autoFixture;
         private Mock<IAmazonS3> _s3Client;
-        private MarketCache _marketCache;
+        private MemoryMarketCache _marketCache;
         private Mock<IMediator> _mediator;
         private Mock<ILogger<ScanController>> _logger;
         #endregion
@@ -34,7 +34,7 @@ namespace MarketViewer.Api.UnitTests.Controllers
             _autoMocker = new AutoMocker();
             _autoFixture = new Fixture();
             _s3Client = new Mock<IAmazonS3>();
-            _marketCache = _autoMocker.CreateInstance<MarketCache>();
+            _marketCache = _autoMocker.CreateInstance<MemoryMarketCache>();
             _mediator = new Mock<IMediator>();
             _logger = new Mock<ILogger<ScanController>>();
 

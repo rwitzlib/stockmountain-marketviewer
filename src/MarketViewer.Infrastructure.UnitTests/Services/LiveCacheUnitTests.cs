@@ -13,14 +13,14 @@ namespace MarketViewer.Infrastructure.UnitTests.Services;
 public class LiveCacheUnitTests
 {
     private readonly LiveCache _classUnderTest;
-    private readonly MarketCache _marketCache;
+    private readonly MemoryMarketCache _marketCache;
 
     public LiveCacheUnitTests()
     {
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
         var s3Client = new AmazonS3Client(RegionEndpoint.USEast2);
 
-        _marketCache = new MarketCache(memoryCache, s3Client);
+        _marketCache = new MemoryMarketCache(memoryCache, s3Client);
         _classUnderTest = new LiveCache(_marketCache, new NullLogger<LiveCache>());
     }
 

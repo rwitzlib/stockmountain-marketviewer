@@ -1,7 +1,10 @@
-﻿using MarketViewer.Core.Scanner;
+﻿using MarketViewer.Core.Config;
+using MarketViewer.Core.Scan;
+using MarketViewer.Core.Scan.Filters;
 using MarketViewer.Core.Scanner.Filters;
 using MarketViewer.Core.ScanV2;
 using MarketViewer.Core.ScanV2.Filters;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
 
@@ -10,8 +13,12 @@ namespace MarketViewer.Core.DependencyInjection
     [ExcludeFromCodeCoverage]
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection RegisterCore(this IServiceCollection services)
+        public static IServiceCollection RegisterCore(this IServiceCollection services, IConfiguration configuration)
         {
+            var config = configuration.GetSection("ServiceConfigs").Get<ServiceConfigs>();
+
+            services.AddSingleton(config);
+
             services.AddSingleton<ScanFilterFactory>()
                 .AddSingleton<FloatFilter>()
                 .AddSingleton<MacdFilter>()

@@ -1,11 +1,11 @@
 ﻿using MarketViewer.Contracts.Caching;
-using MarketViewer.Contracts.Models.ScanV2;
+using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Models.ScanV2.Operands;
 using MarketViewer.Contracts.Responses;
 
 namespace MarketViewer.Core.ScanV2.Filters;
 
-public class PropertyFilter(MarketCache marketCache) : IFilterV2
+public class PropertyFilter(MemoryMarketCache marketCache) : IFilterV2
 {
     public float[] Compute(IScanOperand operand, StocksResponse stocksResponse, Timeframe timeframe)
     {

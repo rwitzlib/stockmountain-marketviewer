@@ -9,10 +9,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using MarketViewer.Contracts.Models;
 using Microsoft.Extensions.Logging;
-using MarketViewer.Core.Scanner;
 using System.Net;
 using MarketViewer.Contracts.Requests.Scan;
 using MarketViewer.Contracts.Models.ScanV2;
+using MarketViewer.Core.Scan;
 
 namespace MarketViewer.Application.Handlers.Scan;
 
