@@ -8,7 +8,6 @@ namespace MarketViewer.Contracts.Requests.Backtest;
 public class BacktestLambdaRequestV3
 {
     public DateTimeOffset Date { get; set; }
-    public bool DetailedResponse { get; set; } = false;
     public BacktestPositionInformation PositionInfo { get; set; }
     public BacktestExitInformation Exit { get; set; }
     public IEnumerable<Feature> Features { get; set; }

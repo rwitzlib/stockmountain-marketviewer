@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <PackageId>MarketViewer.Contracts</PackageId>
-    <Version>3.1.0-preview.1</Version>
+    <Version>4.0-preview.1</Version>
     <Authors>Robert Witzlib</Authors>
     <Description>
       Add backtest v4 contracts
