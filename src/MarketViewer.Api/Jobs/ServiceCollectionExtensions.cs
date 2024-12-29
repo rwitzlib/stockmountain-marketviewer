@@ -1,6 +1,4 @@
 ﻿using Quartz;
-using MarketViewer.Contracts.Enums;
-using Quartz.Listener;
 
 namespace MarketViewer.Api.Jobs;
 
@@ -10,20 +8,22 @@ public static class ServiceCollectionExtensions
     {
         List<(IJobDetail, ITrigger)> jobs = [];
 
-        var initJobKey = JobKey.Create("InitJob", "Pipeline");
+        var tickerJobKey = JobKey.Create("TickerJob", "Pipeline");
 
-        var initJob = JobBuilder.Create<InitializeJob>()
-            .WithIdentity(initJobKey)
-            .UsingJobData("date", DateTimeOffset.Now.ToString())
+        var now = DateTimeOffset.Now;
+
+        var tickerJob = JobBuilder.Create<TickerInfoJob>()
+            .WithIdentity(tickerJobKey)
+            .UsingJobData("date", now.ToString())
             .Build();
 
         var initTrigger = TriggerBuilder.Create()
-            .WithIdentity("initTrigger")
-            .StartNow()
-            .ForJob(initJob)
+            .WithIdentity("TickerTrigger")
+            .StartAt(new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 1, now.Offset))
+            .ForJob(tickerJob)
             .Build();
 
-        jobs.Add((initJob, initTrigger));
+        jobs.Add((tickerJob, initTrigger));
 
         return jobs;
     }
