@@ -13,7 +13,7 @@ public class BacktestLambdaResponseV3
     public DateTime Date { get; set; }
 
     /// <summary>
-    /// Cost is $0.000133334 per credit
+    /// Cost is $0.000133334 per credit assuming 2048 MB Lambda
     /// </summary>
     public float CreditsUsed { get; set; }
     public BacktestEntryStats Hold { get; set; }
