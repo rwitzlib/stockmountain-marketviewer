@@ -61,7 +61,14 @@ public class MemoryMarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3) :
     {
         _memoryCache.GetOrCreate($"Tickers/{timespan}/{date.Date:yyyyMMdd}", entry =>
         {
-            entry.SetSlidingExpiration(TimeSpan.FromMinutes(60));
+            if (date.Date == DateTimeOffset.Now.Date)
+            {
+                entry.SetSlidingExpiration(TimeSpan.FromDays(1));
+            }
+            else
+            {
+                entry.SetSlidingExpiration(TimeSpan.FromMinutes(15));
+            }
             return tickers;
         });
     }
@@ -80,7 +87,14 @@ public class MemoryMarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3) :
 
         _memoryCache.GetOrCreate($"Stocks/{stocksResponse.Ticker}/{timespan}/{date.Date:yyyyMMdd}", entry => //TODO add handling for multipliers
         {
-            entry.SetSlidingExpiration(TimeSpan.FromMinutes(60));
+            if (date.Date == DateTimeOffset.Now.Date)
+            {
+                entry.SetSlidingExpiration(TimeSpan.FromDays(1));
+            }
+            else
+            {
+                entry.SetSlidingExpiration(TimeSpan.FromMinutes(15));
+            }
 
             return stocksResponse;
         });

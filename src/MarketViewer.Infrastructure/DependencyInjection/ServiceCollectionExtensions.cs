@@ -32,7 +32,7 @@ public static class ServiceCollectionExtensions
             .AddPolygonClient(token)
             .AddSingleton<LiveCache>()
             .AddSingleton<HistoryCache>()
-            .AddSingleton<IMarketCache, DictionaryMarketCache>()
+            .AddSingleton<IMarketCache, MemoryMarketCache>()
             .AddSingleton<BacktestService>()
             .AddSingleton<IAmazonDynamoDB, AmazonDynamoDBClient>(client => new AmazonDynamoDBClient(RegionEndpoint.USEast2))
             .AddSingleton<IMarketCacheClient, MarketCacheClient>();

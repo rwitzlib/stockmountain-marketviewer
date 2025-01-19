@@ -13,7 +13,7 @@ namespace MarketViewer.Api.Controllers
 {
     [ApiController]
     [Route("api/scan")]
-    public class ScanController(IAmazonS3 s3Client, MemoryMarketCache _marketCache, ILogger<ScanController> _logger, IMediator _mediator) : ControllerBase
+    public class ScanController(IAmazonS3 s3Client, IMarketCache _marketCache, ILogger<ScanController> _logger, IMediator _mediator) : ControllerBase
     {
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -83,14 +83,24 @@ namespace MarketViewer.Api.Controllers
             foreach (var ticker in minuteTickers)
             {
                 var stocksResponse = _marketCache.GetStocksResponse(ticker, Timespan.minute, DateTimeOffset.Now);
-                minuteStocks.Add(stocksResponse);
+                var adjustedStocksResponse = new StocksResponse
+                {
+                    Ticker = stocksResponse.Ticker,
+                    Results = stocksResponse.Results.Where(x => DateTimeOffset.FromUnixTimeMilliseconds(x.Timestamp).ToOffset(DateTimeOffset.Now.Offset).Date == DateTimeOffset.Now.Date).ToList()
+                };
+                minuteStocks.Add(adjustedStocksResponse);
             }
 
             List<StocksResponse> hourStocks = [];
             foreach (var ticker in hourTickers)
             {
                 var stocksResponse = _marketCache.GetStocksResponse(ticker, Timespan.hour, DateTimeOffset.Now);
-                hourStocks.Add(stocksResponse);
+                var adjustedStocksResponse = new StocksResponse
+                {
+                    Ticker = stocksResponse.Ticker,
+                    Results = stocksResponse.Results.Where(x => DateTimeOffset.FromUnixTimeMilliseconds(x.Timestamp).ToOffset(DateTimeOffset.Now.Offset).Date == DateTimeOffset.Now.Date).ToList()
+                };
+                hourStocks.Add(adjustedStocksResponse);
             }
 
             if (!(minuteTickers.Any() || hourTickers.Any()))
@@ -114,8 +124,6 @@ namespace MarketViewer.Api.Controllers
                     Key = path.Item1,
                     ContentBody = path.Item2
                 });
-                //using var writer = new StreamWriter(path.Item1, true);                
-                //writer.Write(json);
             }
             return Ok();
         }
