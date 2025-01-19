@@ -64,6 +64,19 @@ public class SnapshotJob(
             var last = stocksResponse.Results.Last();
             if (last.Timestamp < bar.Timestamp)
             {
+                if (stocksResponse.Ticker is "AMD")
+                {
+
+                }
+                var ticks = TimeSpan.FromMinutes(1).Ticks / 10000;
+                if (last.Timestamp + ticks == bar.Timestamp)
+                {
+
+                }
+                else
+                {
+
+                }
                 stocksResponse.Results.Add(bar);
 
                 marketCache.SetStocksResponse(stocksResponse, timespan, DateTimeOffset.Now);

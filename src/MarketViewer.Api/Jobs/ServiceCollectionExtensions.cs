@@ -17,9 +17,11 @@ public static class ServiceCollectionExtensions
             .UsingJobData("date", now.ToString())
             .Build();
 
+        var startTime = DateTimeOffset.Now.Second < 30 ? DateTimeOffset.Now : new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 1, now.Offset);
+
         var initTrigger = TriggerBuilder.Create()
             .WithIdentity("TickerTrigger")
-            .StartAt(new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 1, now.Offset))
+            .StartAt(startTime)
             .ForJob(tickerJob)
             .Build();
 

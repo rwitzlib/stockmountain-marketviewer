@@ -8,6 +8,7 @@ using Polygon.Client.Requests;
 using Quartz;
 using System.Diagnostics;
 using Polygon.Client.Interfaces;
+using Polygon.Client.Responses;
 
 namespace MarketViewer.Api.Jobs;
 
@@ -17,11 +18,13 @@ public class InitAggregate(
     IMapper mapper,
     ILogger<InitAggregate> logger) : IJob
 {
+    Stopwatch _sp = new();
+    List<PolygonSnapshotResponse> _snapshots = new();
+
     public async Task Execute(IJobExecutionContext context)
     {
         var timespan = Enum.Parse<Timespan>(context.JobDetail.JobDataMap.GetString("timespan"));
-        var sp = new Stopwatch();
-        sp.Start();
+        _sp.Start();
 
         logger.LogInformation("Started populating {timespan} aggregate data at: {time}.", timespan, DateTimeOffset.Now);
 
@@ -29,7 +32,7 @@ public class InitAggregate(
         {
             var tickers = marketCache.GetTickers();
 
-            var batchSize = int.TryParse(Environment.GetEnvironmentVariable("BATCH_SIZE"), out int size) ? size : 500;
+            var batchSize = int.TryParse(Environment.GetEnvironmentVariable("BATCH_SIZE"), out int size) ? size : 12000;
 
             await PopulateStocksResponses(tickers, batchSize, timespan, DateTimeOffset.Now);
         }
@@ -39,9 +42,9 @@ public class InitAggregate(
         }
         finally
         {
-            sp.Stop();
+            _sp.Stop();
 
-            logger.LogInformation("InitAggregate({timespan}) - Finished populating at: {time}. Time elapsed: {elapsed}ms.", timespan, DateTimeOffset.Now, sp.ElapsedMilliseconds);
+            logger.LogInformation("InitAggregate({timespan}) - Finished populating at: {time}. Time elapsed: {elapsed}ms.", timespan, DateTimeOffset.Now, _sp.ElapsedMilliseconds);
 
             var now = DateTimeOffset.Now;
 
@@ -60,11 +63,28 @@ public class InitAggregate(
                 _ => new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 1, 0, now.Offset)
             };
 
+            if (timespan == Timespan.minute && _sp.ElapsedMilliseconds > 60000)
+            {
+                logger.LogWarning("InitAggregate({timespan}) - Job took longer than 1 minute to complete. Scheduling next job at {startTime}.", timespan, DateTimeOffset.Now);
+
+                var singleSnapshotJob = JobBuilder.Create<SnapshotJob>()
+                    .WithIdentity($"SingleSnapshot-{timespan}")
+                    .UsingJobData("timespan", timespan.ToString())
+                    .StoreDurably(true)
+                    .Build();
+
+                var singleSnapshotTrigger = TriggerBuilder.Create()
+                    .WithIdentity($"SingleSnapshotTrigger-{timespan}")
+                    .ForJob(singleSnapshotJob)
+                    .StartAt(DateTimeOffset.Now)
+                    .Build();
+            }
+
             var snapshotJob = JobBuilder.Create<SnapshotJob>()
-            .WithIdentity($"Snapshot-{timespan}")
-            .UsingJobData("timespan", timespan.ToString())
-            .StoreDurably(true)
-            .Build();
+                .WithIdentity($"Snapshot-{timespan}")
+                .UsingJobData("timespan", timespan.ToString())
+                .StoreDurably(true)
+                .Build();
 
             var snapshotTrigger = TriggerBuilder.Create()
                 .WithIdentity($"SnapshotTrigger-{timespan}")
@@ -104,8 +124,8 @@ public class InitAggregate(
             Ticker = ticker,
             Multiplier = multiplier,
             Timespan = timespan.ToString(),
-            From = start.ToUnixTimeMilliseconds().ToString(),
-            To = date.ToUnixTimeMilliseconds().ToString(),
+            From = start.ToString("yyyy-MM-dd"),
+            To = DateTime.Now.ToString("yyyy-MM-dd"),
             Limit = 50000
         };
         var polygonAggregateResponse = await polygonClient.GetAggregates(polygonAggregateRequest);
