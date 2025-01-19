@@ -11,7 +11,7 @@ using MarketViewer.Contracts.Caching;
 namespace MarketViewer.Infrastructure.Services;
 
 public class LiveCache(
-    MemoryMarketCache _marketCache,
+    IMarketCache _marketCache,
     ILogger<LiveCache> logger)
 {
     private const int MINIMUM_REQUIRED_CANDLES = 30;

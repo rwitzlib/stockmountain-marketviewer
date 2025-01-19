@@ -12,20 +12,34 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Core.ScanV2;
-using MarketViewer.Contracts.Comparers;
-using MarketViewer.Contracts.Models.ScanV2;
 using MarketViewer.Contracts.Requests.Scan;
 using MarketViewer.Contracts.Enums.Scan;
 using MarketViewer.Contracts.Models.Scan;
+using MarketViewer.Contracts.Caching;
 
 namespace MarketViewer.Application.Handlers.Scan;
 
 public class ScanHandlerV2(
-    LiveCache liveCache,
-    HistoryCache backtestingCache,
     ScanFilterFactoryV2 scanFilterFactory,
+    IMarketCache marketCache,
     ILogger<ScanHandlerV2> logger) : IRequestHandler<ScanV2Request, OperationResult<ScanResponse>>
 {
+    private const int MINIMUM_REQUIRED_CANDLES = 30;
+    private const int CANDLES_TO_TAKE = 120;
+
+    private async Task InitializeCacheIfEmpty(DateTime date, IEnumerable<Timespan> timespans)
+    {
+        var tasks = new List<Task>();
+        foreach (var timespan in timespans)
+        {
+            if (marketCache.GetStocksResponse("SPY", timespan, date) is null)
+            {
+                tasks.Add(Task.Run(async () => await marketCache.Initialize(date, 1, timespan)));
+            }
+        }
+        await Task.WhenAll(tasks);
+    }
+
     public async Task<OperationResult<ScanResponse>> Handle(ScanV2Request request, CancellationToken cancellationToken)
     {
         try
@@ -33,30 +47,10 @@ public class ScanHandlerV2(
             var sp = new Stopwatch();
             sp.Start();
 
-            StocksResponseCollection stocksResponseCollection;
             var timespans = GetTimespans(request.Argument);
+            await InitializeCacheIfEmpty(request.Timestamp.Date, timespans);
 
-            if (request.Timestamp.Date == DateTime.Now.Date)
-            {
-                stocksResponseCollection = await liveCache.GetStocksResponses(request.Timestamp, timespans);
-            }
-            else
-            {
-                stocksResponseCollection = await backtestingCache.GetStocksResponsesV2(request.Timestamp, timespans);
-            }
-
-            if (stocksResponseCollection.Responses.Count == 0)
-            {
-                return new OperationResult<ScanResponse>
-                {
-                    Status = HttpStatusCode.NotFound,
-                    ErrorMessages = [
-                        "No results found."
-                    ]
-                };
-            }
-
-            var items = await ApplyScanToArgument(request.Argument, stocksResponseCollection);
+            var items = ApplyScanToArgument(request.Argument, request.Timestamp);
 
             sp.Stop();
 
@@ -110,137 +104,142 @@ public class ScanHandlerV2(
         return timespans.Distinct();
     }
 
-    private async Task<IEnumerable<ScanResponse.Item>> ApplyScanToArgument(ScanArgument argument, StocksResponseCollection stocksResponseCollection)
+    private List<ScanResponse.Item> ApplyScanToArgument(ScanArgument argument, DateTimeOffset timestamp)
     {
         if (argument is null || argument.Operator is not "AND" && argument.Operator is not "OR" && argument.Operator is not "AVERAGE" || argument.Filters.Count == 0)
         {
             return [];
         }
 
-        var argumentTask = Task.Run(() => ApplyScanToArgument(argument.Argument, stocksResponseCollection));
+        var sortedFitlers = argument.Filters.OrderByDescending(filter => filter.FirstOperand.GetPriority()).ToList();
 
-        List<Task<List<ScanResponse.Item>>> applyFilterTasks = [];
-        foreach (var filter in argument.Filters)
+        List<ScanResponse.Item> results = [];
+        for (int i = 0; i < sortedFitlers.Count; i++)
         {
-            applyFilterTasks.Add(Task.Run(() => ApplyFilter(filter, stocksResponseCollection)));
+            var filter = sortedFitlers[i];
+
+            if (results.Count == 0 && i > 0)
+            {
+                return [];
+            }
+
+            bool hasTimeframe = filter.FirstOperand.HasTimeframe(out var multiplier, out var timespan);
+            var tickersToScan = hasTimeframe ? marketCache.GetTickersByTimespan(timespan.Value, timestamp) : marketCache.GetTickersByTimespan(Timespan.minute, timestamp);
+            if (results.Count != 0)
+            {
+                var currentTickerResults = results.Select(item => item.Ticker);
+                tickersToScan = tickersToScan.Where(ticker => currentTickerResults.Contains(ticker));
+
+                // List should reset each time so we can narrow down each time to smaller and smaller list
+                results = [];
+            }
+
+            foreach (var ticker in tickersToScan)
+            {
+                var stocksResponse = hasTimeframe ? marketCache.GetStocksResponse(ticker, timespan.Value, timestamp) : marketCache.GetStocksResponse(ticker, Timespan.minute, timestamp);
+                var item = ApplyFilterToStocksResponse(sortedFitlers[i], timestamp, stocksResponse);
+                if (item is not null && !results.Any(result => result.Ticker == item.Ticker))
+                {
+                    results.Add(item);
+                }
+            }
         }
-
-        var itemsFromFilters = await Task.WhenAll(applyFilterTasks);
-        var itemsFromArgument = await argumentTask;
-
-        switch (argument.Operator.ToLowerInvariant())
-        {
-            case "and":
-                {
-                    var intersection = itemsFromFilters
-                        .Aggregate<IEnumerable<ScanResponse.Item>>((previous, next) => previous.Intersect(next, new ScanResponseItemComparer()));
-
-                    if (argument.Argument is null)
-                    {
-                        return intersection;
-                    }
-
-                    return intersection.Intersect(itemsFromArgument, new ScanResponseItemComparer());
-                }
-            case "or":
-                {
-                    var union = itemsFromFilters
-                        .Aggregate<IEnumerable<ScanResponse.Item>>((previous, next) => previous.UnionBy(next, item => item.Ticker));
-
-                    if (argument.Argument is null)
-                    {
-                        return union;
-                    }
-
-                    return union.UnionBy(itemsFromArgument, item => item.Ticker);
-                }
-            default:
-                {
-                    return [];
-                }
-        }
+        return results;
     }
 
-    private List<ScanResponse.Item> ApplyFilter(FilterV2 filter, StocksResponseCollection stocksResponseCollection)
+    private ScanResponse.Item ApplyFilterToStocksResponse(FilterV2 filter, DateTimeOffset timestamp, StocksResponse stocksResponse, int candlesToTake = CANDLES_TO_TAKE)
     {
-        var results = new List<ScanResponse.Item>();
-        var stocksResponses = filter.FirstOperand.HasTimeframe(out var multiplier, out var timespan) ? stocksResponseCollection.Responses[timespan.Value] : [];
+        bool passesFilter = false;
 
-        foreach (var stocksResponse in stocksResponses)
+        var reducedStocksResponse = new StocksResponse
         {
-            bool passesFilter = false;
+            Ticker = stocksResponse.Ticker,
+            TickerDetails = stocksResponse.TickerDetails,
+            Results = stocksResponse.Results.Where(candle => candle.Timestamp <= timestamp.ToUnixTimeMilliseconds()).TakeLast(candlesToTake).ToList()
+        };
 
-            var firstFilter = scanFilterFactory.GetScanFilter(filter.FirstOperand);
-            var firstOperandResult = firstFilter.Compute(filter.FirstOperand, stocksResponse, filter.Timeframe);
+        if (reducedStocksResponse.Results is null || reducedStocksResponse.Results.Count < MINIMUM_REQUIRED_CANDLES)
+        {
+            return null;
+        }
 
-            var secondFilter = scanFilterFactory.GetScanFilter(filter.SecondOperand);
-            var secondOperandResult = secondFilter.Compute(filter.SecondOperand, stocksResponse, filter.Timeframe);
+        var firstFilter = scanFilterFactory.GetScanFilter(filter.FirstOperand);
+        var firstOperandResult = firstFilter.Compute(filter.FirstOperand, reducedStocksResponse, filter.Timeframe);
 
-            if (firstOperandResult.Length == 0 || secondOperandResult.Length == 0)
+        var secondFilter = scanFilterFactory.GetScanFilter(filter.SecondOperand);
+        var secondOperandResult = secondFilter.Compute(filter.SecondOperand, reducedStocksResponse, filter.Timeframe);
+
+        if (firstOperandResult.Length == 0 || secondOperandResult.Length == 0)
+        {
+            return null;
+        }
+
+        if (filter.Timeframe is not null)
+        {
+            if (reducedStocksResponse.Results.Count < filter.Timeframe.Multiplier)
             {
-                continue;
-            }
-
-            if (filter.CollectionModifier is null)
-            {
-                passesFilter = filter.Operator switch
-                {
-                    FilterOperator.lt => firstOperandResult.First() < secondOperandResult.First(),
-                    FilterOperator.le => firstOperandResult.First() <= secondOperandResult.First(),
-                    FilterOperator.eq => firstOperandResult.First() == secondOperandResult.First(),
-                    FilterOperator.ge => firstOperandResult.First() >= secondOperandResult.First(),
-                    FilterOperator.gt => firstOperandResult.First() > secondOperandResult.First(),
-                    _ => throw new NotImplementedException(),
-                };
-            }
-            else
-            {
-                passesFilter = filter.CollectionModifier.ToLowerInvariant() switch
-                {
-                    "all" => filter.Operator switch
-                    {
-                        FilterOperator.lt => firstOperandResult.Zip(secondOperandResult, (x, y) => x < y).All(result => result == true),
-                        FilterOperator.le => firstOperandResult.Zip(secondOperandResult, (x, y) => x <= y).All(result => result == true),
-                        FilterOperator.eq => firstOperandResult.Zip(secondOperandResult, (x, y) => x == y).All(result => result == true),
-                        FilterOperator.ge => firstOperandResult.Zip(secondOperandResult, (x, y) => x >= y).All(result => result == true),
-                        FilterOperator.gt => firstOperandResult.Zip(secondOperandResult, (x, y) => x > y).All(result => result == true),
-                        _ => throw new NotImplementedException(),
-                    },
-                    "any" => filter.Operator switch
-                    {
-                        FilterOperator.lt => firstOperandResult.Zip(secondOperandResult, (x, y) => x < y).Any(result => result == true),
-                        FilterOperator.le => firstOperandResult.Zip(secondOperandResult, (x, y) => x <= y).Any(result => result == true),
-                        FilterOperator.eq => firstOperandResult.Zip(secondOperandResult, (x, y) => x == y).Any(result => result == true),
-                        FilterOperator.ge => firstOperandResult.Zip(secondOperandResult, (x, y) => x >= y).Any(result => result == true),
-                        FilterOperator.gt => firstOperandResult.Zip(secondOperandResult, (x, y) => x > y).Any(result => result == true),
-                        _ => throw new NotImplementedException(),
-                    },
-                    "average" => filter.Operator switch
-                    {
-                        FilterOperator.lt => firstOperandResult.Sum() / firstOperandResult.Length < secondOperandResult.Sum() / secondOperandResult.Length,
-                        FilterOperator.le => firstOperandResult.Sum() / firstOperandResult.Length <= secondOperandResult.Sum() / secondOperandResult.Length,
-                        FilterOperator.eq => firstOperandResult.Sum() / firstOperandResult.Length == secondOperandResult.Sum() / secondOperandResult.Length,
-                        FilterOperator.ge => firstOperandResult.Sum() / firstOperandResult.Length >= secondOperandResult.Sum() / secondOperandResult.Length,
-                        FilterOperator.gt => firstOperandResult.Sum() / firstOperandResult.Length > secondOperandResult.Sum() / secondOperandResult.Length,
-                        _ => throw new NotImplementedException(),
-                    },
-                    _ => throw new NotImplementedException()
-                };
-            }
-
-            if (passesFilter)
-            {
-                results.Add(new ScanResponse.Item
-                {
-                    Ticker = stocksResponse.Ticker,
-                    Price = stocksResponse.Results.Last().Close,
-                    Volume = stocksResponse.Results.TakeLast(filter.Timeframe.Multiplier).Select(q => q.Volume).Sum(),
-                    Float = stocksResponse.TickerDetails?.Float
-                });
+                return null;
             }
         }
 
-        return results;
+        if (filter.CollectionModifier is null)
+        {
+            passesFilter = filter.Operator switch
+            {
+                FilterOperator.lt => firstOperandResult.First() < secondOperandResult.First(),
+                FilterOperator.le => firstOperandResult.First() <= secondOperandResult.First(),
+                FilterOperator.eq => firstOperandResult.First() == secondOperandResult.First(),
+                FilterOperator.ge => firstOperandResult.First() >= secondOperandResult.First(),
+                FilterOperator.gt => firstOperandResult.First() > secondOperandResult.First(),
+                _ => throw new NotImplementedException(),
+            };
+        }
+        else
+        {
+            passesFilter = filter.CollectionModifier.ToLowerInvariant() switch
+            {
+                "all" => filter.Operator switch
+                {
+                    FilterOperator.lt => firstOperandResult.Zip(secondOperandResult, (x, y) => x < y).All(result => result == true),
+                    FilterOperator.le => firstOperandResult.Zip(secondOperandResult, (x, y) => x <= y).All(result => result == true),
+                    FilterOperator.eq => firstOperandResult.Zip(secondOperandResult, (x, y) => x == y).All(result => result == true),
+                    FilterOperator.ge => firstOperandResult.Zip(secondOperandResult, (x, y) => x >= y).All(result => result == true),
+                    FilterOperator.gt => firstOperandResult.Zip(secondOperandResult, (x, y) => x > y).All(result => result == true),
+                    _ => throw new NotImplementedException(),
+                },
+                "any" => filter.Operator switch
+                {
+                    FilterOperator.lt => firstOperandResult.Zip(secondOperandResult, (x, y) => x < y).Any(result => result == true),
+                    FilterOperator.le => firstOperandResult.Zip(secondOperandResult, (x, y) => x <= y).Any(result => result == true),
+                    FilterOperator.eq => firstOperandResult.Zip(secondOperandResult, (x, y) => x == y).Any(result => result == true),
+                    FilterOperator.ge => firstOperandResult.Zip(secondOperandResult, (x, y) => x >= y).Any(result => result == true),
+                    FilterOperator.gt => firstOperandResult.Zip(secondOperandResult, (x, y) => x > y).Any(result => result == true),
+                    _ => throw new NotImplementedException(),
+                },
+                "average" => filter.Operator switch
+                {
+                    FilterOperator.lt => firstOperandResult.Average() < secondOperandResult.Average(),
+                    FilterOperator.le => firstOperandResult.Average() <= secondOperandResult.Average(),
+                    FilterOperator.eq => firstOperandResult.Average() == secondOperandResult.Average(),
+                    FilterOperator.ge => firstOperandResult.Average() >= secondOperandResult.Average(),
+                    FilterOperator.gt => firstOperandResult.Average() > secondOperandResult.Average(),
+                    _ => throw new NotImplementedException(),
+                },
+                _ => throw new NotImplementedException()
+            };
+        }
+
+        if (!passesFilter)
+        {
+            return null;
+        }
+
+        return new ScanResponse.Item
+        {
+            Ticker = stocksResponse.Ticker,
+            Price = stocksResponse.Results.Last().Close,
+            Float = stocksResponse.TickerDetails?.Float
+        };
     }
     #endregion
 }

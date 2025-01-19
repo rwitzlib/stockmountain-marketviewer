@@ -2,6 +2,7 @@
 using MarketViewer.Contracts.Requests.Backtest;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Quartz.Impl.AdoJobStore.Common;
 
 namespace MarketViewer.Api.Controllers;
 
@@ -33,14 +34,43 @@ public class BacktestV4Controller(IMediator mediator, ILogger<BacktestV4Controll
         }
     }
 
+    [HttpPost]
+    [Route("asdf/asdf")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> asdf([FromBody] BacktestRequestV3 request)
+    {
+        try
+        {
+            var response = await mediator.Send(request);
+
+            return response.Status switch
+            {
+                HttpStatusCode.OK => Ok(response.Data),
+                HttpStatusCode.BadRequest => BadRequest(response.ErrorMessages),
+                _ => StatusCode(StatusCodes.Status500InternalServerError, response.ErrorMessages)
+            };
+        }
+        catch (Exception e)
+        {
+            logger.LogError("Exception: {message}", e.Message);
+            return StatusCode(StatusCodes.Status500InternalServerError, new List<string> { "Internal error." });
+        }
+    }
+
     [HttpGet]
     [Route("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetBacktestResult(string id, [FromBody] GetBacktestResultRequest request)
+    public async Task<IActionResult> GetBacktestResult(string id)
     {
+        var asdf = Request;
+
+        return Ok();
+        var request = new GetBacktestResultRequest();
         try
         {
             request.Id = id;

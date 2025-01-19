@@ -61,6 +61,11 @@ public class TickerInfoJob(
                     }
                 }
 
+                if (DateTimeOffset.Now.DayOfWeek == DayOfWeek.Saturday || DateTimeOffset.Now.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    continue;
+                }
+
                 var initJob = JobBuilder.Create<InitAggregate>()
                     .WithIdentity($"Initialize-{timespan}")
                     .UsingJobData("timespan", timespan.ToString())

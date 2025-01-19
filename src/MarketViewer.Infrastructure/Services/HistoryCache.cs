@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace MarketViewer.Infrastructure.Services;
 
 public class HistoryCache(
-    MemoryMarketCache _marketCache,
+    IMarketCache _marketCache,
     ILogger<HistoryCache> _logger)
 {
     private const int MINIMUM_REQUIRED_CANDLES = 30;
@@ -62,7 +62,7 @@ public class HistoryCache(
 
         foreach (var timespan in timespans)
         {
-            if (_marketCache.GetTickersByTimespan(timespan, date) is null)
+            if (!_marketCache.GetTickersByTimespan(timespan, date).Any())
             {
                 await _marketCache.Initialize(date, 1, timespan); //TODO add multiplier input eventually
             }
