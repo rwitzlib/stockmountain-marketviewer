@@ -14,6 +14,9 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using MarketViewer.Api.Healthcheck;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using MarketViewer.Api.Authentication;
 
 namespace MarketViewer.Api;
 
@@ -60,6 +63,27 @@ public class Program
             options.JsonSerializerOptions.Converters.Add(new FilterConverter());
         });
 
+        var signingKeyCache = new SigningKeyCache();
+
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = "http://auth.stockmountain.io",
+                    ValidAudience = "react",
+                    IssuerSigningKeyResolver = (token, securityToken, kid, validationParameters) =>
+                    {
+                        var keys = signingKeyCache.GetKeys();
+                        return new JsonWebKeySet(keys).GetSigningKeys();
+                    }
+                };
+            });
+
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
@@ -88,6 +112,7 @@ public class Program
            .AllowAnyMethod()
            .AllowAnyHeader());
 
+
         app.MapHealthChecks("/health", new HealthCheckOptions
         {
             Predicate = q => q.Tags.Contains("healthcheck"),
@@ -100,7 +125,10 @@ public class Program
 
         app.UseWebSockets();
         app.UseRouting();
+
+        app.UseAuthentication();
         app.UseAuthorization();
+
         app.UseEndpoints(q => q.MapHub<ChatHub>("/chathub"));
         app.MapControllers();
 
