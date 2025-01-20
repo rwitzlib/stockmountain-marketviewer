@@ -1,15 +1,17 @@
 ﻿using System.Net;
 using MarketViewer.Contracts.Requests;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MarketViewer.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/stocks")]
 public class StocksController(ILogger<StocksController> logger, IMediator mediator) : ControllerBase
 {
     [HttpPost]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]

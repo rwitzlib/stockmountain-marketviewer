@@ -36,3 +36,16 @@ resource "aws_dynamodb_table" "backtest" {
     projection_type = "ALL"
   }
 }
+
+resource "aws_dynamodb_table" "user" {
+  name           = "${var.team}-${var.environment}-${var.service_name}-user-store"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 1
+  write_capacity = 1
+  hash_key       = "Id"
+
+  attribute {
+    name = "Id"
+    type = "S"
+  }
+}
