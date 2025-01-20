@@ -32,8 +32,6 @@ public class ScanHandlerV2UnitTests
         var s3Client = new AmazonS3Client(RegionEndpoint.USEast2);
 
         _marketCache = new MemoryMarketCache(memoryCache, s3Client);
-        _liveCache = new LiveCache(_marketCache, new NullLogger<LiveCache>());
-        _historyCache = new HistoryCache(_marketCache, new NullLogger<HistoryCache>());
 
         IServiceCollection services = new ServiceCollection();
         services.AddSingleton<ScanFilterFactoryV2>()
@@ -45,7 +43,7 @@ public class ScanHandlerV2UnitTests
 
         var scanFilterFactory = new ScanFilterFactoryV2(serviceProvider);
 
-        _classUnderTest = new ScanHandlerV2(_liveCache, _historyCache, scanFilterFactory, new NullLogger<ScanHandlerV2>());
+        _classUnderTest = new ScanHandlerV2(scanFilterFactory, _marketCache, new NullLogger<ScanHandlerV2>());
     }
 
     [Fact(Skip = "Timezone works weird in pipeline")]
