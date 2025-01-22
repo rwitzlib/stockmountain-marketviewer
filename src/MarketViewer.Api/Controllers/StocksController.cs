@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using MarketViewer.Api.Authorization;
 using MarketViewer.Contracts.Requests;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace MarketViewer.Api.Controllers;
 
 [ApiController]
-[Route("api/stocks")]
+[Route("api/[controller]")]
 public class StocksController(ILogger<StocksController> logger, IMediator mediator) : ControllerBase
 {
     [HttpPost]
@@ -15,6 +16,7 @@ public class StocksController(ILogger<StocksController> logger, IMediator mediat
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [RequiredPermissions(["none", "starter", "advanced", "premium"])]
     public async Task<IActionResult> HandleAggregateRequest([FromBody] StocksRequest request)
     {
         try

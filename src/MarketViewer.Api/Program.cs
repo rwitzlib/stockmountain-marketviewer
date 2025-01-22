@@ -17,6 +17,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using MarketViewer.Api.Authentication;
+using MarketViewer.Api.Middleware;
 
 namespace MarketViewer.Api;
 
@@ -112,7 +113,6 @@ public class Program
            .AllowAnyMethod()
            .AllowAnyHeader());
 
-
         app.MapHealthChecks("/health", new HealthCheckOptions
         {
             Predicate = q => q.Tags.Contains("healthcheck"),
@@ -125,6 +125,8 @@ public class Program
 
         app.UseWebSockets();
         app.UseRouting();
+
+        app.UseMiddleware<PermissionMiddleware>();
 
         app.UseAuthentication();
         app.UseAuthorization();
