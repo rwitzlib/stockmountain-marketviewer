@@ -33,7 +33,7 @@ public class PermissionMiddleware(RequestDelegate next)
         {
             var subject = JsonSerializer.Deserialize<Subject>(propertiesClaim);
 
-            if (requiredPermissions is not null && !requiredPermissions.Contains(subject.Role))
+            if (Enum.TryParse<UserRole>(subject.Role, out var role ) && requiredPermissions is not null && !requiredPermissions.Contains(role))
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 await context.Response.WriteAsync("Permission denied: User does not have required permissions.");

@@ -1,11 +1,10 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace MarketViewer.Api.Authorization
+namespace MarketViewer.Api.Authorization;
+
+[ExcludeFromCodeCoverage]
+[AttributeUsage(AttributeTargets.Method)]
+public class RequiredPermissionsAttribute(UserRole[] permission) : Attribute
 {
-    [ExcludeFromCodeCoverage]
-    [AttributeUsage(AttributeTargets.Method)]
-    public class RequiredPermissionsAttribute(string[] permission) : Attribute
-    {
-        public string[] Permission { get; } = permission;
-    }
+    public UserRole[] Permission { get; } = permission;
 }

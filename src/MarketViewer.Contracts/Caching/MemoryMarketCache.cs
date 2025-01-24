@@ -15,6 +15,8 @@ public class MemoryMarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3) :
         PropertyNameCaseInsensitive = true
     };
 
+    private static TimeSpan ExpireIn => TimeSpan.FromHours(16);
+
     public async Task<IEnumerable<StocksResponse>> Initialize(DateTimeOffset date, int multiplier, Timespan timespan)
     {
         var s3Request = new GetObjectRequest
@@ -61,14 +63,7 @@ public class MemoryMarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3) :
     {
         _memoryCache.GetOrCreate($"Tickers/{timespan}/{date.Date:yyyyMMdd}", entry =>
         {
-            if (date.Date == DateTimeOffset.Now.Date)
-            {
-                entry.SetSlidingExpiration(TimeSpan.FromDays(1));
-            }
-            else
-            {
-                entry.SetSlidingExpiration(TimeSpan.FromMinutes(15));
-            }
+            entry.SetSlidingExpiration(ExpireIn);
             return tickers;
         });
     }
@@ -87,15 +82,7 @@ public class MemoryMarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3) :
 
         _memoryCache.GetOrCreate($"Stocks/{stocksResponse.Ticker}/{timespan}/{date.Date:yyyyMMdd}", entry => //TODO add handling for multipliers
         {
-            if (date.Date == DateTimeOffset.Now.Date)
-            {
-                entry.SetSlidingExpiration(TimeSpan.FromDays(1));
-            }
-            else
-            {
-                entry.SetSlidingExpiration(TimeSpan.FromMinutes(15));
-            }
-
+            entry.SetSlidingExpiration(ExpireIn);
             return stocksResponse;
         });
     }
