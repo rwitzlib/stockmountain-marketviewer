@@ -1,0 +1,18 @@
+name: marketviewer
+services:
+  marketviewer-api:
+    container_name: marketviewer-backend
+    image: ${IMAGE}
+    ports:
+      - '7158:8080'
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ENVIRONMENT}
+    env_file:
+      - ../${ENVIRONMENT}.env
+    networks:
+      - marketviewer
+
+networks:
+  marketviewer:
+    name: marketviewer
+    driver: bridge

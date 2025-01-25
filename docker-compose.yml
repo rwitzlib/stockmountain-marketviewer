@@ -10,7 +10,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=docker
     env_file:
-      - ../../docker.env
+      - ../docker.env
     networks:
       - marketviewer
   
