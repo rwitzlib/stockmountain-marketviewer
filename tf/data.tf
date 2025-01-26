@@ -1,10 +1,5 @@
-data "aws_ecr_image" "marketviewer_api" {
+data "aws_ecr_image" "api" {
   repository_name = "${var.team}-${var.environment}-${var.service_name}-api"
-  image_tag       = var.image_tag
-}
-
-data "aws_ecr_image" "marketviewer_web" {
-  repository_name = "${var.team}-${var.environment}-${var.service_name}-web"
   image_tag       = var.image_tag
 }
 
