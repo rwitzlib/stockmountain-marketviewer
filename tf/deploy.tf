@@ -12,7 +12,7 @@ data "http" "deploy" {
     environment = "${var.environment}"
     repository  = "stockmountain-marketviewer"
     file        = "deploy.docker-compose.yml"
-    image       = data.aws_ecr_image.marketviewer.image_uri
+    image       = data.aws_ecr_image.api.image_uri
     actor       = var.actor
   })
 }
