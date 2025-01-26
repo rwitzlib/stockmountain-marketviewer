@@ -1,10 +1,13 @@
-﻿using MarketViewer.Contracts.Caching;
+﻿using MarketViewer.Api.Authorization;
+using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Requests;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MarketViewer.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/tools")]
 public class ToolsController(IMarketCache marketCache, ILogger<StocksController> logger) : ControllerBase
 {
@@ -13,6 +16,7 @@ public class ToolsController(IMarketCache marketCache, ILogger<StocksController>
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [RequiredPermissions([UserRole.Admin])]
     public IActionResult Aggregate([FromQuery] ToolsAggregateRequest request)
     {
         try

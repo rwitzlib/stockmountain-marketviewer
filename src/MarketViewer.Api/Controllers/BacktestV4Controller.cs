@@ -1,12 +1,14 @@
 ﻿using System.Net;
+using MarketViewer.Api.Authorization;
 using MarketViewer.Contracts.Requests.Backtest;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Quartz.Impl.AdoJobStore.Common;
 
 namespace MarketViewer.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/backtest/v4")]
 public class BacktestV4Controller(IMediator mediator, ILogger<BacktestV4Controller> logger) : ControllerBase
 {
@@ -14,6 +16,7 @@ public class BacktestV4Controller(IMediator mediator, ILogger<BacktestV4Controll
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [RequiredPermissions([UserRole.Starter, UserRole.Advanced, UserRole.Premium, UserRole.Admin])]
     public async Task<IActionResult> StartBacktest([FromBody] BacktestRequestV3 request)
     {
         try
@@ -39,6 +42,7 @@ public class BacktestV4Controller(IMediator mediator, ILogger<BacktestV4Controll
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [RequiredPermissions([UserRole.Starter, UserRole.Advanced, UserRole.Premium, UserRole.Admin])]
     public async Task<IActionResult> asdf([FromBody] BacktestRequestV3 request)
     {
         try
@@ -65,6 +69,7 @@ public class BacktestV4Controller(IMediator mediator, ILogger<BacktestV4Controll
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [RequiredPermissions([UserRole.Starter, UserRole.Advanced, UserRole.Premium, UserRole.Admin])]
     public async Task<IActionResult> GetBacktestResult(string id)
     {
         var asdf = Request;
@@ -96,6 +101,7 @@ public class BacktestV4Controller(IMediator mediator, ILogger<BacktestV4Controll
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [RequiredPermissions([UserRole.None, UserRole.Starter, UserRole.Advanced, UserRole.Premium, UserRole.Admin])]
     public async Task<IActionResult> ListBacktestResults([FromBody] BacktestRequestV3 request) // TODO: add a new request type for listing backtest results
     {
         try

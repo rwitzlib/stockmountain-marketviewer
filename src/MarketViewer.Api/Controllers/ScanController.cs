@@ -2,16 +2,19 @@
 using System.Text.Json;
 using Amazon.S3;
 using Amazon.S3.Model;
+using MarketViewer.Api.Authorization;
 using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Requests.Scan;
 using MarketViewer.Contracts.Responses;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MarketViewer.Api.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/scan")]
     public class ScanController(IAmazonS3 s3Client, IMarketCache _marketCache, ILogger<ScanController> _logger, IMediator _mediator) : ControllerBase
     {
@@ -19,6 +22,7 @@ namespace MarketViewer.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [RequiredPermissions([UserRole.None, UserRole.Starter, UserRole.Advanced, UserRole.Premium, UserRole.Admin])]
         public async Task<IActionResult> HandleScanRequest([FromBody] ScanRequest request)
         {
             try
@@ -43,6 +47,7 @@ namespace MarketViewer.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [RequiredPermissions([UserRole.None, UserRole.Starter, UserRole.Advanced, UserRole.Premium, UserRole.Admin])]
         public async Task<IActionResult> Scan([FromBody] ScanV2Request request)
         {
             try
@@ -69,6 +74,7 @@ namespace MarketViewer.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [RequiredPermissions([UserRole.None, UserRole.Starter, UserRole.Advanced, UserRole.Premium, UserRole.Admin])]
         public async Task<IActionResult> Print()
         {
             var minuteTickers = _marketCache.GetTickersByTimespan(Timespan.minute, DateTimeOffset.Now);

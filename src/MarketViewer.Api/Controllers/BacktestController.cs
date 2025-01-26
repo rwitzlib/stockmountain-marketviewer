@@ -1,11 +1,14 @@
 ﻿using System.Net;
+using MarketViewer.Api.Authorization;
 using MarketViewer.Contracts.Requests.Backtest;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MarketViewer.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/backtest")]
 public class BacktestController(IMediator mediator, ILogger<BacktestController> logger) : ControllerBase
 {
@@ -13,6 +16,7 @@ public class BacktestController(IMediator mediator, ILogger<BacktestController> 
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [RequiredPermissions([UserRole.Starter, UserRole.Advanced, UserRole.Premium, UserRole.Admin])]
     public async Task<IActionResult> Backtest([FromBody] BacktestRequest request)
     {
         try
@@ -38,6 +42,7 @@ public class BacktestController(IMediator mediator, ILogger<BacktestController> 
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [RequiredPermissions([UserRole.Starter, UserRole.Advanced, UserRole.Premium, UserRole.Admin])]
     public async Task<IActionResult> BacktestV2([FromBody] BacktestRequestV2 request)
     {
         try
@@ -63,6 +68,7 @@ public class BacktestController(IMediator mediator, ILogger<BacktestController> 
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [RequiredPermissions([UserRole.Starter, UserRole.Advanced, UserRole.Premium, UserRole.Admin])]
     public async Task<IActionResult> BacktestV3([FromBody] BacktestRequestV3 request)
     {
         try

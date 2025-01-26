@@ -1,4 +1,5 @@
-﻿using MarketDataProvider.Contracts.Models;
+﻿using MarketViewer.Api.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Polygon.Client.Models;
@@ -7,24 +8,15 @@ using System.Net;
 namespace MarketViewer.Api.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
-    public class TickerDetailsController : ControllerBase
+    public class TickerDetailsController(IMemoryCache memoryCache, IHttpClientFactory httpClientFactory, ILogger<TickerDetailsController> logger) : ControllerBase
     {
-        private readonly IMemoryCache _memoryCache;
-        private readonly IHttpClientFactory _httpclientFactory;
-        private readonly ILogger<TickerDetailsController> _logger;
-
-        public TickerDetailsController(IMemoryCache memoryCache, IHttpClientFactory httpClientFactory, ILogger<TickerDetailsController> logger)
-        {
-            _memoryCache = memoryCache;
-            _httpclientFactory = httpClientFactory;
-            _logger = logger;
-        }
-
         [HttpGet("{ticker}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [RequiredPermissions([UserRole.None, UserRole.Starter, UserRole.Advanced, UserRole.Premium, UserRole.Admin])]
         public async Task<IActionResult> HandleTickerDetailsRequest(string ticker)
         {
             if (string.IsNullOrWhiteSpace(ticker))
@@ -34,14 +26,14 @@ namespace MarketViewer.Api.Controllers
             
             try
             {
-                var tickerDetails = _memoryCache.Get<TickerDetails>($"TickerDetails_{ticker}");
+                var tickerDetails = memoryCache.Get<TickerDetails>($"TickerDetails_{ticker}");
 
                 if (tickerDetails is not null)
                 {
                     return Ok(tickerDetails);
                 }
 
-                var client = _httpclientFactory.CreateClient("marketdataprovider");
+                var client = httpClientFactory.CreateClient("marketdataprovider");
 
                 var url = $"/api/tickerdetails/{ticker}";
                 var response = await client.GetAsync(url);
@@ -56,7 +48,7 @@ namespace MarketViewer.Api.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError(e, e.Message);
+                logger.LogError(e, e.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError, new List<string> { "Internal server error." });
             }
         }

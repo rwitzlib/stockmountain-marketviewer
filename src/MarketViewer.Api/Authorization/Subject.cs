@@ -6,5 +6,5 @@ namespace MarketViewer.Api.Authorization;
 public class Subject
 {
     public string Email { get; set; }
-    public string Role { get; set; }
+    public UserRole Role { get; set; }
 }
