@@ -24,3 +24,18 @@ variable "team" {
   type    = string
   default = "lad"
 }
+
+variable "repository_name" {
+  type    = string
+  default = "stockmountain-marketviewer"
+}
+
+variable "actor" {
+  type    = string
+  default = "local"
+}
+
+variable "run_id" {
+  type    = string
+  default = "12345"
+}
