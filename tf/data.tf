@@ -12,6 +12,10 @@ data "aws_ssm_parameter" "polygon_token" {
   name = "/tokens/polygon"
 }
 
+data "aws_ssm_parameter" "deploy_token" {
+  name = "/tokens/${var.environment}/deploy"
+}
+
 # data "aws_vpc" "stockmountain" {
 #   filter {
 #     name   = "tag:Name"
