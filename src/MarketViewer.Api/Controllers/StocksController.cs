@@ -8,11 +8,11 @@ using Microsoft.AspNetCore.Mvc;
 namespace MarketViewer.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class StocksController(ILogger<StocksController> logger, IMediator mediator) : ControllerBase
 {
     [HttpPost]
-    [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]

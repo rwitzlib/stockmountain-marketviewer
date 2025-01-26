@@ -21,15 +21,15 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection RegisterInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        var redisUrl = configuration.GetSection("Urls").GetValue<string>("RedisUrl");
+        //var redisUrl = configuration.GetSection("Urls").GetValue<string>("RedisUrl");
         var marketDataProviderUrl = configuration.GetSection("Urls").GetValue<string>("MarketDataProviderUrl");
         var token = configuration.GetSection("Tokens").GetValue<string>("PolygonApi");
 
-        var connectionMultiplexer = ConnectionMultiplexer.Connect(redisUrl);
+        //var connectionMultiplexer = ConnectionMultiplexer.Connect(redisUrl);
 
-        services.AddSingleton<IConnectionMultiplexer>(connectionMultiplexer)
-            .AddSingleton<IAmazonS3>(client => new AmazonS3Client(RegionEndpoint.USEast2))
+        services.AddSingleton<IAmazonS3>(client => new AmazonS3Client(RegionEndpoint.USEast2))
             .AddPolygonClient(token)
+            //.AddSingleton<IConnectionMultiplexer>(connectionMultiplexer)
             .AddSingleton<LiveCache>()
             .AddSingleton<HistoryCache>()
             .AddSingleton<IMarketCache, MemoryMarketCache>()
