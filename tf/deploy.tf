@@ -1,6 +1,6 @@
 data "http" "deploy" {
   url = "https://management.stockmountain.io/api/deploy/start"
-  request_method = "POST"
+  method = "POST"
 
   request_headers = {
     Content-Type = "application/json"
