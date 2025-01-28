@@ -1,6 +1,4 @@
 ﻿using MarketViewer.Api.Authorization;
-using Microsoft.AspNetCore.Http;
-using Polly;
 using System.Diagnostics.CodeAnalysis;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json;
