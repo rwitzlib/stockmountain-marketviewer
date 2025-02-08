@@ -1,5 +1,4 @@
 ﻿using MarketViewer.Contracts.Responses;
-using MarketViewer.Infrastructure.Services;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -16,6 +15,7 @@ using MarketViewer.Contracts.Requests.Scan;
 using MarketViewer.Contracts.Enums.Scan;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Caching;
+using Amazon.Runtime.Internal;
 
 namespace MarketViewer.Application.Handlers.Scan;
 
@@ -27,21 +27,13 @@ public class ScanHandlerV2(
     private const int MINIMUM_REQUIRED_CANDLES = 30;
     private const int CANDLES_TO_TAKE = 120;
 
-    private async Task InitializeCacheIfEmpty(DateTime date, IEnumerable<Timespan> timespans)
-    {
-        var tasks = new List<Task>();
-        foreach (var timespan in timespans)
-        {
-            if (marketCache.GetStocksResponse("SPY", timespan, date) is null)
-            {
-                tasks.Add(Task.Run(async () => await marketCache.Initialize(date, 1, timespan)));
-            }
-        }
-        await Task.WhenAll(tasks);
-    }
+    private readonly TimeZoneInfo TimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/Chicago");
+    private TimeSpan Offset;
 
     public async Task<OperationResult<ScanResponse>> Handle(ScanV2Request request, CancellationToken cancellationToken)
     {
+        Offset = TimeZone.IsDaylightSavingTime(request.Timestamp) ? TimeSpan.FromHours(-5) : TimeSpan.FromHours(-6);
+
         try
         {
             var sp = new Stopwatch();
@@ -104,6 +96,19 @@ public class ScanHandlerV2(
         return timespans.Distinct();
     }
 
+    private async Task InitializeCacheIfEmpty(DateTime date, IEnumerable<Timespan> timespans)
+    {
+        var tasks = new List<Task>();
+        foreach (var timespan in timespans)
+        {
+            if (marketCache.GetStocksResponse("SPY", timespan, date) is null)
+            {
+                tasks.Add(Task.Run(async () => await marketCache.Initialize(date, 1, timespan)));
+            }
+        }
+        await Task.WhenAll(tasks);
+    }
+
     private List<ScanResponse.Item> ApplyScanToArgument(ScanArgument argument, DateTimeOffset timestamp)
     {
         if (argument is null || argument.Operator is not "AND" && argument.Operator is not "OR" && argument.Operator is not "AVERAGE" || argument.Filters.Count == 0)
@@ -136,8 +141,17 @@ public class ScanHandlerV2(
 
             foreach (var ticker in tickersToScan)
             {
+                var qwer = tickersToScan.Contains("SMCI");
+
                 var stocksResponse = hasTimeframe ? marketCache.GetStocksResponse(ticker, timespan.Value, timestamp) : marketCache.GetStocksResponse(ticker, Timespan.minute, timestamp);
+
+                if (ticker == "SMCI")
+                {
+                    var asdf = stocksResponse.Results.Where(q => DateTimeOffset.FromUnixTimeMilliseconds(q.Timestamp).ToOffset(Offset).Hour == 12);
+                }
+
                 var item = ApplyFilterToStocksResponse(sortedFitlers[i], timestamp, stocksResponse);
+
                 if (item is not null && !results.Any(result => result.Ticker == item.Ticker))
                 {
                     results.Add(item);
@@ -168,6 +182,11 @@ public class ScanHandlerV2(
 
         var secondFilter = scanFilterFactory.GetScanFilter(filter.SecondOperand);
         var secondOperandResult = secondFilter.Compute(filter.SecondOperand, reducedStocksResponse, filter.Timeframe);
+
+        if (stocksResponse.Ticker == "SMCI")
+        {
+
+        }
 
         if (firstOperandResult.Length == 0 || secondOperandResult.Length == 0)
         {

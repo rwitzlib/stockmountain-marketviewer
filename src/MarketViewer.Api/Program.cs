@@ -9,7 +9,6 @@ using Quartz;
 using MarketViewer.Api.Jobs;
 using MarketViewer.Application.Handlers;
 using MarketViewer.Contracts.Converters;
-using MarketViewer.Api.Binders;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using MarketViewer.Api.Healthcheck;
@@ -28,7 +27,7 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        DotNetEnv.Env.Load($"../../../../{builder.Environment.EnvironmentName}.env");
+        DotNetEnv.Env.Load($"../../../{builder.Environment.EnvironmentName}.env");
         builder.Configuration.AddEnvironmentVariables();
 
         var microserviceApplicationAssemblies = new[]
@@ -41,9 +40,11 @@ public class Program
         builder.Services.AddMediatR(q => q.RegisterServicesFromAssemblies(microserviceApplicationAssemblies))
             .AddAutoMapper(microserviceApplicationAssemblies)
             .AddMemoryCache()
+            .AddHttpClient()
             .RegisterApplication()
             .RegisterCore(builder.Configuration)
             .RegisterInfrastructure(builder.Configuration)
+            .AddHttpContextAccessor()
             .AddSignalR();
 
         var jobs = builder.Services.AddQuartz()
@@ -53,15 +54,14 @@ public class Program
             })
             .RegisterMarketDataJobs();
 
-        builder.Services.AddControllers(options =>
-        {
-            options.ModelBinderProviders.Insert(0, new BinderProvider());
-        }).AddJsonOptions(options =>
+        builder.Services.AddControllers().AddJsonOptions(options =>
         {
             options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
             options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
+            options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
             options.JsonSerializerOptions.Converters.Add(new ScanArgumentConverter());
             options.JsonSerializerOptions.Converters.Add(new FilterConverter());
+            options.JsonSerializerOptions.Converters.Add(new StudyConverter());
         });
 
         var signingKeyCache = new SigningKeyCache();

@@ -10,7 +10,7 @@ namespace MarketViewer.Api.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/backtest/v4")]
-public class BacktestV4Controller(IMediator mediator, ILogger<BacktestV4Controller> logger) : ControllerBase
+public class BacktestV4Controller(IHttpContextAccessor contextAccessor, IMediator mediator, ILogger<BacktestV4Controller> logger) : ControllerBase
 {
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -21,6 +21,8 @@ public class BacktestV4Controller(IMediator mediator, ILogger<BacktestV4Controll
     {
         try
         {
+            request.UserId = contextAccessor.HttpContext.Items["UserId"].ToString();
+
             var response = await mediator.Send(request);
 
             return response.Status switch

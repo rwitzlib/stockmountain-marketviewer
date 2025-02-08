@@ -21,7 +21,7 @@ using Polygon.Client.Responses;
 namespace MarketViewer.Infrastructure.Services
 {
     public class MarketDataRepository(
-        IMarketCacheClient marketCacheClient,
+        //IMarketCacheClient marketCacheClient,
         IPolygonClient polygonClient,
         IHttpClientFactory httpClientFactory,
         IMapper mapper,
