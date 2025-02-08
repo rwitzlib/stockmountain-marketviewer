@@ -10,6 +10,8 @@ using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Requests;
 using Xunit;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
+using Moq.AutoMock;
 
 namespace MarketViewer.Api.UnitTests.Controllers
 {
@@ -17,8 +19,10 @@ namespace MarketViewer.Api.UnitTests.Controllers
     {
         #region Private Fields
         private StocksController _classUnderTest;
+        private AutoMocker _autoMocker;
         private Fixture _autoFixture;
         private Mock<IMediator> _mediator;
+        private Mock<IHttpContextAccessor> _mockHttpContextAccessor;
         private Mock<ILogger<StocksController>> _logger;
         #endregion
 
@@ -26,10 +30,13 @@ namespace MarketViewer.Api.UnitTests.Controllers
         public AggregateControllerUnitTests()
         {
             _autoFixture = new Fixture();
+            _autoMocker = new AutoMocker();
             _mediator = new Mock<IMediator>();
             _logger = new Mock<ILogger<StocksController>>();
+            _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+            _mockHttpContextAccessor.Setup(q => q.HttpContext.Items["UserId"]).Returns(_autoFixture.Create<string>());
 
-            _classUnderTest = new StocksController(_logger.Object, _mediator.Object);
+            _classUnderTest = new StocksController(_mockHttpContextAccessor.Object, _logger.Object, _mediator.Object);
         }
         #endregion
 

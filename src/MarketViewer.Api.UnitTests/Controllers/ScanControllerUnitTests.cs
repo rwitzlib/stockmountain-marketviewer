@@ -13,6 +13,7 @@ using MarketViewer.Contracts.Requests.Scan;
 using Amazon.S3;
 using MarketViewer.Contracts.Caching;
 using Moq.AutoMock;
+using Microsoft.AspNetCore.Http;
 
 namespace MarketViewer.Api.UnitTests.Controllers
 {
@@ -25,6 +26,7 @@ namespace MarketViewer.Api.UnitTests.Controllers
         private Mock<IAmazonS3> _s3Client;
         private MemoryMarketCache _marketCache;
         private Mock<IMediator> _mediator;
+        private Mock<IHttpContextAccessor> _httpContextAccessor;
         private Mock<ILogger<ScanController>> _logger;
         #endregion
 
@@ -37,8 +39,10 @@ namespace MarketViewer.Api.UnitTests.Controllers
             _marketCache = _autoMocker.CreateInstance<MemoryMarketCache>();
             _mediator = new Mock<IMediator>();
             _logger = new Mock<ILogger<ScanController>>();
+            _httpContextAccessor = new Mock<IHttpContextAccessor>();
+            _httpContextAccessor.Setup(q => q.HttpContext.Items["UserId"]).Returns(_autoFixture.Create<string>());
 
-            _classUnderTest = new ScanController(_s3Client.Object, _marketCache, _logger.Object, _mediator.Object);
+            _classUnderTest = new ScanController(_httpContextAccessor.Object, _s3Client.Object, _marketCache, _logger.Object, _mediator.Object);
         }
         #endregion
 
