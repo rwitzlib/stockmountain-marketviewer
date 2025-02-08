@@ -9,7 +9,7 @@ using MediatR;
 namespace MarketViewer.Contracts.Requests;
 
 [ExcludeFromCodeCoverage]
-public class StocksRequest : IRequest<OperationResult<StocksResponse>>
+public class StocksRequest : BaseRequest, IRequest<OperationResult<StocksResponse>>
 {
     /// <summary>
     /// The ticker symbol of the stock/equity.

@@ -8,7 +8,7 @@ namespace MarketViewer.Api.Middleware;
 [ExcludeFromCodeCoverage]
 public class PermissionMiddleware(RequestDelegate next)
 {
-    private JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
     {
         PropertyNameCaseInsensitive = true
     };
@@ -35,16 +35,15 @@ public class PermissionMiddleware(RequestDelegate next)
 
             var propertiesClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "properties")?.Value;
 
-            if (propertiesClaim is not null)
-            {
-                var subject = JsonSerializer.Deserialize<Subject>(propertiesClaim, _jsonSerializerOptions);
+            var subject = JsonSerializer.Deserialize<Subject>(propertiesClaim, _jsonSerializerOptions);
 
-                if (requiredPermissions is null || !requiredPermissions.Contains(subject.Role))
-                {
-                    await GenerateErrorResponse(context, "Permission denied: User does not have required permissions.");
-                    return;
-                }
+            if (requiredPermissions is null || !requiredPermissions.Contains(subject.Role))
+            {
+                await GenerateErrorResponse(context, "Permission denied: User does not have required permissions.");
+                return;
             }
+
+            context.Items.Add("UserId", subject.Email);
 
             await next(context);
         }
