@@ -2,6 +2,7 @@
 using Amazon.S3.Model;
 using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Enums;
+using Microsoft.Extensions.Caching.Memory;
 using Polygon.Client.Models;
 using Quartz;
 using System.Diagnostics;
@@ -10,6 +11,7 @@ using System.Text.Json;
 namespace MarketViewer.Api.Jobs;
 
 public class TickerInfoJob(
+    IMemoryCache memoryCache, 
     IMarketCache marketCache,
     IAmazonS3 s3Client,
     ILogger<TickerInfoJob> logger) : IJob
@@ -21,22 +23,20 @@ public class TickerInfoJob(
 
         try
         {
-            var date = DateTimeOffset.Parse(context.JobDetail.JobDataMap.GetString("date"));
+            if (memoryCache is MemoryCache cache)
+            {
+                cache.Clear();
+            }
 
-            logger.LogInformation("Started populating ticker data at: {time}.", DateTimeOffset.Now);
+            var date = DateTimeOffset.Now;
+
+            logger.LogInformation("Started populating ticker data at: {time}.", date);
 
             await PopulateTickersAndTickerDetails(date);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError("Error populating ticker data: {message}", ex.Message);
-        }
-        finally
-        {
+
             sp.Stop();
 
-            logger.LogInformation("Finished populating ticker data at: {time}. Time elapsed: {elapsed}ms.", DateTimeOffset.Now, sp.ElapsedMilliseconds);
-
+            logger.LogInformation("Finished populating ticker data at: {time}. Time elapsed: {elapsed}ms.", date, sp.ElapsedMilliseconds);
 
             List<Timespan> timespans = [
                 Timespan.minute,
@@ -53,33 +53,29 @@ public class TickerInfoJob(
                     _ => new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 1, 0, now.Offset)
                 };
 
-                if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "local")
+                if (startTime.Minute >= 59)
                 {
-                    if (startTime.Minute >= 58)
-                    {
-                        startTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.AddHours(1).Hour, 1, 1, 0, now.Offset);
-                    }
-                }
-
-                if (DateTimeOffset.Now.DayOfWeek == DayOfWeek.Saturday || DateTimeOffset.Now.DayOfWeek == DayOfWeek.Sunday)
-                {
-                    continue;
+                    startTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.AddHours(1).Hour, 1, 1, 0, now.Offset);
                 }
 
                 var initJob = JobBuilder.Create<InitAggregate>()
-                    .WithIdentity($"Initialize-{timespan}")
+                    .WithIdentity($"Initialize-{timespan}-{Guid.NewGuid()}")
                     .UsingJobData("timespan", timespan.ToString())
                     .StoreDurably(true)
                     .Build();
 
                 var snapshotTrigger = TriggerBuilder.Create()
-                    .WithIdentity($"InitializeTrigger-{timespan}")
+                    .WithIdentity($"InitializeTrigger-{timespan}-{Guid.NewGuid()}")
                     .ForJob(initJob)
                     .StartAt(startTime)
                     .Build();
 
                 await context.Scheduler.ScheduleJob(initJob, snapshotTrigger);
             }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("Error populating ticker data: {message}", ex.Message);
         }
     }
 

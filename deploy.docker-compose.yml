@@ -9,10 +9,3 @@ services:
       - ASPNETCORE_ENVIRONMENT=${ENVIRONMENT}
     env_file:
       - ../${ENVIRONMENT}.env
-    networks:
-      - marketviewer
-
-networks:
-  marketviewer:
-    name: marketviewer
-    driver: bridge

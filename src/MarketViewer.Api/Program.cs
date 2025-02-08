@@ -39,7 +39,7 @@ public class Program
 
         builder.Services.AddMediatR(q => q.RegisterServicesFromAssemblies(microserviceApplicationAssemblies))
             .AddAutoMapper(microserviceApplicationAssemblies)
-            .AddMemoryCache()
+            .AddMemoryCache(options => options.TrackStatistics = true)
             .AddHttpClient()
             .RegisterApplication()
             .RegisterCore(builder.Configuration)
@@ -47,12 +47,11 @@ public class Program
             .AddHttpContextAccessor()
             .AddSignalR();
 
-        var jobs = builder.Services.AddQuartz()
+        builder.Services.AddQuartz()
             .AddQuartzHostedService(opt =>
             {
                 opt.WaitForJobsToComplete = true;
-            })
-            .RegisterMarketDataJobs();
+            });
 
         builder.Services.AddControllers().AddJsonOptions(options =>
         {
@@ -96,10 +95,7 @@ public class Program
         var schedulerFactory = app.Services.GetRequiredService<ISchedulerFactory>();
         var scheduler = await schedulerFactory.GetScheduler();
 
-        foreach (var (jobDetail, jobTrigger) in jobs)
-        {
-            await scheduler.ScheduleJob(jobDetail, jobTrigger);
-        }
+        await RegisterJobs(scheduler);
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsEnvironment("dev") || app.Environment.IsEnvironment("local"))
@@ -135,5 +131,32 @@ public class Program
         app.MapControllers();
 
         app.Run();
+    }
+
+    private static async Task RegisterJobs(IScheduler scheduler)
+    {
+        var tickerJob = JobBuilder.Create<TickerInfoJob>()
+            .Build();
+
+        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "local")
+        {
+            var scheduleTrigger = TriggerBuilder.Create()
+            .WithIdentity("ScheduleTrigger")
+            .StartNow()
+            .ForJob(tickerJob)
+            .Build();
+
+            await scheduler.ScheduleJob(tickerJob, scheduleTrigger);    
+        }
+        else
+        {
+            var scheduleTrigger = TriggerBuilder.Create()
+            .WithIdentity("ScheduleTrigger")
+            .WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(6, 06))
+            .ForJob(tickerJob)
+            .Build();
+
+            await scheduler.ScheduleJob(tickerJob, scheduleTrigger);
+        }
     }
 }
