@@ -7,6 +7,7 @@ using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Models.Backtest;
 using MarketViewer.Contracts.Requests.Backtest;
 using MarketViewer.Contracts.Responses.Backtest;
+using MarketViewer.Core.Models;
 using MarketViewer.Infrastructure.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -36,6 +37,13 @@ public class BacktestHandlerV3(
     {
         try
         {
+            var estimatedCredits = ((request.End - request.Start).Days + 1) * 120;
+            var user = await _dbContext.LoadAsync<User>(request.UserId, cancellationToken);
+            if (user == null || user.Credits < estimatedCredits)
+            {
+                return GenerateErrorResponse(HttpStatusCode.Forbidden, ["Insufficient credits."]);
+            }
+
             List<BacktestLambdaResponseV3> entries = [];
             List<BacktestLambdaResponseV3> s3Entries = [];
 
@@ -185,6 +193,7 @@ public class BacktestHandlerV3(
                 Data = new BacktestResponseV3
                 {
                     Id = request.Id,
+                    CreditsUsed = relevantEntries.Where(result => result is not null).Sum(result => result.CreditsUsed),
                     Hold = new BacktestEntryStats
                     {
                         EndBalance = availableFundsHold,
@@ -233,6 +242,9 @@ public class BacktestHandlerV3(
             };
 
             await _dbContext.SaveAsync(newRecord, cancellationToken);
+
+            user.Credits -= response.Data.CreditsUsed;
+            await _dbContext.SaveAsync(user, cancellationToken);
 
             if (s3Entries.Count < entries.Count)
             {

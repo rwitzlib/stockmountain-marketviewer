@@ -64,7 +64,7 @@ public class SnapshotJob(
             var last = stocksResponse.Results.Last();
             if (last.Timestamp < bar.Timestamp)
             {
-                if (stocksResponse.Ticker is "AMD")
+                if (stocksResponse.Ticker is "MARA")
                 {
 
                 }

@@ -7,7 +7,7 @@ using MediatR;
 namespace MarketViewer.Contracts.Requests.Scan;
 
 [ExcludeFromCodeCoverage]
-public class ScanRequest : IRequest<OperationResult<ScanResponse>>
+public class ScanRequest : BaseRequest, IRequest<OperationResult<ScanResponse>>
 {
     public IEnumerable<Filter> Filters { get; set; }
     public DateTimeOffset Timestamp { get; set; }

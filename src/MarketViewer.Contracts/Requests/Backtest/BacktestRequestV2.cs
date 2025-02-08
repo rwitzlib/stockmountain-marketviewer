@@ -9,7 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace MarketViewer.Contracts.Requests.Backtest;
 
 [ExcludeFromCodeCoverage]
-public class BacktestRequestV2 : IRequest<OperationResult<BacktestResponseV2>>
+public class BacktestRequestV2 : BaseRequest, IRequest<OperationResult<BacktestResponseV2>>
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
     public DateTimeOffset Start { get; set; }

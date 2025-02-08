@@ -3,9 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MarketViewer.Contracts.Responses.Backtest;
 
-/// <summary>
-/// TODO
-/// </summary>
 [ExcludeFromCodeCoverage]
 public class BacktestLambdaResponseV3
 {
@@ -13,7 +10,9 @@ public class BacktestLambdaResponseV3
     public DateTime Date { get; set; }
 
     /// <summary>
-    /// Cost is $0.000133334 per credit assuming 2048 MB Lambda
+    /// Given a 2 GB Lambda, 1 second of backtesting will cost $0.0000333.
+    /// So 1 credit is equal to $0.0000333.
+    /// Assuming 1 day of backtesting will take 120 seconds, each day of backtesting costs 120 credits or $0.0034 
     /// </summary>
     public float CreditsUsed { get; set; }
     public BacktestEntryStats Hold { get; set; }

@@ -1,6 +1,4 @@
-﻿using Amazon.S3;
-using Amazon.S3.Model;
-using AutoMapper;
+﻿using AutoMapper;
 using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Responses;
@@ -8,7 +6,6 @@ using Polygon.Client.Requests;
 using Quartz;
 using System.Diagnostics;
 using Polygon.Client.Interfaces;
-using Polygon.Client.Responses;
 
 namespace MarketViewer.Api.Jobs;
 
@@ -19,7 +16,6 @@ public class InitAggregate(
     ILogger<InitAggregate> logger) : IJob
 {
     Stopwatch _sp = new();
-    List<PolygonSnapshotResponse> _snapshots = new();
 
     public async Task Execute(IJobExecutionContext context)
     {

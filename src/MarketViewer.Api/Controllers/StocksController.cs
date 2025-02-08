@@ -10,17 +10,19 @@ namespace MarketViewer.Api.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
-public class StocksController(ILogger<StocksController> logger, IMediator mediator) : ControllerBase
+public class StocksController(IHttpContextAccessor contextAccessor, ILogger<StocksController> logger, IMediator mediator) : ControllerBase
 {
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [RequiredPermissions([UserRole.None, UserRole.Starter, UserRole.Advanced, UserRole.Premium])]
+    [RequiredPermissions([UserRole.None, UserRole.Starter, UserRole.Advanced, UserRole.Premium, UserRole.Admin])]
     public async Task<IActionResult> HandleAggregateRequest([FromBody] StocksRequest request)
     {
         try
         {
+            request.UserId = contextAccessor.HttpContext.Items["UserId"].ToString();
+            
             var response = await mediator.Send(request);
 
             return response.Status switch
