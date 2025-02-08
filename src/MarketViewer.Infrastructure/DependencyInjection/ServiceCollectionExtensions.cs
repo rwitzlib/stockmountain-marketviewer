@@ -34,13 +34,13 @@ public static class ServiceCollectionExtensions
             .AddSingleton<HistoryCache>()
             .AddSingleton<IMarketCache, MemoryMarketCache>()
             .AddSingleton<BacktestService>()
-            .AddSingleton<IAmazonDynamoDB, AmazonDynamoDBClient>(client => new AmazonDynamoDBClient(RegionEndpoint.USEast2))
-            .AddSingleton<IMarketCacheClient, MarketCacheClient>();
+            .AddSingleton<IAmazonDynamoDB, AmazonDynamoDBClient>(client => new AmazonDynamoDBClient(RegionEndpoint.USEast2));
+            //.AddSingleton<IMarketCacheClient, MarketCacheClient>();
 
-        services.AddHttpClient("marketdataprovider", client =>
-        {
-            client.BaseAddress = new Uri(marketDataProviderUrl);
-        });
+        //services.AddHttpClient("marketdataprovider", client =>
+        //{
+        //    client.BaseAddress = new Uri(marketDataProviderUrl);
+        //});
 
         //if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").Equals("Local"))
         //{

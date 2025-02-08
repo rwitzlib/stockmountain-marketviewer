@@ -10,7 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace MarketViewer.Contracts.Requests.Backtest;
 
 [ExcludeFromCodeCoverage]
-public class BacktestRequest : IRequest<OperationResult<BacktestResponse>>
+public class BacktestRequest : BaseRequest, IRequest<OperationResult<BacktestResponse>>
 {
     public DateTimeOffset Start { get; set; }
     public DateTimeOffset End { get; set; }

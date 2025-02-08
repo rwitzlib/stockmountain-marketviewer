@@ -1,7 +1,8 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace MarketViewer.Api.Authentication;
 
+[ExcludeFromCodeCoverage]
 public class SigningKeyCache
 {
     public string Keys { get; set; }

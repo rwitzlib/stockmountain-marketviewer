@@ -9,7 +9,7 @@ namespace MarketViewer.Api.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/tools")]
-public class ToolsController(IMarketCache marketCache, ILogger<StocksController> logger) : ControllerBase
+public class ToolsController(IHttpContextAccessor contextAccessor, IMarketCache marketCache, ILogger<StocksController> logger) : ControllerBase
 {
     [HttpGet]
     [Route("aggregate")]
@@ -21,6 +21,8 @@ public class ToolsController(IMarketCache marketCache, ILogger<StocksController>
     {
         try
         {
+            request.UserId = contextAccessor.HttpContext.Items["UserId"].ToString();
+
             var response = marketCache.GetStocksResponse(request.Ticker, request.Timespan, DateTimeOffset.Now);
 
             return Ok(response);

@@ -16,7 +16,7 @@ namespace MarketViewer.Api.Controllers
     [ApiController]
     [Authorize]
     [Route("api/scan")]
-    public class ScanController(IAmazonS3 s3Client, IMarketCache _marketCache, ILogger<ScanController> _logger, IMediator _mediator) : ControllerBase
+    public class ScanController(IHttpContextAccessor contextAccessor, IAmazonS3 s3Client, IMarketCache _marketCache, ILogger<ScanController> _logger, IMediator _mediator) : ControllerBase
     {
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -27,6 +27,8 @@ namespace MarketViewer.Api.Controllers
         {
             try
             {
+                request.UserId = contextAccessor.HttpContext.Items["UserId"].ToString();
+                
                 var response = await _mediator.Send(request);
 
                 return response.Status switch
@@ -52,6 +54,8 @@ namespace MarketViewer.Api.Controllers
         {
             try
             {
+                request.UserId = contextAccessor.HttpContext.Items["UserId"].ToString();
+                
                 var response = await _mediator.Send(request);
 
                 return response.Status switch
@@ -89,24 +93,14 @@ namespace MarketViewer.Api.Controllers
             foreach (var ticker in minuteTickers)
             {
                 var stocksResponse = _marketCache.GetStocksResponse(ticker, Timespan.minute, DateTimeOffset.Now);
-                var adjustedStocksResponse = new StocksResponse
-                {
-                    Ticker = stocksResponse.Ticker,
-                    Results = stocksResponse.Results.Where(x => DateTimeOffset.FromUnixTimeMilliseconds(x.Timestamp).ToOffset(DateTimeOffset.Now.Offset).Date == DateTimeOffset.Now.Date).ToList()
-                };
-                minuteStocks.Add(adjustedStocksResponse);
+                minuteStocks.Add(stocksResponse);
             }
 
             List<StocksResponse> hourStocks = [];
             foreach (var ticker in hourTickers)
             {
                 var stocksResponse = _marketCache.GetStocksResponse(ticker, Timespan.hour, DateTimeOffset.Now);
-                var adjustedStocksResponse = new StocksResponse
-                {
-                    Ticker = stocksResponse.Ticker,
-                    Results = stocksResponse.Results.Where(x => DateTimeOffset.FromUnixTimeMilliseconds(x.Timestamp).ToOffset(DateTimeOffset.Now.Offset).Date == DateTimeOffset.Now.Date).ToList()
-                };
-                hourStocks.Add(adjustedStocksResponse);
+                hourStocks.Add(stocksResponse);
             }
 
             if (!(minuteTickers.Any() || hourTickers.Any()))
