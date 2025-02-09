@@ -138,7 +138,7 @@ public class Program
         var tickerJob = JobBuilder.Create<TickerInfoJob>()
             .Build();
 
-        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "local")
+        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "local")
         {
             var scheduleTrigger = TriggerBuilder.Create()
             .WithIdentity("ScheduleTrigger")
