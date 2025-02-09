@@ -138,7 +138,7 @@ public class Program
         var tickerJob = JobBuilder.Create<TickerInfoJob>()
             .Build();
 
-        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "local")
+        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "local")
         {
             var scheduleTrigger = TriggerBuilder.Create()
             .WithIdentity("ScheduleTrigger")
@@ -150,9 +150,25 @@ public class Program
         }
         else
         {
+            TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+            var offset = timeZone.GetUtcOffset(DateTimeOffset.Now);
+
+            var startTime = DateTimeOffset.Now;
+            if (DateTimeOffset.Now.ToOffset(offset).Hour < 6)
+            {
+                startTime = new DateTimeOffset(DateTimeOffset.Now.Year, DateTimeOffset.Now.Month, DateTimeOffset.Now.Day, 6, 0, 1, 0, offset);
+            }
+            else
+            {
+                startTime = new DateTimeOffset(DateTimeOffset.Now.Year, DateTimeOffset.Now.Month, DateTimeOffset.Now.AddDays(1).Day, 6, 0, 1, 0, offset);
+            }
+
+            Console.WriteLine("Starting data aggregation at: " + startTime);
+
             var scheduleTrigger = TriggerBuilder.Create()
             .WithIdentity("ScheduleTrigger")
-            .WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(6, 06))
+            .StartAt(startTime)
+            .WithSimpleSchedule(schedule => schedule.WithIntervalInHours(24).RepeatForever())
             .ForJob(tickerJob)
             .Build();
 
