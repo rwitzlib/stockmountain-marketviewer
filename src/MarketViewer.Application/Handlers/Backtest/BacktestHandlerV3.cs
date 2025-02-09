@@ -17,6 +17,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -31,13 +32,15 @@ public class BacktestHandlerV3(
     IMarketCache _marketCache,
     ILogger<BacktestHandlerV3> _logger) : IRequestHandler<BacktestRequestV3, OperationResult<BacktestResponseV3>>
 {
-    private readonly TimeZoneInfo _marketTimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+    private readonly TimeZoneInfo TimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+
+    private const int BACKTEST_CREDIT_COST = 120; // Estimated Credit Cost per Day
 
     public async Task<OperationResult<BacktestResponseV3>> Handle(BacktestRequestV3 request, CancellationToken cancellationToken)
     {
         try
         {
-            var estimatedCredits = ((request.End - request.Start).Days + 1) * 120;
+            var estimatedCredits = ((request.End - request.Start).Days + 1) * BACKTEST_CREDIT_COST;
             var user = await _dbContext.LoadAsync<User>(request.UserId, cancellationToken);
             if (user == null || user.Credits < estimatedCredits)
             {
@@ -112,7 +115,7 @@ public class BacktestHandlerV3(
 
             foreach (var day in dayRange)
             {
-                var offset = _marketTimeZone.IsDaylightSavingTime(day.Date) ? TimeSpan.FromHours(-4) : TimeSpan.FromHours(-5);
+                var offset = TimeZone.IsDaylightSavingTime(day.Date) ? TimeSpan.FromHours(-4) : TimeSpan.FromHours(-5);
                 var marketOpen = new DateTimeOffset(day.Year, day.Month, day.Day, 9, 30, 0, offset);
                 var marketClose = new DateTimeOffset(day.Year, day.Month, day.Day, 16, 0, 0, offset);
 
