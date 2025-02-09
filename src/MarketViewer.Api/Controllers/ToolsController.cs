@@ -59,19 +59,22 @@ public class ToolsController(IHttpContextAccessor contextAccessor, IMarketCache 
                 StocksResponseCount = 0
             };
 
-            foreach (var ticker in tickers)
+            if (tickers is not null)
             {
-                var minuteResponse = marketCache.GetStocksResponse(ticker, Timespan.minute, DateTimeOffset.Now);
-                var hourResponse = marketCache.GetStocksResponse(ticker, Timespan.hour, DateTimeOffset.Now);
-
-                if (minuteResponse is not null)
+                foreach (var ticker in tickers)
                 {
-                    response.StocksResponseCount++;      
-                }
+                    var minuteResponse = marketCache.GetStocksResponse(ticker, Timespan.minute, DateTimeOffset.Now);
+                    var hourResponse = marketCache.GetStocksResponse(ticker, Timespan.hour, DateTimeOffset.Now);
 
-                if (hourResponse is not null)
-                {
-                    response.StocksResponseCount++;
+                    if (minuteResponse is not null)
+                    {
+                        response.StocksResponseCount++;
+                    }
+
+                    if (hourResponse is not null)
+                    {
+                        response.StocksResponseCount++;
+                    }
                 }
             }
 
