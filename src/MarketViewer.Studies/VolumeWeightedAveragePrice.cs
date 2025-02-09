@@ -7,7 +7,7 @@ public class VolumeWeightedAveragePrice : Study<VolumeWeightedAveragePrice>
 {
     #region Protected Methods
 
-    protected override List<List<LineEntry>> Initialize(Bar[] candleData)
+    protected override List<List<LineEntry>> Initialize(List<Bar> candleData)
     {
         var series = new List<LineEntry>();
 

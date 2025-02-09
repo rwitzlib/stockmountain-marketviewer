@@ -36,7 +36,7 @@ namespace MarketViewer.Studies.UnitTests
         {
             // Arrange 
             string[] parameters = new[] { "asdf" };
-            var candles = _autoFixture.CreateMany<Bar>(100).ToArray();
+            var candles = _autoFixture.CreateMany<Bar>(100).ToList();
 
             // Act
             var response = SimpleMovingAverage.Compute(candles, parameters);
@@ -51,7 +51,7 @@ namespace MarketViewer.Studies.UnitTests
         {
             // Arrange 
             string[] parameters = new[] { "9", "9" };
-            var candles = _autoFixture.CreateMany<Bar>(100).ToArray();
+            var candles = _autoFixture.CreateMany<Bar>(100).ToList();
 
             // Act
             var response = SimpleMovingAverage.Compute(candles, parameters);
@@ -65,7 +65,7 @@ namespace MarketViewer.Studies.UnitTests
         public void SMA_With_No_Parameters_Returns_ErrorMessages()
         {
             // Arrange 
-            var candles = _autoFixture.CreateMany<Bar>(100).ToArray();
+            var candles = _autoFixture.CreateMany<Bar>(100).ToList();
 
             // Act
             var response = SimpleMovingAverage.Compute(candles, null);
@@ -85,7 +85,7 @@ namespace MarketViewer.Studies.UnitTests
             string[] parameters = ["9"];
 
             // Act
-            var response = SimpleMovingAverage.Compute(stocksResponse.Results.ToArray(), parameters);
+            var response = SimpleMovingAverage.Compute(stocksResponse.Results, parameters);
 
             // Assert
             response.Lines.Should().NotBeNull();
@@ -101,7 +101,7 @@ namespace MarketViewer.Studies.UnitTests
         {
             // Arrange
             string[] parameters = new[] { "101" };
-            var candles = _autoFixture.CreateMany<Bar>(100).ToArray();
+            var candles = _autoFixture.CreateMany<Bar>(100).ToList();
 
             // Act
             var response = SimpleMovingAverage.Compute(candles, parameters);
@@ -117,7 +117,7 @@ namespace MarketViewer.Studies.UnitTests
         {
             // Arrange
             string[] parameters = new[] { "9" };
-            var candles = new Bar[] { };
+            var candles = new List<Bar> { };
 
             // Act
             var response = SimpleMovingAverage.Compute(candles, parameters);

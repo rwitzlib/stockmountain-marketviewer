@@ -9,6 +9,7 @@ using System.Text.Json;
 using MarketViewer.Contracts.Responses;
 using System.Runtime.CompilerServices;
 using FluentAssertions.Formatting;
+using Amazon.S3.Model;
 
 namespace MarketViewer.Studies.UnitTests;
 
@@ -33,7 +34,7 @@ public class RelativeStrengthIndexUnitTests
     {
         // Arrange 
         string[] parameters = new[] { "asdf" };
-        var candles = _autoFixture.CreateMany<Bar>(100).ToArray();
+        var candles = _autoFixture.CreateMany<Bar>(100).ToList();
 
         // Act
         var response = RelativeStrengthIndex.Compute(candles, parameters);
@@ -47,7 +48,7 @@ public class RelativeStrengthIndexUnitTests
     public void RSI_With_No_Candles_Returns_ErrorMessages()
     {
         // Arrange
-        var candles = new Bar[] { };
+        var candles = new List<Bar> { };
 
         // Act
         var response = RelativeStrengthIndex.Compute(candles, ["14", "70", "30", "EMA"]);
@@ -68,7 +69,7 @@ public class RelativeStrengthIndexUnitTests
         var stocksResponse = JsonSerializer.Deserialize<StocksResponse>(json, _options);
 
         // Act
-        var response = RelativeStrengthIndex.Compute(stocksResponse.Results.ToArray(), ["14", "70", "30", type]);
+        var response = RelativeStrengthIndex.Compute(stocksResponse.Results, ["14", "70", "30", type]);
 
         // Assert
         response.Lines.Should().NotBeNullOrEmpty();

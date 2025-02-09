@@ -29,7 +29,7 @@ namespace MarketViewer.Studies.UnitTests
         {
             // Arrange 
             string[] parameters = new[] { "asdf" };
-            var candles = _autoFixture.CreateMany<Bar>(100).ToArray();
+            var candles = _autoFixture.CreateMany<Bar>(100).ToList();
 
             // Act
             var response = VolumeWeightedAveragePrice.Compute(candles, parameters);
@@ -43,7 +43,7 @@ namespace MarketViewer.Studies.UnitTests
         public void VWAP_Returns_Valid_Response()
         {
             // Arrange 
-            var candles = _autoFixture.CreateMany<Bar>(100).ToArray();
+            var candles = _autoFixture.CreateMany<Bar>(100).ToList();
 
             // Act
             var response = VolumeWeightedAveragePrice.Compute(candles, null);
@@ -57,7 +57,7 @@ namespace MarketViewer.Studies.UnitTests
         public void VWAP_Interday_Returns_Valid_Response()
         {
             // Arrange 
-            var candles = _autoFixture.CreateMany<Bar>(100).ToArray();
+            var candles = _autoFixture.CreateMany<Bar>(100).ToList();
 
             for(int i = 0; i < candles.Count(); i++ )
             {

@@ -47,7 +47,7 @@ namespace MarketViewer.Core.Scan.Filters
 
         protected static bool FilterByValue(Filter filter, StocksResponse response)
         {
-            var candleData = response.Results.ToArray();
+            var candleData = response.Results;
 
             var macd = MovingAverageConvergenceDivergence.Compute(candleData, 12, 26, 9, "EMA");
 
@@ -72,7 +72,7 @@ namespace MarketViewer.Core.Scan.Filters
 
         protected static bool FilterBySlope(Filter filter, StocksResponse response)
         {
-            var candleData = response.Results.ToArray();
+            var candleData = response.Results;
 
             var macd = MovingAverageConvergenceDivergence.Compute(candleData, 12, 26, 9, "EMA");
 

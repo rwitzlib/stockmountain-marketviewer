@@ -13,12 +13,12 @@ public class MovingAverageConvergenceDivergence : Study<MovingAverageConvergence
 
     #region Protected Methods
 
-    protected override List<List<LineEntry>> Initialize(Bar[] candles)
+    protected override List<List<LineEntry>> Initialize(List<Bar> candles)
     {
         var macdSeries = new List<LineEntry>();
         var signalSeries = new List<LineEntry>();
 
-        if (candles.Length < FastWeight || candles.Length < SlowWeight || candles.Length < SignalWeight)
+        if (candles.Count < FastWeight || candles.Count < SlowWeight || candles.Count < SignalWeight)
         {
             ErrorMessages.Add("Not enough candle data.");
             return [
@@ -32,7 +32,7 @@ public class MovingAverageConvergenceDivergence : Study<MovingAverageConvergence
         List<float> macdValues = [];
         List<float> signalValues = [];
 
-        for (int i = 0; i < candles.Length; i++)
+        for (int i = 0; i < candles.Count; i++)
         {
             if (i < FastWeight - 1)
             {
@@ -155,21 +155,21 @@ public class MovingAverageConvergenceDivergence : Study<MovingAverageConvergence
 
     #region Private Methods
 
-    private static float GetSimpleMovingAverage(IEnumerable<Bar> candles, int index, int weight)
+    private static float GetSimpleMovingAverage(List<Bar> candles, int index, int weight)
     {
         var value = candles.ToList().GetRange(index - (weight - 1), weight).Sum(q => q.Close) / weight;
 
         return value;
     }
 
-    private static float GetSimpleMovingAverage(IEnumerable<float> candles, int index, int weight)
+    private static float GetSimpleMovingAverage(List<float> candles, int index, int weight)
     {
         var value = candles.ToList().GetRange(index - (weight - 1), weight).Sum(q => q) / weight;
 
         return value;
     }
 
-    private static float GetExponentialMovingAverage(IEnumerable<Bar> candles, List<float> series, int index, int weight)
+    private static float GetExponentialMovingAverage(List<Bar> candles, List<float> series, int index, int weight)
     {
         if (!series.Any())
         {
@@ -183,7 +183,7 @@ public class MovingAverageConvergenceDivergence : Study<MovingAverageConvergence
         return value;
     }
 
-    private static float GetExponentialMovingAverage(IEnumerable<float> candles, List<float> series, int index, int weight)
+    private static float GetExponentialMovingAverage(List<float> candles, List<float> series, int index, int weight)
     {
         if (!series.Any())
         {
@@ -197,7 +197,7 @@ public class MovingAverageConvergenceDivergence : Study<MovingAverageConvergence
         return value;
     }
 
-    private static float GetWildersMovingAverage(IEnumerable<Bar> candles, List<float> series, int index, int weight)
+    private static float GetWildersMovingAverage(List<Bar> candles, List<float> series, int index, int weight)
     {
         if (!series.Any())
         {
@@ -211,7 +211,7 @@ public class MovingAverageConvergenceDivergence : Study<MovingAverageConvergence
         return value;
     }
 
-    private static float GetWildersMovingAverage(IEnumerable<float> candles, List<float> series, int index, int weight)
+    private static float GetWildersMovingAverage(List<float> candles, List<float> series, int index, int weight)
     {
         if (!series.Any())
         {

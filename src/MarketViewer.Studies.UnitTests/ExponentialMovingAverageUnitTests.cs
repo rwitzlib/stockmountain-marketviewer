@@ -30,7 +30,7 @@ namespace MarketViewer.Studies.UnitTests
         {
             // Arrange 
             string[] parameters = new[] { "asdf" };
-            var candles = _autoFixture.CreateMany<Bar>(100).ToArray();
+            var candles = _autoFixture.CreateMany<Bar>(100).ToList();
 
             // Act
             var response = ExponentialMovingAverage.Compute(candles, parameters);
@@ -45,7 +45,7 @@ namespace MarketViewer.Studies.UnitTests
         {
             // Arrange 
             string[] parameters = new[] { "9", "9" };
-            var candles = _autoFixture.CreateMany<Bar>(100).ToArray();
+            var candles = _autoFixture.CreateMany<Bar>(100).ToList();
 
             // Act
             var response = ExponentialMovingAverage.Compute(candles, parameters);
@@ -59,7 +59,7 @@ namespace MarketViewer.Studies.UnitTests
         public void EMA_With_No_Parameters_Returns_ErrorMessages()
         {
             // Arrange 
-            var candles = _autoFixture.CreateMany<Bar>(100).ToArray();
+            var candles = _autoFixture.CreateMany<Bar>(100).ToList();
 
             // Act
             var response = ExponentialMovingAverage.Compute(candles, null);
@@ -79,7 +79,7 @@ namespace MarketViewer.Studies.UnitTests
             string[] parameters = ["12"];
 
             // Act
-            var response = ExponentialMovingAverage.Compute(stocksResponse.Results.ToArray(), parameters);
+            var response = ExponentialMovingAverage.Compute(stocksResponse.Results, parameters);
 
             // Assert
             response.Lines.Should().NotBeNull();
@@ -95,7 +95,7 @@ namespace MarketViewer.Studies.UnitTests
         {
             // Arrange
             string[] parameters = new[] { "101" };
-            var candles = _autoFixture.CreateMany<Bar>(100).ToArray();
+            var candles = _autoFixture.CreateMany<Bar>(100).ToList();
 
             // Act
             var response = ExponentialMovingAverage.Compute(candles, parameters);

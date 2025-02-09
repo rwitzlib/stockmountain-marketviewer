@@ -10,17 +10,17 @@ public class ExponentialMovingAverage : Study<ExponentialMovingAverage>
 
     #region Protected Methods
 
-    protected override List<List<LineEntry>> Initialize(Bar[] candles)
+    protected override List<List<LineEntry>> Initialize(List<Bar> candles)
     {
         var series = new List<LineEntry>();
         
-        if (candles.Length < Weight)
+        if (candles.Count < Weight)
         {
             ErrorMessages.Add("Not enough candle data.");
             return [series];
         }
 
-        for (int i = 0; i < candles.Length; i++)
+        for (int i = 0; i < candles.Count; i++)
         {
             if (i < Weight - 1)
             {
@@ -64,14 +64,14 @@ public class ExponentialMovingAverage : Study<ExponentialMovingAverage>
 
     #region Private Methods
 
-    private static float GetSimpleMovingAverage(IEnumerable<Bar> candles, int index, int weight)
+    private static float GetSimpleMovingAverage(List<Bar> candles, int index, int weight)
     {
         var value = candles.ToList().GetRange(index - (weight - 1), weight).Sum(q => q.Close) / weight;
 
         return value;
     }
 
-    private static float GetExponentialMovingAverage(IEnumerable<Bar> candles, List<LineEntry> series, int index, int weight)
+    private static float GetExponentialMovingAverage(List<Bar> candles, List<LineEntry> series, int index, int weight)
     {
         if (!series.Any())
         {

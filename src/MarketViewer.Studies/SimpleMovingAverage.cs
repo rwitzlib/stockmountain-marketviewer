@@ -30,17 +30,17 @@ public class SimpleMovingAverage : Study<SimpleMovingAverage>
         return true;
     }
 
-    protected override List<List<LineEntry>> Initialize(Bar[] candleData)
+    protected override List<List<LineEntry>> Initialize(List<Bar> candleData)
     {
         var series = new List<LineEntry>();
 
-        if (candleData.Length < Weight)
+        if (candleData.Count < Weight)
         {
             ErrorMessages.Add("Not enough candle data.");
             return [series];
         }
 
-        for (int i = 0; i < candleData.Length; i++)
+        for (int i = 0; i < candleData.Count; i++)
         {
             if (i < Weight - 1)
             {
@@ -65,13 +65,11 @@ public class SimpleMovingAverage : Study<SimpleMovingAverage>
     #endregion
 
     #region Private Methods
-
-    private static float GetSimpleMovingAverage(IEnumerable<Bar> candles, int index, int weight)
+    private static float GetSimpleMovingAverage(List<Bar> candles, int index, int weight)
     {
         var value = candles.ToList().GetRange(index - (weight - 1), weight).Sum(q => q.Close) / weight;
 
         return value;
     }
-
     #endregion
 }

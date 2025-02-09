@@ -6,7 +6,7 @@ namespace MarketViewer.Studies;
 
 public static class StudyService
 {
-    public static StudyResponse ComputeStudy(StudyType studyType, string[] parameters, Bar[] candleData)
+    public static StudyResponse ComputeStudy(StudyType studyType, string[] parameters, List<Bar> candles)
     {
         var response = new StudyResponse
         {
@@ -14,11 +14,11 @@ public static class StudyService
             Parameters = parameters,
             Results = studyType switch
             {
-                StudyType.sma => SimpleMovingAverage.Compute(candleData, parameters).Lines,
-                StudyType.ema => ExponentialMovingAverage.Compute(candleData, parameters).Lines,
-                StudyType.vwap => VolumeWeightedAveragePrice.Compute(candleData, null).Lines,
-                StudyType.macd => MovingAverageConvergenceDivergence.Compute(candleData, parameters).Lines,
-                StudyType.rsi => RelativeStrengthIndex.Compute(candleData, parameters).Lines,
+                StudyType.sma => SimpleMovingAverage.Compute(candles, parameters).Lines,
+                StudyType.ema => ExponentialMovingAverage.Compute(candles, parameters).Lines,
+                StudyType.vwap => VolumeWeightedAveragePrice.Compute(candles, null).Lines,
+                StudyType.macd => MovingAverageConvergenceDivergence.Compute(candles, parameters).Lines,
+                StudyType.rsi => RelativeStrengthIndex.Compute(candles, parameters).Lines,
                 _ => null
             }
         };

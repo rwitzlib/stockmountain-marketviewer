@@ -11,6 +11,8 @@ using MarketViewer.Contracts.Requests;
 using MarketViewer.Studies;
 using System.Linq;
 using MarketViewer.Contracts.Models.Study;
+using System.Reflection.Metadata;
+using Polygon.Client.Models;
 
 namespace MarketViewer.Application.Handlers;
 
@@ -54,7 +56,7 @@ public class StocksHandler(IMarketDataRepository repository) : IRequestHandler<S
         if (request.Studies is not null)
         {
             var studies = new List<StudyResponse>();
-            var candles = response.Results.ToArray();
+            var candles = response.Results;
 
             foreach (var study in request.Studies)
             {
@@ -105,6 +107,18 @@ public class StocksHandler(IMarketDataRepository repository) : IRequestHandler<S
         }
 
         return errorMessages.Count == 0;
+    }
+
+    private static StudyResponse ComputeStudy(StudyFields study, List<Bar> candles)
+    {
+        var result = StudyService.ComputeStudy(study.Type, study.Parameters, candles);
+
+        if (result is not null && result.Results.Count > 0)
+        {
+            return result;
+        }
+
+        return null;
     }
     #endregion
 }

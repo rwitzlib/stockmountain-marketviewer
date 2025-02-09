@@ -107,7 +107,7 @@ namespace MarketViewer.Core.Scan.Filters
 
         protected static bool FilterByVwap(Filter filter, StocksResponse response)
         {
-            var candleData = response.Results.ToArray();
+            var candleData = response.Results;
 
             var vwapSeries = VolumeWeightedAveragePrice.Compute(candleData).Lines[0];
 

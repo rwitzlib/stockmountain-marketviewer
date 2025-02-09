@@ -29,7 +29,7 @@ namespace MarketViewer.Studies.UnitTests.Services
             var type = StudyType.ema;
             string[] parameters = ["9"];
 
-            var candles = _autoFixture.CreateMany<Bar>(500).ToArray();
+            var candles = _autoFixture.CreateMany<Bar>(500).ToList();
 
             // Act
             var response = StudyService.ComputeStudy(type, parameters, candles);
@@ -47,7 +47,7 @@ namespace MarketViewer.Studies.UnitTests.Services
             var type = StudyType.sma;
             string[] parameters = ["9"];
 
-            var candles = _autoFixture.CreateMany<Bar>(500).ToArray();
+            var candles = _autoFixture.CreateMany<Bar>(500).ToList();
 
             // Act
             var response = StudyService.ComputeStudy(type, parameters, candles);
@@ -65,7 +65,7 @@ namespace MarketViewer.Studies.UnitTests.Services
             var type = StudyType.macd;
             string[] parameters = ["12","26","9","EMA"];
 
-            var candles = _autoFixture.CreateMany<Bar>(500).ToArray();
+            var candles = _autoFixture.CreateMany<Bar>(500).ToList();
 
             // Act
             var response = StudyService.ComputeStudy(type, parameters, candles);
@@ -82,7 +82,7 @@ namespace MarketViewer.Studies.UnitTests.Services
             // Arrange
             var type = StudyType.rsi;
 
-            var candles = _autoFixture.CreateMany<Bar>(500).ToArray();
+            var candles = _autoFixture.CreateMany<Bar>(500).ToList();
 
             // Act
             var response = StudyService.ComputeStudy(type, ["14", "70", "30", "EMA"], candles);
@@ -98,7 +98,7 @@ namespace MarketViewer.Studies.UnitTests.Services
             // Arrange
             var type = StudyType.vwap;
 
-            var candles = _autoFixture.CreateMany<Bar>(500).ToArray();
+            var candles = _autoFixture.CreateMany<Bar>(500).ToList();
 
             // Act
             var response = StudyService.ComputeStudy(type, null, candles);
@@ -116,7 +116,7 @@ namespace MarketViewer.Studies.UnitTests.Services
             var type = StudyType.sma;
             string[] parameters = ["9"];
 
-            var candles = new List<Bar>().ToArray();
+            var candles = new List<Bar>();
 
             // Act
             var response = StudyService.ComputeStudy(type, parameters, candles);

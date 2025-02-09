@@ -31,7 +31,7 @@ namespace MarketViewer.Studies.UnitTests
         {
             // Arrange 
             string[] parameters = new[] { "12", "26", "9" };
-            var candles = _autoFixture.CreateMany<Bar>(100).ToArray();
+            var candles = _autoFixture.CreateMany<Bar>(100).ToList();
 
             // Act
             var response = MovingAverageConvergenceDivergence.Compute(candles, parameters);
@@ -45,7 +45,7 @@ namespace MarketViewer.Studies.UnitTests
         public void MACD_With_Null_Parameters_Returns_ErrorMessages()
         {
             // Arrange 
-            var candles = _autoFixture.CreateMany<Bar>(100).ToArray();
+            var candles = _autoFixture.CreateMany<Bar>(100).ToList();
 
             // Act
             var response = MovingAverageConvergenceDivergence.Compute(candles, null);
@@ -60,7 +60,7 @@ namespace MarketViewer.Studies.UnitTests
         {
             // Arrange 
             string[] parameters = new[] { "12", "26", "9", "EMA" };
-            var candles = _autoFixture.CreateMany<Bar>(100).ToArray();
+            var candles = _autoFixture.CreateMany<Bar>(100).ToList();
 
             // Act
             var response = MovingAverageConvergenceDivergence.Compute(candles, parameters);
@@ -75,7 +75,7 @@ namespace MarketViewer.Studies.UnitTests
         {
             // Arrange 
             string[] parameters = new[] { "12", "26", "9", "SMA" };
-            var candles = _autoFixture.CreateMany<Bar>(100).ToArray();
+            var candles = _autoFixture.CreateMany<Bar>(100).ToList();
 
             // Act
             var response = MovingAverageConvergenceDivergence.Compute(candles, parameters);
@@ -90,7 +90,7 @@ namespace MarketViewer.Studies.UnitTests
         {
             // Arrange 
             string[] parameters = new[] { "12", "26", "9", "EMA" };
-            var candles = new Bar[] { };
+            var candles = new List<Bar> { };
 
             // Act
             var response = MovingAverageConvergenceDivergence.Compute(candles, parameters);
@@ -105,7 +105,7 @@ namespace MarketViewer.Studies.UnitTests
         {
             // Arrange 
             string[] parameters = new[] { "12", "26", "9", "EMA" };
-            var candles = _autoFixture.CreateMany<Bar>(5).ToArray();
+            var candles = _autoFixture.CreateMany<Bar>(5).ToList();
 
             // Act
             var response = MovingAverageConvergenceDivergence.Compute(candles, parameters);
@@ -124,7 +124,7 @@ namespace MarketViewer.Studies.UnitTests
         {
             // Arrange 
             string[] parameters = new[] { fast, slow, signal, type };
-            var candles = _autoFixture.CreateMany<Bar>(100).ToArray();
+            var candles = _autoFixture.CreateMany<Bar>(100).ToList();
 
             // Act
             var response = MovingAverageConvergenceDivergence.Compute(candles, parameters);
@@ -145,7 +145,7 @@ namespace MarketViewer.Studies.UnitTests
             var stocksResponse = JsonSerializer.Deserialize<StocksResponse>(json, _options);
 
             // Act
-            var response = MovingAverageConvergenceDivergence.Compute(stocksResponse.Results.ToArray(), [fast, slow, signal, type]);
+            var response = MovingAverageConvergenceDivergence.Compute(stocksResponse.Results, [fast, slow, signal, type]);
 
             // Assert
             response.Lines.Should().NotBeNullOrEmpty();

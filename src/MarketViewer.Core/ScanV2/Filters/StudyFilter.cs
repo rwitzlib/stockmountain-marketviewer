@@ -13,7 +13,7 @@ public class StudyFilter : IFilterV2
         var studyOperand = operand as StudyOperand;
 
         var parameters = studyOperand.Parameters is null ? [] : studyOperand.Parameters.Split(',');
-        var studyResponse = StudyService.ComputeStudy(studyOperand.Study, parameters, stocksResponse.Results.ToArray());
+        var studyResponse = StudyService.ComputeStudy(studyOperand.Study, parameters, stocksResponse.Results);
 
         if (studyResponse is null || studyResponse.Results.Count == 0)
         {

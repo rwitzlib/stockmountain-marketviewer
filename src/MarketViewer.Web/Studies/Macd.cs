@@ -61,7 +61,7 @@ namespace MarketViewer.Web.Studies
             }
             else
             {
-                var candleData = response.Results.ToArray();
+                var candleData = response.Results;
                 var study = MovingAverageConvergenceDivergence.Compute(candleData, FastWeight, SlowWeight, SignalWeight, MovingAverageType);
                 
                 Lines[0].Series = study.Lines[0];

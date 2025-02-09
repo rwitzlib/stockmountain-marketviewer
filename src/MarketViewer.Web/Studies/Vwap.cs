@@ -42,8 +42,8 @@ namespace MarketViewer.Web.Studies
             }
             else
             {
-                var candleData = response.Results.ToArray();
-                Lines[0].Series = VolumeWeightedAveragePrice.Compute(candleData, null).Lines[0];;
+                var candleData = response.Results;
+                Lines[0].Series = VolumeWeightedAveragePrice.Compute(candleData, null).Lines[0];
             }
         }
     }

@@ -59,7 +59,7 @@ namespace MarketViewer.Web.Studies
             }
             else
             {
-                var candleData = response.Results.ToArray();
+                var candleData = response.Results;
                 Lines[0].Series = RelativeStrengthIndex.Compute(candleData).Lines[0];
             }
             

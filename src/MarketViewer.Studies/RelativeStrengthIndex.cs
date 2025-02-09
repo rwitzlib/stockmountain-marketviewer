@@ -62,13 +62,13 @@ public class RelativeStrengthIndex : Study<RelativeStrengthIndex>
         return true;
     }
     
-    protected override List<List<LineEntry>> Initialize(Bar[] candles)
+    protected override List<List<LineEntry>> Initialize(List<Bar> candles)
     {
         var series = new List<LineEntry>();
         var overbought = new List<LineEntry>();
         var oversold = new List<LineEntry>();
 
-        if (candles.Length < Weight + 1)
+        if (candles.Count < Weight + 1)
         {
             return [series, overbought, oversold];
         }
@@ -77,7 +77,7 @@ public class RelativeStrengthIndex : Study<RelativeStrengthIndex>
         List<float> downMoves = [];
         List<float> avgUps = [];
         List<float> avgDowns = [];
-        for (int i = 1; i < candles.Length; i++)
+        for (int i = 1; i < candles.Count; i++)
         {
             var value = candles[i].Close - candles[i - 1].Close;
             if (value > 0)
