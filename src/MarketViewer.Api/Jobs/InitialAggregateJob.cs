@@ -16,7 +16,7 @@ public class InitialAggregateJob(
     ILogger<InitialAggregateJob> logger) : IJob
 {
     private readonly Stopwatch _sp = new();
-
+    private readonly int BATCH_SIZE = int.TryParse(Environment.GetEnvironmentVariable("BATCH_SIZE"), out int size) ? size : 12000;
     public async Task Execute(IJobExecutionContext context)
     {
         var timespan = Enum.Parse<Timespan>(context.JobDetail.JobDataMap.GetString("timespan"));
@@ -26,11 +26,7 @@ public class InitialAggregateJob(
 
         try
         {
-            var tickers = marketCache.GetTickers();
-
-            var batchSize = int.TryParse(Environment.GetEnvironmentVariable("BATCH_SIZE"), out int size) ? size : 12000;
-
-            await PopulateStocksResponses(tickers, batchSize, timespan, DateTimeOffset.Now);
+            await PopulateStocksResponses(timespan, DateTimeOffset.Now);
 
             _sp.Stop();
 
@@ -61,13 +57,11 @@ public class InitialAggregateJob(
             };
 
             var updateJob = JobBuilder.Create<UpdateAggregateJob>()
-                .WithIdentity($"UpdateAggregate-{timespan}-{Guid.NewGuid()}")
                 .UsingJobData("timespan", timespan.ToString())
                 .StoreDurably(true)
                 .Build();
 
             var updateTrigger = TriggerBuilder.Create()
-                .WithIdentity($"UpdateAggregateTrigger-{timespan}-{Guid.NewGuid()}")
                 .WithSimpleSchedule(schedule => schedule
                     .WithIntervalInMinutes(interval)
                     .WithRepeatCount(repeatCount))
@@ -83,13 +77,15 @@ public class InitialAggregateJob(
         }
     }
 
-    private async Task PopulateStocksResponses(IEnumerable<string> tickers, int batchSize, Timespan timespan, DateTimeOffset date)
+    private async Task PopulateStocksResponses(Timespan timespan, DateTimeOffset date)
     {
-        for (int i = 0; i < tickers.Count(); i += batchSize)
+        var tickers = marketCache.GetTickers();
+
+        for (int i = 0; i < tickers.Count(); i += BATCH_SIZE)
         {
             var tasks = new List<Task>();
 
-            var batch = tickers.Take(new Range(i, i + batchSize));
+            var batch = tickers.Take(new Range(i, i + BATCH_SIZE));
 
             foreach (var ticker in batch)
             {

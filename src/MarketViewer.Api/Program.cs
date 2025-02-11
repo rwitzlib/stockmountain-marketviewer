@@ -146,7 +146,6 @@ public class Program
         if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "local")
         {
             var scheduleTrigger = TriggerBuilder.Create()
-            .WithIdentity("ScheduleTrigger")
             .StartNow()
             .ForJob(tickerJob)
             .Build();
@@ -171,7 +170,6 @@ public class Program
             Console.WriteLine("Starting data aggregation at: " + startTime);
 
             var scheduleTrigger = TriggerBuilder.Create()
-                .WithIdentity("ScheduleTrigger")
                 .StartAt(startTime)
                 .WithSimpleSchedule(schedule => schedule.WithIntervalInHours(24).RepeatForever())
                 .ForJob(tickerJob)
