@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using MarketViewer.Api.Authentication;
 using MarketViewer.Api.Middleware;
+using Microsoft.AspNetCore.HttpLogging;
 
 namespace MarketViewer.Api;
 
@@ -84,6 +85,8 @@ public class Program
                 };
             });
 
+        builder.Services.AddHttpLogging(options => options.LoggingFields = HttpLoggingFields.All);
+
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
@@ -96,6 +99,8 @@ public class Program
         var scheduler = await schedulerFactory.GetScheduler();
 
         await RegisterJobs(scheduler);
+
+        app.UseHttpLogging();
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsEnvironment("dev") || app.Environment.IsEnvironment("local"))
@@ -166,11 +171,11 @@ public class Program
             Console.WriteLine("Starting data aggregation at: " + startTime);
 
             var scheduleTrigger = TriggerBuilder.Create()
-            .WithIdentity("ScheduleTrigger")
-            .StartAt(startTime)
-            .WithSimpleSchedule(schedule => schedule.WithIntervalInHours(24).RepeatForever())
-            .ForJob(tickerJob)
-            .Build();
+                .WithIdentity("ScheduleTrigger")
+                .StartAt(startTime)
+                .WithSimpleSchedule(schedule => schedule.WithIntervalInHours(24).RepeatForever())
+                .ForJob(tickerJob)
+                .Build();
 
             await scheduler.ScheduleJob(tickerJob, scheduleTrigger);
         }

@@ -58,8 +58,8 @@ public class TickerInfoJob(
                     startTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.AddHours(1).Hour, 1, 1, 0, now.Offset);
                 }
 
-                var initJob = JobBuilder.Create<InitAggregate>()
-                    .WithIdentity($"Initialize-{timespan}-{Guid.NewGuid()}")
+                var initJob = JobBuilder.Create<InitialAggregateJob>()
+                    .WithIdentity($"Aggregate-{timespan}-{Guid.NewGuid()}")
                     .UsingJobData("timespan", timespan.ToString())
                     .StoreDurably(true)
                     .Build();
