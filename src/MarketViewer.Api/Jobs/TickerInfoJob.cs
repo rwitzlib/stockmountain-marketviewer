@@ -59,13 +59,11 @@ public class TickerInfoJob(
                 }
 
                 var initJob = JobBuilder.Create<InitialAggregateJob>()
-                    .WithIdentity($"Aggregate-{timespan}-{Guid.NewGuid()}")
                     .UsingJobData("timespan", timespan.ToString())
                     .StoreDurably(true)
                     .Build();
 
                 var snapshotTrigger = TriggerBuilder.Create()
-                    .WithIdentity($"InitializeTrigger-{timespan}-{Guid.NewGuid()}")
                     .ForJob(initJob)
                     .StartAt(startTime)
                     .Build();
