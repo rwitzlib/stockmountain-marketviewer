@@ -9,11 +9,11 @@ using Polygon.Client.Interfaces;
 
 namespace MarketViewer.Api.Jobs;
 
-public class InitAggregate(
+public class InitialAggregateJob(
     IMarketCache marketCache,
     IPolygonClient polygonClient,
     IMapper mapper,
-    ILogger<InitAggregate> logger) : IJob
+    ILogger<InitialAggregateJob> logger) : IJob
 {
     private readonly Stopwatch _sp = new();
 
@@ -22,7 +22,7 @@ public class InitAggregate(
         var timespan = Enum.Parse<Timespan>(context.JobDetail.JobDataMap.GetString("timespan"));
         _sp.Start();
 
-        logger.LogInformation("Started populating {timespan} aggregate data at: {time}.", timespan, DateTimeOffset.Now);
+        logger.LogInformation("Initializing {timespan} aggregate data at: {time}.", timespan, DateTimeOffset.Now);
 
         try
         {
@@ -34,7 +34,7 @@ public class InitAggregate(
 
             _sp.Stop();
 
-            logger.LogInformation("InitAggregate({timespan}) - Finished populating at: {time}. Time elapsed: {elapsed}ms.", timespan, DateTimeOffset.Now, _sp.ElapsedMilliseconds);
+            logger.LogInformation("InitialAggregate({timespan}) - Finished populating at: {time}. Time elapsed: {elapsed}ms.", timespan, DateTimeOffset.Now, _sp.ElapsedMilliseconds);
 
             var now = DateTimeOffset.Now;
 
@@ -60,26 +60,26 @@ public class InitAggregate(
                 _ => throw new NotImplementedException()
             };
 
-            var snapshotJob = JobBuilder.Create<SnapshotJob>()
-                .WithIdentity($"Snapshot-{timespan}-{Guid.NewGuid()}")
+            var updateJob = JobBuilder.Create<UpdateAggregateJob>()
+                .WithIdentity($"UpdateAggregate-{timespan}-{Guid.NewGuid()}")
                 .UsingJobData("timespan", timespan.ToString())
                 .StoreDurably(true)
                 .Build();
 
-            var snapshotTrigger = TriggerBuilder.Create()
-                .WithIdentity($"SnapshotTrigger-{timespan}-{Guid.NewGuid()}")
+            var updateTrigger = TriggerBuilder.Create()
+                .WithIdentity($"UpdateAggregateTrigger-{timespan}-{Guid.NewGuid()}")
                 .WithSimpleSchedule(schedule => schedule
                     .WithIntervalInMinutes(interval)
                     .WithRepeatCount(repeatCount))
-                .ForJob(snapshotJob)
+                .ForJob(updateJob)
                 .StartAt(startTime)
                 .Build();
 
-            await context.Scheduler.ScheduleJob(snapshotJob, snapshotTrigger);
+            await context.Scheduler.ScheduleJob(updateJob, updateTrigger);
         }
         catch (Exception ex)
         {
-            logger.LogError("InitAggregate({timespan}) - Error populating aggregate data: {message}", timespan, ex.Message);
+            logger.LogError("InitialAggregate({timespan}) - Error populating aggregate data: {message}", timespan, ex.Message);
         }
     }
 
