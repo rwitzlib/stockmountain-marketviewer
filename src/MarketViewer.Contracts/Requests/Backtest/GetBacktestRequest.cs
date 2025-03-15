@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace MarketViewer.Contracts.Requests.Backtest;
 
 [ExcludeFromCodeCoverage]
-public class GetBacktestResultRequest : BaseRequest, IRequest<OperationResult<GetBacktestResultResponse>>
+public class GetBacktestRequest : BaseRequest, IRequest<OperationResult<GetBacktestResultResponse>>
 {
     public string Id { get; set; }
 }

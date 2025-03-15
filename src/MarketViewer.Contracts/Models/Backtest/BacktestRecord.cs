@@ -1,6 +1,7 @@
 ﻿using Amazon.DynamoDBv2.DataModel;
 using MarketViewer.Contracts.Enums.Backtest;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
 namespace MarketViewer.Contracts.Models.Backtest;
 
@@ -15,6 +16,7 @@ public class BacktestRecord
     public string Id { get; set; } = Guid.NewGuid().ToString();
     [DynamoDBGlobalSecondaryIndexHashKey]
     public string CustomerId { get; set; }
+    [JsonConverter(typeof(JsonStringEnumConverter<BacktestStatus>))]
     public BacktestStatus Status { get; set; }
     public string CreatedAt { get; set; }
 

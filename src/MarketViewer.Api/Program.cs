@@ -18,6 +18,7 @@ using Microsoft.IdentityModel.Tokens;
 using MarketViewer.Api.Authentication;
 using MarketViewer.Api.Middleware;
 using Microsoft.AspNetCore.HttpLogging;
+using MarketViewer.Core.ScanV2;
 
 namespace MarketViewer.Api;
 
@@ -35,7 +36,8 @@ public class Program
         {
             typeof(StocksHandler).Assembly,
             typeof(FilterProfile).Assembly,
-            typeof(AggregateProfile).Assembly
+            typeof(AggregateProfile).Assembly,
+            typeof(ScanFilterFactoryV2).Assembly
         };
 
         builder.Services.AddMediatR(q => q.RegisterServicesFromAssemblies(microserviceApplicationAssemblies))

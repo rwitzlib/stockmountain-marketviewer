@@ -59,11 +59,7 @@ public class BacktestHandlerV3UnitTests
             },
             Exit = new BacktestExitInformation
             {
-                Timeframe = new Timeframe
-                {
-                    Multiplier = 5,
-                    Timespan = Timespan.day
-                }
+                Timeframe = new Timeframe(5, Timespan.day)
             },
             Argument = new ScanArgument()
         };
@@ -98,11 +94,7 @@ public class BacktestHandlerV3UnitTests
             },
             Exit = new BacktestExitInformation
             {
-                Timeframe = new Timeframe
-                {
-                    Multiplier = 5,
-                    Timespan = Timespan.day
-                }
+                Timeframe = new Timeframe(5, Timespan.day)
             },
             Argument = new ScanArgument()
         };
@@ -148,10 +140,9 @@ public class BacktestHandlerV3UnitTests
             Date = date.Date,
             Hold = new BacktestEntryStats
             {
-                PositiveTrendRatio = 1,
+                WinRatio = 1,
                 AvgWin = 50,
                 AvgLoss = 0,
-                AvgProfit = 50,
                 SumProfit = 50
             },
             High = new BacktestEntryStats

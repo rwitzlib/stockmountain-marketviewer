@@ -38,38 +38,19 @@ public class TickerInfoJob(
 
             logger.LogInformation("Finished populating ticker data at: {time}. Time elapsed: {elapsed}ms.", date, sp.ElapsedMilliseconds);
 
-            List<Timespan> timespans = [
-                Timespan.minute,
-                Timespan.hour
-            ];
+            var now = DateTimeOffset.Now;
+            var startTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 1, 0, now.Offset);
 
-            foreach (var timespan in timespans)
-            {
-                var now = DateTimeOffset.Now;
-                var startTime = timespan switch
-                {
-                    Timespan.minute => new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 1, 0, now.Offset),
-                    Timespan.hour => new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(2).Minute, 1, 0, now.Offset),
-                    _ => new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 1, 0, now.Offset)
-                };
+            var initJob = JobBuilder.Create<InitialAggregateJob>()
+                .StoreDurably(true)
+                .Build();
 
-                if (startTime.Minute >= 59)
-                {
-                    startTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.AddHours(1).Hour, 1, 1, 0, now.Offset);
-                }
+            var snapshotTrigger = TriggerBuilder.Create()
+                .ForJob(initJob)
+                .StartAt(startTime)
+                .Build();
 
-                var initJob = JobBuilder.Create<InitialAggregateJob>()
-                    .UsingJobData("timespan", timespan.ToString())
-                    .StoreDurably(true)
-                    .Build();
-
-                var snapshotTrigger = TriggerBuilder.Create()
-                    .ForJob(initJob)
-                    .StartAt(startTime)
-                    .Build();
-
-                await context.Scheduler.ScheduleJob(initJob, snapshotTrigger);
-            }
+            await context.Scheduler.ScheduleJob(initJob, snapshotTrigger);
         }
         catch (Exception ex)
         {

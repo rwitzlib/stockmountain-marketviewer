@@ -1,7 +1,7 @@
 ﻿using MarketViewer.Contracts.Enums;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MarketViewer.Contracts.Requests;
+namespace MarketViewer.Contracts.Requests.Tools;
 
 [ExcludeFromCodeCoverage]
 public class ToolsAggregateRequest : BaseRequest

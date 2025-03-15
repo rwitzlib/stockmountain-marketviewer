@@ -4,8 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 namespace MarketViewer.Contracts.Models.Scan;
 
 [ExcludeFromCodeCoverage]
-public class Timeframe
+public class Timeframe(int multiplier, Timespan timespan)
 {
-    public int Multiplier { get; set; }
-    public Timespan Timespan { get; set; }
+    public int Multiplier { get; set; } = multiplier;
+    public Timespan Timespan { get; set; } = timespan;
 }

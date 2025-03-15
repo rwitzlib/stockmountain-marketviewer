@@ -37,6 +37,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketViewer.Contracts.UnitTests", "MarketViewer.Contracts.UnitTests\MarketViewer.Contracts.UnitTests.csproj", "{A8399AE6-EA9D-41B9-80CB-A40C5DA47B17}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -91,6 +93,10 @@ Global
 		{F2E02EA0-FCC0-4DB0-931A-17F72F0FBC4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F2E02EA0-FCC0-4DB0-931A-17F72F0FBC4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F2E02EA0-FCC0-4DB0-931A-17F72F0FBC4C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8399AE6-EA9D-41B9-80CB-A40C5DA47B17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8399AE6-EA9D-41B9-80CB-A40C5DA47B17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8399AE6-EA9D-41B9-80CB-A40C5DA47B17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8399AE6-EA9D-41B9-80CB-A40C5DA47B17}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -101,6 +107,7 @@ Global
 		{2FC7B785-1B9E-48A5-8BF2-54817CAA6D4C} = {08AFC65B-2666-4155-86C3-917330D0B897}
 		{1B210561-09B6-425C-9507-116A871AA171} = {08AFC65B-2666-4155-86C3-917330D0B897}
 		{F2E02EA0-FCC0-4DB0-931A-17F72F0FBC4C} = {08AFC65B-2666-4155-86C3-917330D0B897}
+		{A8399AE6-EA9D-41B9-80CB-A40C5DA47B17} = {08AFC65B-2666-4155-86C3-917330D0B897}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AE3F6EF1-B2B9-4C14-822E-2DE9A98AB2C8}

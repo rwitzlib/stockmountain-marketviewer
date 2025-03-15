@@ -16,5 +16,5 @@ public class FilterItem
     public FilterOperator Operator { get; set; }
     public OperandType SecondOperandType { get; set; }
     public IScanOperand SecondOperand { get; set; }
-    public Timeframe Timeframe { get; set; } = new();
+    public Timeframe Timeframe { get; set; }
 }

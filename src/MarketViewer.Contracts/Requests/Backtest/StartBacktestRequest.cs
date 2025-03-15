@@ -4,12 +4,14 @@ using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Responses.Backtest;
 using MediatR;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
 namespace MarketViewer.Contracts.Requests.Backtest;
 
 [ExcludeFromCodeCoverage]
 public class StartBacktestRequest : BaseRequest, IRequest<OperationResult<StartBacktestResponse>>
 {
+    [JsonIgnore]
     public string Id { get; set; } = Guid.NewGuid().ToString();
     public DateTimeOffset Start { get; set; }
     public DateTimeOffset End { get; set; }

@@ -1,5 +1,7 @@
 ﻿using System.Net;
+using Amazon.Runtime.Internal;
 using MarketViewer.Api.Authorization;
+using MarketViewer.Contracts.Requests;
 using MarketViewer.Contracts.Requests.Backtest;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -17,38 +19,12 @@ public class BacktestV4Controller(IHttpContextAccessor contextAccessor, IMediato
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [RequiredPermissions([UserRole.Starter, UserRole.Advanced, UserRole.Premium, UserRole.Admin])]
-    public async Task<IActionResult> StartBacktest([FromBody] BacktestRequestV3 request)
+    public async Task<IActionResult> StartBacktest([FromBody] StartBacktestRequest request)
     {
         try
         {
             request.UserId = contextAccessor.HttpContext.Items["UserId"].ToString();
 
-            var response = await mediator.Send(request);
-
-            return response.Status switch
-            {
-                HttpStatusCode.OK => Ok(response.Data),
-                HttpStatusCode.BadRequest => BadRequest(response.ErrorMessages),
-                _ => StatusCode(StatusCodes.Status500InternalServerError, response.ErrorMessages)
-            };
-        }
-        catch (Exception e)
-        {
-            logger.LogError("Exception: {message}", e.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError, new List<string> { "Internal error." });
-        }
-    }
-
-    [HttpPost]
-    [Route("asdf/asdf")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [RequiredPermissions([UserRole.Starter, UserRole.Advanced, UserRole.Premium, UserRole.Admin])]
-    public async Task<IActionResult> asdf([FromBody] BacktestRequestV3 request)
-    {
-        try
-        {
             var response = await mediator.Send(request);
 
             return response.Status switch
@@ -72,43 +48,17 @@ public class BacktestV4Controller(IHttpContextAccessor contextAccessor, IMediato
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [RequiredPermissions([UserRole.Starter, UserRole.Advanced, UserRole.Premium, UserRole.Admin])]
-    public async Task<IActionResult> GetBacktestResult(string id)
-    {
-        var asdf = Request;
-
-        return Ok();
-        var request = new GetBacktestResultRequest();
+    public async Task<IActionResult> GetBacktest(string id)
+    {        
         try
         {
-            request.Id = id;
+            var userId = contextAccessor.HttpContext.Items["UserId"].ToString();
 
-            var response = await mediator.Send(request);
-
-            return response.Status switch
+            var response = await mediator.Send(new GetBacktestRequest
             {
-                HttpStatusCode.OK => Ok(response.Data),
-                HttpStatusCode.BadRequest => BadRequest(response.ErrorMessages),
-                _ => StatusCode(StatusCodes.Status500InternalServerError, response.ErrorMessages)
-            };
-        }
-        catch (Exception e)
-        {
-            logger.LogError("Exception: {message}", e.Message);
-            return StatusCode(StatusCodes.Status500InternalServerError, new List<string> { "Internal error." });
-        }
-    }
-
-    [HttpPost]
-    [Route("list")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [RequiredPermissions([UserRole.None, UserRole.Starter, UserRole.Advanced, UserRole.Premium, UserRole.Admin])]
-    public async Task<IActionResult> ListBacktestResults([FromBody] BacktestRequestV3 request) // TODO: add a new request type for listing backtest results
-    {
-        try
-        {
-            var response = await mediator.Send(request);
+                Id = id,
+                UserId = userId
+            });
 
             return response.Status switch
             {

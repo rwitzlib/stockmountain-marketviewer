@@ -15,65 +15,61 @@ public class InitialAggregateJob(
     IMapper mapper,
     ILogger<InitialAggregateJob> logger) : IJob
 {
-    private readonly Stopwatch _sp = new();
     private readonly int BATCH_SIZE = int.TryParse(Environment.GetEnvironmentVariable("BATCH_SIZE"), out int size) ? size : 12000;
+
     public async Task Execute(IJobExecutionContext context)
     {
-        var timespan = Enum.Parse<Timespan>(context.JobDetail.JobDataMap.GetString("timespan"));
-        _sp.Start();
+        var sp = new Stopwatch();
+        sp.Start();
 
-        logger.LogInformation("Initializing {timespan} aggregate data at: {time}.", timespan, DateTimeOffset.Now);
+        logger.LogInformation("Initializing aggregate data at: {time}.", DateTimeOffset.Now);
 
         try
         {
-            await PopulateStocksResponses(timespan, DateTimeOffset.Now);
+            await PopulateStocksResponses(Timespan.minute, DateTimeOffset.Now);
+            logger.LogInformation("Finished initializing minute aggregate data at: {time}. Time elapsed: {elapsed}ms.", DateTimeOffset.Now, sp.ElapsedMilliseconds);
 
-            _sp.Stop();
+            await PopulateStocksResponses(Timespan.hour, DateTimeOffset.Now);
+            logger.LogInformation("Finished initializing hourly aggregate data at: {time}. Time elapsed: {elapsed}ms.", DateTimeOffset.Now, sp.ElapsedMilliseconds);
 
-            logger.LogInformation("InitialAggregate({timespan}) - Finished populating at: {time}. Time elapsed: {elapsed}ms.", timespan, DateTimeOffset.Now, _sp.ElapsedMilliseconds);
+            sp.Stop();
+
+            if (sp.Elapsed.TotalSeconds > 60)
+            {
+                logger.LogInformation("Initializing aggregate data took longer than 1 minute");
+
+                var singleSnapshotJob = JobBuilder.Create<SnapshotJob>()
+                    .StoreDurably(true)
+                    .Build();
+
+                var singleSnapshotTrigger = TriggerBuilder.Create()
+                    .ForJob(singleSnapshotJob)
+                    .StartAt(DateTimeOffset.Now)
+                    .Build();
+
+                await context.Scheduler.ScheduleJob(singleSnapshotJob, singleSnapshotTrigger);
+            }
 
             var now = DateTimeOffset.Now;
+            var startTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 1, 0, now.Offset);
 
-            var interval = timespan switch
-            {
-                Timespan.minute => 1,
-                Timespan.hour => 60,
-                _ => 0
-            };
-
-            var startTime = timespan switch
-            {
-                Timespan.minute => new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 1, 0, now.Offset),
-                // Start at 9:01, 10:01, etc. to get the minute before: 9:00, 10:00, etc.
-                Timespan.hour => new DateTimeOffset(now.Year, now.Month, now.Day, now.AddHours(1).Hour, 1, 1, 0, now.Offset),
-                _ => new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 1, 0, now.Offset)
-            };
-
-            var repeatCount = timespan switch
-            {
-                Timespan.minute => 1080, // 18 Hours
-                Timespan.hour => 18,
-                _ => throw new NotImplementedException()
-            };
-
-            var updateJob = JobBuilder.Create<UpdateAggregateJob>()
-                .UsingJobData("timespan", timespan.ToString())
+            var scheduledSnapshotJob = JobBuilder.Create<SnapshotJob>()
                 .StoreDurably(true)
                 .Build();
 
-            var updateTrigger = TriggerBuilder.Create()
+            var scheduledSnapshotTrigger = TriggerBuilder.Create()
                 .WithSimpleSchedule(schedule => schedule
-                    .WithIntervalInMinutes(interval)
-                    .WithRepeatCount(repeatCount))
-                .ForJob(updateJob)
+                    .WithIntervalInMinutes(1)
+                    .WithRepeatCount(1800)) // 18 hours
+                .ForJob(scheduledSnapshotJob)
                 .StartAt(startTime)
                 .Build();
 
-            await context.Scheduler.ScheduleJob(updateJob, updateTrigger);
+            await context.Scheduler.ScheduleJob(scheduledSnapshotJob, scheduledSnapshotTrigger);
         }
         catch (Exception ex)
         {
-            logger.LogError("InitialAggregate({timespan}) - Error populating aggregate data: {message}", timespan, ex.Message);
+            logger.LogError("Error initializing aggregate data: {message}", ex.Message);
         }
     }
 
@@ -108,8 +104,8 @@ public class InitialAggregateJob(
             To = DateTime.Now.ToString("yyyy-MM-dd"),
             Limit = 50000
         };
-        var polygonAggregateResponse = await polygonClient.GetAggregates(polygonAggregateRequest);
 
+        var polygonAggregateResponse = await polygonClient.GetAggregates(polygonAggregateRequest);
         var stocksResponse = mapper.Map<StocksResponse>(polygonAggregateResponse);
 
         marketCache.SetStocksResponse(stocksResponse, timespan, date);
@@ -120,7 +116,7 @@ public class InitialAggregateJob(
         return timespan switch
         {
             Timespan.minute => TimeSpan.FromDays(-5),
-            Timespan.hour => TimeSpan.FromDays(-60),
+            Timespan.hour => TimeSpan.FromDays(-30),
             Timespan.day => throw new NotImplementedException(),
             Timespan.week => throw new NotImplementedException(),
             Timespan.month => throw new NotImplementedException(),

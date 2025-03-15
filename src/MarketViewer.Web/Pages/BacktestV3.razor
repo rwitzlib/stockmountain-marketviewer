@@ -103,9 +103,7 @@
                 SecondOperand = new FixedOperand{
                     Value = 0
                 },
-                Timeframe = new Timeframe{
-                    Multiplier = 6
-                }
+                Timeframe = new Timeframe(6, Timespan.minute)
             },
             new FilterV2
             {
@@ -122,9 +120,7 @@
                 SecondOperand = new FixedOperand{
                     Value = 70
                 },
-                Timeframe = new Timeframe{
-                    Multiplier = 6
-                }
+                Timeframe = new Timeframe(6, Timespan.minute)
             }
         ];
 
@@ -146,11 +142,7 @@
             {
                 Value = 0
             },
-            Timeframe = new Timeframe
-            {
-                Multiplier = 4,
-                Timespan = Timespan.minute
-            }
+            Timeframe = new Timeframe(4, Timespan.minute)
         });
 
         ScanArgument.Filters.Add(new FilterItem
@@ -171,11 +163,7 @@
             {
                 Value = 0
             },
-            Timeframe = new Timeframe
-            {
-                Multiplier = 3,
-                Timespan = Timespan.minute
-            }
+            Timeframe = new Timeframe(3, Timespan.minute)
         });
 
         ScanArgument.Filters.Add(new FilterItem
@@ -196,11 +184,7 @@
             {
                 Value = 0
             },
-            Timeframe = new Timeframe
-            {
-                Multiplier = 3,
-                Timespan = Timespan.minute
-            }
+            Timeframe = new Timeframe(3, Timespan.minute)
         });
 
         ScanArgument.Filters.Add(new FilterItem
@@ -221,11 +205,7 @@
             {
                 Value = 0
             },
-            Timeframe = new Timeframe
-            {
-                Multiplier = 2,
-                Timespan = Timespan.minute
-            }
+            Timeframe = new Timeframe(2, Timespan.minute)
         });
 
         ScanArgument.Filters.Add(new FilterItem
@@ -245,11 +225,7 @@
             {
                 Value = 100000
             },
-            Timeframe = new Timeframe
-            {
-                Multiplier = 5,
-                Timespan = Timespan.minute
-            }
+                Timeframe = new Timeframe(5, Timespan.minute)
         });
 
         ScanArgument.Filters.Add(new FilterItem
@@ -269,11 +245,7 @@
             {
                 Value = 2
             },
-            Timeframe = new Timeframe
-            {
-                Multiplier = 5,
-                Timespan = Timespan.minute
-            }
+            Timeframe = new Timeframe(5, Timespan.minute)
         });
 
         ScanArgument.Filters.Add(new FilterItem
@@ -293,11 +265,7 @@
             {
                 Value = 600
             },
-            Timeframe = new Timeframe
-            {
-                Multiplier = 5,
-                Timespan = Timespan.minute
-            }
+            Timeframe = new Timeframe(5, Timespan.minute)
         });
     }
 

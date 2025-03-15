@@ -16,6 +16,7 @@ using MarketViewer.Contracts.Enums.Scan;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Caching;
 using Amazon.Runtime.Internal;
+using MarketViewer.Application.Utilities;
 
 namespace MarketViewer.Application.Handlers.Scan;
 
@@ -39,7 +40,7 @@ public class ScanHandlerV2(
             var sp = new Stopwatch();
             sp.Start();
 
-            var timespans = GetTimespans(request.Argument);
+            var timespans = ScanUtilities.GetTimespans(request.Argument);
             await InitializeCacheIfEmpty(request.Timestamp.Date, timespans);
 
             var items = ApplyScanToArgument(request.Argument, request.Timestamp);
@@ -68,34 +69,6 @@ public class ScanHandlerV2(
     }
 
     #region Private Methods
-    private static IEnumerable<Timespan> GetTimespans(ScanArgument scanArgument)
-    {
-        if (scanArgument == null)
-        {
-            return [];
-        }
-
-        var timespans = new List<Timespan>();
-
-        foreach (var filter in scanArgument.Filters)
-        {
-            if (filter.FirstOperand.HasTimeframe(out var firstMultiplier, out var firstTimespan))
-            {
-                timespans.Add(firstTimespan.Value);
-            }
-            if (filter.SecondOperand.HasTimeframe(out var secondMultiplier, out var secondTimespan))
-            {
-                timespans.Add(secondTimespan.Value);
-            }
-        }
-
-        var timeSpansFromArgument = GetTimespans(scanArgument.Argument);
-
-        timespans.AddRange(timeSpansFromArgument);
-
-        return timespans.Distinct();
-    }
-
     private async Task InitializeCacheIfEmpty(DateTime date, IEnumerable<Timespan> timespans)
     {
         var tasks = new List<Task>();
@@ -141,14 +114,7 @@ public class ScanHandlerV2(
 
             foreach (var ticker in tickersToScan)
             {
-                var qwer = tickersToScan.Contains("SMCI");
-
                 var stocksResponse = hasTimeframe ? marketCache.GetStocksResponse(ticker, timespan.Value, timestamp) : marketCache.GetStocksResponse(ticker, Timespan.minute, timestamp);
-
-                if (ticker == "SMCI")
-                {
-                    var asdf = stocksResponse.Results.Where(q => DateTimeOffset.FromUnixTimeMilliseconds(q.Timestamp).ToOffset(Offset).Hour == 12);
-                }
 
                 var item = ApplyFilterToStocksResponse(sortedFitlers[i], timestamp, stocksResponse);
 
@@ -182,11 +148,6 @@ public class ScanHandlerV2(
 
         var secondFilter = scanFilterFactory.GetScanFilter(filter.SecondOperand);
         var secondOperandResult = secondFilter.Compute(filter.SecondOperand, reducedStocksResponse, filter.Timeframe);
-
-        if (stocksResponse.Ticker == "SMCI")
-        {
-
-        }
 
         if (firstOperandResult.Length == 0 || secondOperandResult.Length == 0)
         {

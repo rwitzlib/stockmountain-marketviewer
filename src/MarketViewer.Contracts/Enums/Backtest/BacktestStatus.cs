@@ -8,5 +8,5 @@ public enum BacktestStatus
     Pending,
     InProgress,
     Completed,
-    Error
+    Failed
 }

@@ -1,0 +1,23 @@
+﻿using MarketViewer.Contracts.Enums;
+using MarketViewer.Contracts.Models.Scan;
+using System.Diagnostics.CodeAnalysis;
+
+namespace MarketViewer.Contracts.Responses.Tools;
+
+[ExcludeFromCodeCoverage]
+public class ToolsScanResponse
+{
+    public string Ticker { get; set; }
+    public DateTimeOffset Timestamp { get; set; }
+    public ToolsScanResult Live { get; set; }
+    public ToolsScanResult Backtest { get; set; }
+}
+
+[ExcludeFromCodeCoverage]
+public class ToolsScanResult
+{
+    public bool IsSuccess { get; set; }
+    public List<FilterV2> PassedFilters { get; set; }
+    public List<FilterV2> FailedFilters { get; set; }
+    public Dictionary<Timespan, StocksResponse> StocksResponses { get; set; }
+}

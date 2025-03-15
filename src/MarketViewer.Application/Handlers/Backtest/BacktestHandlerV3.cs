@@ -33,16 +33,15 @@ public class BacktestHandlerV3(
     ILogger<BacktestHandlerV3> _logger) : IRequestHandler<BacktestRequestV3, OperationResult<BacktestResponseV3>>
 {
     private readonly TimeZoneInfo TimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
-
-    private const int BACKTEST_CREDIT_COST = 120; // Estimated Credit Cost per Day
+    private const int ESTIMATED_DAILY_CREDIT_COST = 120; // Estimated Credit Cost per Day
 
     public async Task<OperationResult<BacktestResponseV3>> Handle(BacktestRequestV3 request, CancellationToken cancellationToken)
     {
         try
         {
-            var estimatedCredits = ((request.End - request.Start).Days + 1) * BACKTEST_CREDIT_COST;
+            var estimatedCreditCost = ((request.End - request.Start).Days + 1) * ESTIMATED_DAILY_CREDIT_COST;
             var user = await _dbContext.LoadAsync<User>(request.UserId, cancellationToken);
-            if (user == null || user.Credits < estimatedCredits)
+            if (user == null || user.Credits < estimatedCreditCost)
             {
                 return GenerateErrorResponse(HttpStatusCode.Forbidden, ["Insufficient credits."]);
             }
@@ -200,8 +199,9 @@ public class BacktestHandlerV3(
                     Hold = new BacktestEntryStats
                     {
                         EndBalance = availableFundsHold,
+                        BalanceChange = (availableFundsHold - request.PositionInfo.StartingBalance) / request.PositionInfo.StartingBalance,
                         SumProfit = availableFundsHold - request.PositionInfo.StartingBalance,
-                        PositiveTrendRatio = holdWins.Any() ? (float)holdWins.Count() / (float)(holdWins.Count() + holdLosses.Count()) : 0,
+                        WinRatio = holdWins.Any() ? (float)holdWins.Count() / (float)(holdWins.Count() + holdLosses.Count()) : 0,
                         AvgWin = holdWins.Any() ? holdWins.Average(q => q.Profit) : 0,
                         AvgLoss = holdLosses.Any() ? holdLosses.Average(q => q.Profit) : 0,
                         //AvgProfit = backtestDayResults.SelectMany(q => q.Hold.Sold).Average(q => q.Profit),
@@ -210,8 +210,9 @@ public class BacktestHandlerV3(
                     High = new BacktestEntryStats
                     {
                         EndBalance = availableFundsHigh,
+                        BalanceChange = (availableFundsHigh - request.PositionInfo.StartingBalance) / request.PositionInfo.StartingBalance,
                         SumProfit = availableFundsHigh - request.PositionInfo.StartingBalance,
-                        PositiveTrendRatio = highWins.Any() ? (float)highWins.Count() / (float)(highWins.Count() + highLosses.Count()) : 0,
+                        WinRatio = highWins.Any() ? (float)highWins.Count() / (float)(highWins.Count() + highLosses.Count()) : 0,
                         AvgWin = highWins.Any() ? highWins.Average(q => q.Profit) : 0,
                         AvgLoss = highLosses.Any() ? highLosses.Average(q => q.Profit) : 0,
                         //AvgProfit = backtestDayResults.SelectMany(q => q.High.Sold).Average(q => q.Profit),
@@ -220,8 +221,9 @@ public class BacktestHandlerV3(
                     Other = request.Exit.Other is null ? null : new BacktestEntryStats
                     {
                         EndBalance = availableFundsOther,
+                        BalanceChange = (availableFundsOther - request.PositionInfo.StartingBalance) / request.PositionInfo.StartingBalance,
                         SumProfit = availableFundsOther - request.PositionInfo.StartingBalance,
-                        PositiveTrendRatio = otherWins.Any() ? (float)otherWins.Count() / (float)(otherWins.Count() + otherLosses.Count()) : 0,
+                        WinRatio = otherWins.Any() ? (float)otherWins.Count() / (float)(otherWins.Count() + otherLosses.Count()) : 0,
                         AvgWin = otherWins.Any() ? otherWins.Average(q => q.Profit) : 0,
                         AvgLoss = otherLosses.Any() ? otherLosses.Average(q => q.Profit) : 0,
                         //AvgProfit = backtestDayResults.SelectMany(q => q.Other.Sold).Average(q => q.Profit),

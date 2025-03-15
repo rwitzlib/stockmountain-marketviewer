@@ -25,9 +25,9 @@ public class MemoryMarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3) :
             Key = BuildS3Key(date, multiplier, timespan)
         };
 
-        var s3Response = await _amazonS3.GetObjectAsync(s3Request);
-
+        using var s3Response = await _amazonS3.GetObjectAsync(s3Request);
         using var streamReader = new StreamReader(s3Response.ResponseStream);
+
         var json = await streamReader.ReadToEndAsync();
 
         var stocksResponses = JsonSerializer.Deserialize<IEnumerable<StocksResponse>>(json, Options);

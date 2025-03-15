@@ -18,12 +18,12 @@ using System.Threading.Tasks;
 
 namespace MarketViewer.Application.Handlers.Backtest;
 
-public class GetBacktestResultHandler(
+public class GetBacktestHandler(
     IAmazonLambda _lambdaClient,
     IAmazonDynamoDB _dynamoDbClient,
-    ILogger<GetBacktestResultHandler> _logger) : IRequestHandler<GetBacktestResultRequest, OperationResult<GetBacktestResultResponse>>
+    ILogger<GetBacktestHandler> _logger) : IRequestHandler<GetBacktestRequest, OperationResult<GetBacktestResultResponse>>
 {
-    public async Task<OperationResult<GetBacktestResultResponse>> Handle(GetBacktestResultRequest request, CancellationToken cancellationToken)
+    public async Task<OperationResult<GetBacktestResultResponse>> Handle(GetBacktestRequest request, CancellationToken cancellationToken)
     {
         if (request is null || request.Id is null)
         {
