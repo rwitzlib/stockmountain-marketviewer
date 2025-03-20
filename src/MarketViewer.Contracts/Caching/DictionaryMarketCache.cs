@@ -1,6 +1,7 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
 using MarketViewer.Contracts.Enums;
+using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Responses;
 using Polygon.Client.Models;
 using System.Collections.Concurrent;
@@ -19,12 +20,12 @@ public class DictionaryMarketCache(IAmazonS3 _amazonS3) : IMarketCache
         PropertyNameCaseInsensitive = true
     };
 
-    public async Task<IEnumerable<StocksResponse>> Initialize(DateTimeOffset date, int multiplier, Timespan timespan)
+    public async Task<IEnumerable<StocksResponse>> Initialize(DateTimeOffset date, Timeframe timeframe)
     {
         var s3Request = new GetObjectRequest
         {
             BucketName = "lad-dev-marketviewer",
-            Key = BuildS3Key(date, multiplier, timespan)
+            Key = BuildS3Key(date, timeframe.Multiplier, timeframe.Timespan)
         };
 
         var s3Response = await _amazonS3.GetObjectAsync(s3Request);
@@ -36,11 +37,11 @@ public class DictionaryMarketCache(IAmazonS3 _amazonS3) : IMarketCache
 
         var tickers = stocksResponses.Select(stocksResponse => stocksResponse.Ticker);
 
-        SetTickersByTimespan(date, timespan, tickers); //TODO use multiplier in cache key eventually?
+        SetTickersByTimeframe(date, timeframe, tickers);
 
         foreach (var stocksResponse in stocksResponses)
         {
-            SetStocksResponse(stocksResponse, timespan, date); //TODO use multiplier in cache key eventually?
+            SetStocksResponse(stocksResponse, timeframe, date);
         }
 
         return stocksResponses;
@@ -61,24 +62,23 @@ public class DictionaryMarketCache(IAmazonS3 _amazonS3) : IMarketCache
         _tickers.AddOrUpdate("Tickers", tickers, (s, t) => t);
     }
 
-    public IEnumerable<string> GetTickersByTimespan(Timespan timespan, DateTimeOffset timestamp)
+    public IEnumerable<string> GetTickersByTimeframe(Timeframe timeframe, DateTimeOffset timestamp)
     {
-        if (_tickers.TryGetValue($"Tickers/{timespan}/{timestamp.Date:yyyyMMdd}", out var tickers) && tickers is not null)
+        if (_tickers.TryGetValue($"Tickers/{timeframe.Multiplier}/{timeframe.Timespan}/{timestamp.Date:yyyyMMdd}", out var tickers) && tickers is not null)
         {
             return tickers;
         }
-
         return [];
     }
 
-    public void SetTickersByTimespan(DateTimeOffset date, Timespan timespan, IEnumerable<string> tickers)
+    public void SetTickersByTimeframe(DateTimeOffset date, Timeframe timeframe, IEnumerable<string> tickers)
     {
-        _tickers.AddOrUpdate($"Tickers/{timespan}/{date.Date:yyyyMMdd}", tickers, (s, t) => t);
+        _tickers.AddOrUpdate($"Tickers/{timeframe.Multiplier}/{timeframe.Timespan}/{date.Date:yyyyMMdd}", tickers, (s, t) => t);
     }
 
-    public StocksResponse GetStocksResponse(string ticker, Timespan timespan, DateTimeOffset timestamp)
+    public StocksResponse GetStocksResponse(string ticker, Timeframe timeframe, DateTimeOffset timestamp)
     {
-        if (_stocksResponses.TryGetValue($"Stocks/{ticker}/{timespan}/{timestamp.Date:yyyyMMdd}", out var stocksResponse))
+        if (_stocksResponses.TryGetValue($"Stocks/{ticker}/{timeframe.Multiplier}/{timeframe.Timespan}/{timestamp.Date:yyyyMMdd}", out var stocksResponse))
         {
             return stocksResponse;
         }
@@ -86,9 +86,9 @@ public class DictionaryMarketCache(IAmazonS3 _amazonS3) : IMarketCache
         return null;
     }
 
-    public void SetStocksResponse(StocksResponse stocksResponse, Timespan timespan, DateTimeOffset date)
+    public void SetStocksResponse(StocksResponse stocksResponse, Timeframe timeframe, DateTimeOffset date)
     {
-        _stocksResponses.AddOrUpdate($"Stocks/{stocksResponse.Ticker}/{timespan}/{date.Date:yyyyMMdd}", stocksResponse, (s, t) => t);
+        _stocksResponses.AddOrUpdate($"Stocks/{stocksResponse.Ticker}/{timeframe.Multiplier}/{timeframe.Timespan}/{date.Date:yyyyMMdd}", stocksResponse, (s, t) => t);
     }
 
     public TickerDetails GetTickerDetails(string ticker)

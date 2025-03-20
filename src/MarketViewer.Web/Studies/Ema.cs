@@ -1,6 +1,6 @@
 using MarketViewer.Contracts.Models.Study;
 using MarketViewer.Contracts.Responses;
-using MarketViewer.Studies;
+using MarketViewer.Studies.Studies;
 using MarketViewer.Web.Contracts.Studies;
 
 namespace MarketViewer.Web.Studies
@@ -45,7 +45,7 @@ namespace MarketViewer.Web.Studies
             else
             {
                 var candleData = response.Results.ToArray();
-                Lines[0].Series = ExponentialMovingAverage.Compute(candleData, ExponentialMovingAverageWeight).Lines[0];
+                Lines[0].Series = EMA.Compute(candleData, ExponentialMovingAverageWeight).Lines[0];
             }
         }
     }

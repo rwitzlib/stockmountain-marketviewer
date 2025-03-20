@@ -30,8 +30,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IAmazonS3>(client => new AmazonS3Client(RegionEndpoint.USEast2))
             .AddPolygonClient(token)
             //.AddSingleton<IConnectionMultiplexer>(connectionMultiplexer)
-            .AddSingleton<LiveCache>()
-            .AddSingleton<HistoryCache>()
             .AddSingleton<IMarketCache, MemoryMarketCache>()
             .AddSingleton<BacktestService>()
             .AddSingleton<IAmazonDynamoDB, AmazonDynamoDBClient>(client => new AmazonDynamoDBClient(RegionEndpoint.USEast2));

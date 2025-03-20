@@ -2,6 +2,7 @@
 using Amazon.S3.Model;
 using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Enums;
+using MarketViewer.Contracts.Models.Scan;
 using Microsoft.Extensions.Caching.Memory;
 using Polygon.Client.Models;
 using Quartz;
@@ -80,8 +81,8 @@ public class TickerInfoJob(
         var tickers = tickerDetailsList.Select(tickerDetails => tickerDetails.Ticker);
 
         marketCache.SetTickers(tickers);
-        marketCache.SetTickersByTimespan(date, Timespan.minute, tickers);
-        marketCache.SetTickersByTimespan(date, Timespan.hour, tickers);
+        marketCache.SetTickersByTimeframe(date, new Timeframe(1, Timespan.minute), tickers);
+        marketCache.SetTickersByTimeframe(date, new Timeframe(1, Timespan.hour), tickers);
 
         return tickers;
     }

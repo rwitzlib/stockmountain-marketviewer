@@ -9,5 +9,6 @@ public enum StudyType
     macd,
     ema,
     sma,
-    rsi
+    rsi,
+    rvol
 }

@@ -31,6 +31,16 @@
     <ProjectReference Include="..\MarketViewer.Studies\MarketViewer.Studies.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Data\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Data\data.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
   <PropertyGroup>
 	<CollectCoverage>true</CollectCoverage>
 	<CoverletOutput>../TestResults/</CoverletOutput>

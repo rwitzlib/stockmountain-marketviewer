@@ -1,6 +1,7 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
 using MarketViewer.Contracts.Enums;
+using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Responses;
 using Microsoft.Extensions.Caching.Memory;
 using Polygon.Client.Models;
@@ -17,12 +18,12 @@ public class MemoryMarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3) :
 
     private static TimeSpan ExpireIn => TimeSpan.FromHours(16);
 
-    public async Task<IEnumerable<StocksResponse>> Initialize(DateTimeOffset date, int multiplier, Timespan timespan)
+    public async Task<IEnumerable<StocksResponse>> Initialize(DateTimeOffset date, Timeframe timeframe)
     {
         var s3Request = new GetObjectRequest
         {
             BucketName = "lad-dev-marketviewer",
-            Key = BuildS3Key(date, multiplier, timespan)
+            Key = BuildS3Key(date, timeframe.Multiplier, timeframe.Timespan)
         };
 
         using var s3Response = await _amazonS3.GetObjectAsync(s3Request);
@@ -34,11 +35,11 @@ public class MemoryMarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3) :
 
         var tickers = stocksResponses.Select(stocksResponse => stocksResponse.Ticker);
 
-        SetTickersByTimespan(date, timespan, tickers); //TODO use multiplier in cache key eventually?
+        SetTickersByTimeframe(date, timeframe, tickers); //TODO use multiplier in cache key eventually?
 
         foreach (var stocksResponse in stocksResponses)
         {
-            SetStocksResponse(stocksResponse, timespan, date); //TODO use multiplier in cache key eventually?
+            SetStocksResponse(stocksResponse, timeframe, date); //TODO use multiplier in cache key eventually?
         }
 
         return stocksResponses;
@@ -54,33 +55,33 @@ public class MemoryMarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3) :
         _memoryCache.Set("Tickers", tickers);
     }
 
-    public IEnumerable<string> GetTickersByTimespan(Timespan timespan, DateTimeOffset timestamp)
+    public IEnumerable<string> GetTickersByTimeframe(Timeframe timeframe, DateTimeOffset timestamp)
     {
-        return _memoryCache.Get<IEnumerable<string>>($"Tickers/{timespan}/{timestamp.Date:yyyyMMdd}");
+        return _memoryCache.Get<IEnumerable<string>>($"Tickers/{timeframe.Multiplier}/{timeframe.Timespan}/{timestamp.Date:yyyyMMdd}");
     }
 
-    public void SetTickersByTimespan(DateTimeOffset date, Timespan timespan, IEnumerable<string> tickers)
+    public void SetTickersByTimeframe(DateTimeOffset date, Timeframe timeframe, IEnumerable<string> tickers)
     {
-        _memoryCache.GetOrCreate($"Tickers/{timespan}/{date.Date:yyyyMMdd}", entry =>
+        _memoryCache.GetOrCreate($"Tickers/{timeframe.Multiplier}/{timeframe.Timespan}/{date.Date:yyyyMMdd}", entry =>
         {
             entry.SetSlidingExpiration(ExpireIn);
             return tickers;
         });
     }
 
-    public StocksResponse GetStocksResponse(string ticker, Timespan timespan, DateTimeOffset timestamp)
+    public StocksResponse GetStocksResponse(string ticker, Timeframe timeframe, DateTimeOffset timestamp)
     {
-        return _memoryCache.Get<StocksResponse>($"Stocks/{ticker}/{timespan}/{timestamp.Date:yyyyMMdd}");
+        return _memoryCache.Get<StocksResponse>($"Stocks/{ticker}/{timeframe.Multiplier}/{timeframe.Timespan}/{timestamp.Date:yyyyMMdd}");
     }
 
-    public void SetStocksResponse(StocksResponse stocksResponse, Timespan timespan, DateTimeOffset date)
+    public void SetStocksResponse(StocksResponse stocksResponse, Timeframe timeframe, DateTimeOffset date)
     {
         if (stocksResponse is null)
         {
             return;
         }
 
-        _memoryCache.GetOrCreate($"Stocks/{stocksResponse.Ticker}/{timespan}/{date.Date:yyyyMMdd}", entry => //TODO add handling for multipliers
+        _memoryCache.GetOrCreate($"Stocks/{stocksResponse.Ticker}/{timeframe.Multiplier}/{timeframe.Timespan}/{date.Date:yyyyMMdd}", entry =>
         {
             entry.SetSlidingExpiration(ExpireIn);
             return stocksResponse;
