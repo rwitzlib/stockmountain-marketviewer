@@ -14,7 +14,7 @@ using MarketViewer.Contracts.Models.Study;
 
 namespace MarketViewer.Application.Handlers;
 
-public class StocksHandler(IMarketDataRepository repository) : IRequestHandler<StocksRequest, OperationResult<StocksResponse>>
+public class StocksHandler(IMarketDataRepository repository, StudyFactory studyFactory) : IRequestHandler<StocksRequest, OperationResult<StocksResponse>>
 {
     public async Task<OperationResult<StocksResponse>> Handle(StocksRequest request, CancellationToken cancellationToken)
     {
@@ -54,11 +54,10 @@ public class StocksHandler(IMarketDataRepository repository) : IRequestHandler<S
         if (request.Studies is not null)
         {
             var studies = new List<StudyResponse>();
-            var candles = response.Results.ToArray();
 
             foreach (var study in request.Studies)
             {
-                var result = StudyService.ComputeStudy(study.Type, study.Parameters, candles);
+                var result = studyFactory.Compute(study.Type, study.Parameters, response);
 
                 if (result is not null && result.Results.Count > 0)
                 {

@@ -4,6 +4,7 @@ using MarketViewer.Api.Authorization;
 using MarketViewer.Application.Handlers.Tools;
 using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Enums;
+using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Requests.Tools;
 using MarketViewer.Contracts.Responses;
 using MarketViewer.Contracts.Responses.Tools;
@@ -43,7 +44,7 @@ public class ToolsController(
         {
             request.UserId = contextAccessor.HttpContext.Items["UserId"].ToString();
 
-            var response = marketCache.GetStocksResponse(request.Ticker, request.Timespan, DateTimeOffset.Now);
+            var response = marketCache.GetStocksResponse(request.Ticker, new Timeframe(1, request.Timespan), DateTimeOffset.Now);
 
             return Ok(response);
         }
@@ -160,8 +161,8 @@ public class ToolsController(
             {
                 foreach (var ticker in tickers)
                 {
-                    var minuteResponse = marketCache.GetStocksResponse(ticker, Timespan.minute, DateTimeOffset.Now);
-                    var hourResponse = marketCache.GetStocksResponse(ticker, Timespan.hour, DateTimeOffset.Now);
+                    var minuteResponse = marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), DateTimeOffset.Now);
+                    var hourResponse = marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.hour), DateTimeOffset.Now);
 
                     if (minuteResponse is not null)
                     {

@@ -1,7 +1,7 @@
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.Study;
 using MarketViewer.Contracts.Responses;
-using MarketViewer.Studies;
+using MarketViewer.Studies.Studies;
 using MarketViewer.Web.Contracts.Studies;
 using MarketViewer.Web.Enums;
 
@@ -62,7 +62,7 @@ namespace MarketViewer.Web.Studies
             else
             {
                 var candleData = response.Results.ToArray();
-                var study = MovingAverageConvergenceDivergence.Compute(candleData, FastWeight, SlowWeight, SignalWeight, MovingAverageType);
+                var study = MACD.Compute(candleData, FastWeight, SlowWeight, SignalWeight, MovingAverageType);
                 
                 Lines[0].Series = study.Lines[0];
                 Lines[1].Series = study.Lines[1];

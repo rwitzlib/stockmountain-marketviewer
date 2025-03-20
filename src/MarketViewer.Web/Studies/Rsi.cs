@@ -1,7 +1,7 @@
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.Study;
 using MarketViewer.Contracts.Responses;
-using MarketViewer.Studies;
+using MarketViewer.Studies.Studies;
 using MarketViewer.Web.Contracts.Studies;
 
 namespace MarketViewer.Web.Studies
@@ -60,7 +60,7 @@ namespace MarketViewer.Web.Studies
             else
             {
                 var candleData = response.Results.ToArray();
-                Lines[0].Series = RelativeStrengthIndex.Compute(candleData).Lines[0];
+                Lines[0].Series = RSI.Compute(candleData).Lines[0];
             }
             
             Lines[1].Series = new List<LineEntry>();

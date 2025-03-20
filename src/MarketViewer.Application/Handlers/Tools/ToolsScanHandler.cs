@@ -8,7 +8,7 @@ using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Requests.Tools;
 using MarketViewer.Contracts.Responses;
 using MarketViewer.Contracts.Responses.Tools;
-using MarketViewer.Core.ScanV2;
+using MarketViewer.Core.Scan;
 using MediatR;
 using Microsoft.Extensions.Caching.Memory;
 using Polygon.Client.Models;

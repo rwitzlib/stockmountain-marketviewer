@@ -18,7 +18,7 @@ using Microsoft.IdentityModel.Tokens;
 using MarketViewer.Api.Authentication;
 using MarketViewer.Api.Middleware;
 using Microsoft.AspNetCore.HttpLogging;
-using MarketViewer.Core.ScanV2;
+using MarketViewer.Core.Scan;
 
 namespace MarketViewer.Api;
 

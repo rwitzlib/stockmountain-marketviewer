@@ -6,6 +6,7 @@ using Polygon.Client.Requests;
 using Quartz;
 using System.Diagnostics;
 using Polygon.Client.Interfaces;
+using MarketViewer.Contracts.Models.Scan;
 
 namespace MarketViewer.Api.Jobs;
 
@@ -108,7 +109,7 @@ public class InitialAggregateJob(
         var polygonAggregateResponse = await polygonClient.GetAggregates(polygonAggregateRequest);
         var stocksResponse = mapper.Map<StocksResponse>(polygonAggregateResponse);
 
-        marketCache.SetStocksResponse(stocksResponse, timespan, date);
+        marketCache.SetStocksResponse(stocksResponse, new Timeframe(1, timespan), date);
     }
 
     private static TimeSpan GetStartOffset(Timespan timespan)

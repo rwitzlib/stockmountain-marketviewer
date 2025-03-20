@@ -5,6 +5,7 @@ using Quartz;
 using System.Diagnostics;
 using Polygon.Client.Interfaces;
 using Polygon.Client.Models;
+using MarketViewer.Contracts.Models.Scan;
 
 namespace MarketViewer.Api.Jobs;
 
@@ -28,8 +29,8 @@ public class SnapshotJob(
 
             foreach (var snapshot in snapshotResponse.Tickers)
             {
-                AddBarToCache(snapshot.Ticker, Timespan.minute, snapshot.Minute);
-                AddBarToCache(snapshot.Ticker, Timespan.hour, snapshot.Minute);
+                AddBarToCache(snapshot.Ticker, new Timeframe(1, Timespan.minute), snapshot.Minute);
+                AddBarToCache(snapshot.Ticker, new Timeframe(1, Timespan.hour), snapshot.Minute);
             }
 
             _sp.Stop();
@@ -41,14 +42,14 @@ public class SnapshotJob(
         }
     }
 
-    public void AddBarToCache(string ticker, Timespan timespan, Bar currentCandle)
+    public void AddBarToCache(string ticker, Timeframe timeframe, Bar currentCandle)
     {
         if (currentCandle.Timestamp == 0)
         {
             return;
         }
 
-        var stocksResponse = marketCache.GetStocksResponse(ticker, timespan, DateTimeOffset.Now);
+        var stocksResponse = marketCache.GetStocksResponse(ticker, timeframe, DateTimeOffset.Now);
 
         if (stocksResponse is null || !stocksResponse.Results.Any())
         {
@@ -58,7 +59,7 @@ public class SnapshotJob(
         var lastCandle = stocksResponse.Results.Last();
         if (lastCandle.Timestamp < currentCandle.Timestamp)
         {
-            switch (timespan)
+            switch (timeframe.Timespan)
             {
                 case Timespan.minute:
                     stocksResponse.Results.Add(currentCandle);

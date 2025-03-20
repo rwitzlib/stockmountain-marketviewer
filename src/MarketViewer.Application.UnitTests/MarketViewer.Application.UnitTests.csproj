@@ -31,6 +31,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MarketViewer.Application\MarketViewer.Application.csproj" />
+    <ProjectReference Include="..\MarketViewer.Studies.UnitTests\MarketViewer.Studies.UnitTests.csproj" />
   </ItemGroup>
 
   <ItemGroup>
