@@ -20,12 +20,6 @@ jobs:
             "ecr_repo": "lad-${{ inputs.environment || 'dev'}}-marketviewer-api",
             "dockerfile": "./src/MarketViewer.Api.Dockerfile",
             "context": "./src",
-          },
-          {
-            "name": "web",
-            "ecr_repo": "lad-${{ inputs.environment || 'dev'}}-marketviewer-web",
-            "dockerfile": "./src/MarketViewer.Web.Dockerfile",
-            "context": "./src",
           }
         ]
       solution_directory: ./src
