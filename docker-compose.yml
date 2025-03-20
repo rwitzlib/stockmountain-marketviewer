@@ -14,19 +14,19 @@ services:
     networks:
       - marketviewer
   
-  marketviewer-web:
-    container_name: marketviewer-frontend
-    build:
-      context: ./src
-      dockerfile: MarketViewer.Web.Dockerfile
-    depends_on:
-      - marketviewer-api
-    ports:
-      - '7025:8080'
-    environment:
-      - ASPNETCORE_ENVIRONMENT=docker
-    networks:
-      - marketviewer
+  # marketviewer-web:
+  #   container_name: marketviewer-frontend
+  #   build:
+  #     context: ./src
+  #     dockerfile: MarketViewer.Web.Dockerfile
+  #   depends_on:
+  #     - marketviewer-api
+  #   ports:
+  #     - '7025:8080'
+  #   environment:
+  #     - ASPNETCORE_ENVIRONMENT=docker
+  #   networks:
+  #     - marketviewer
 
 networks:
   marketviewer:
