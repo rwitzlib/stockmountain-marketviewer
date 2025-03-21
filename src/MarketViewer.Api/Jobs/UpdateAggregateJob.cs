@@ -7,6 +7,7 @@ using Quartz;
 using System.Diagnostics;
 using Polygon.Client.Interfaces;
 using Polygon.Client.Models;
+using MarketViewer.Contracts.Models.Scan;
 
 namespace MarketViewer.Api.Jobs;
 
@@ -111,7 +112,7 @@ public class UpdateAggregateJob(
             return;
         }
 
-        var stocksResponse = marketCache.GetStocksResponse(ticker, timespan, DateTimeOffset.Now);
+        var stocksResponse = marketCache.GetStocksResponse(ticker, new Timeframe(1, timespan), DateTimeOffset.Now);
 
         if (stocksResponse is not null && stocksResponse.Results.Any())
         {
@@ -133,7 +134,7 @@ public class UpdateAggregateJob(
                 }
                 stocksResponse.Results.Add(bar);
 
-                marketCache.SetStocksResponse(stocksResponse, timespan, DateTimeOffset.Now);
+                marketCache.SetStocksResponse(stocksResponse, new Timeframe(1, timespan), DateTimeOffset.Now);
             }
         }
 

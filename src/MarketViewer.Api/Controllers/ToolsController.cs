@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using System.Text.Json;
+using StatsResponse = MarketViewer.Contracts.Responses.Tools.StatsResponse;
 
 namespace MarketViewer.Api.Controllers;
 
