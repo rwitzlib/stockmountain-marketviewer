@@ -134,7 +134,7 @@ public class ScanHandler(
         var reducedStocksResponse = new StocksResponse
         {
             Ticker = stocksResponse.Ticker,
-            TickerDetails = stocksResponse.TickerDetails,
+            TickerInfo = stocksResponse.TickerInfo,
             Results = stocksResponse.Results.Where(candle => candle.Timestamp <= timestamp.ToUnixTimeMilliseconds()).TakeLast(candlesToTake).ToList()
         };
 
@@ -218,7 +218,7 @@ public class ScanHandler(
         {
             Ticker = stocksResponse.Ticker,
             Price = stocksResponse.Results.Last().Close,
-            Float = stocksResponse.TickerDetails?.Float
+            Float = stocksResponse.TickerInfo?.TickerDetails?.Float
         };
     }
     #endregion

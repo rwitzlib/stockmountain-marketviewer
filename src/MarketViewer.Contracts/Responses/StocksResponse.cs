@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using MarketViewer.Contracts.Models.Study;
-using MemoryPack;
 using Polygon.Client.Models;
 
 namespace MarketViewer.Contracts.Responses;
@@ -22,6 +20,12 @@ public class StocksResponse
     public List<Bar> Results { get; set; }
 
     public List<StudyResponse> Studies { get; set; }
+    public Information TickerInfo { get; set; } = new();
 
-    public TickerDetails TickerDetails { get; set; }
+    public class Information
+    {
+        public TickerDetails TickerDetails { get; set; } = new();
+        public float DailyVolume { get; set; }
+        public float AverageVolume { get; set; }
+    }
 }

@@ -83,6 +83,7 @@ public class TickerInfoJob(
         marketCache.SetTickers(tickers);
         marketCache.SetTickersByTimeframe(date, new Timeframe(1, Timespan.minute), tickers);
         marketCache.SetTickersByTimeframe(date, new Timeframe(1, Timespan.hour), tickers);
+        marketCache.SetTickersByTimeframe(date, new Timeframe(1, Timespan.day), tickers);
 
         return tickers;
     }

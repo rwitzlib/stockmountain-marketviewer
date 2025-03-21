@@ -27,11 +27,14 @@ public class InitialAggregateJob(
 
         try
         {
-            await PopulateStocksResponses(Timespan.minute, DateTimeOffset.Now);
+            await PopulateStocksResponses(new Timeframe(1, Timespan.minute), DateTimeOffset.Now);
             logger.LogInformation("Finished initializing minute aggregate data at: {time}. Time elapsed: {elapsed}ms.", DateTimeOffset.Now, sp.ElapsedMilliseconds);
 
-            await PopulateStocksResponses(Timespan.hour, DateTimeOffset.Now);
+            await PopulateStocksResponses(new Timeframe(1, Timespan.hour), DateTimeOffset.Now);
             logger.LogInformation("Finished initializing hourly aggregate data at: {time}. Time elapsed: {elapsed}ms.", DateTimeOffset.Now, sp.ElapsedMilliseconds);
+
+            await PopulateStocksResponses(new Timeframe(1, Timespan.day), DateTimeOffset.Now);
+            logger.LogInformation("Finished initializing daily aggregate data at: {time}. Time elapsed: {elapsed}ms.", DateTimeOffset.Now, sp.ElapsedMilliseconds);
 
             sp.Stop();
 
@@ -74,7 +77,7 @@ public class InitialAggregateJob(
         }
     }
 
-    private async Task PopulateStocksResponses(Timespan timespan, DateTimeOffset date)
+    private async Task PopulateStocksResponses(Timeframe timeframe, DateTimeOffset date)
     {
         var tickers = marketCache.GetTickers();
 
@@ -86,21 +89,21 @@ public class InitialAggregateJob(
 
             foreach (var ticker in batch)
             {
-                tasks.Add(Task.Run(() => PopulateStocksResponse(ticker, 1, timespan, date)));
+                tasks.Add(Task.Run(() => PopulateStocksResponse(ticker, timeframe, date)));
             }
             await Task.WhenAll(tasks);
         }
     }
 
-    private async Task PopulateStocksResponse(string ticker, int multiplier, Timespan timespan, DateTimeOffset date)
+    private async Task PopulateStocksResponse(string ticker, Timeframe timeframe, DateTimeOffset date)
     {
-        var start = date.Add(GetStartOffset(timespan));
+        var start = date.Add(GetStartOffset(timeframe.Timespan));
 
         var polygonAggregateRequest = new PolygonAggregateRequest
         {
             Ticker = ticker,
-            Multiplier = multiplier,
-            Timespan = timespan.ToString(),
+            Multiplier = timeframe.Multiplier,
+            Timespan = timeframe.Timespan.ToString(),
             From = start.ToString("yyyy-MM-dd"),
             To = DateTime.Now.ToString("yyyy-MM-dd"),
             Limit = 50000
@@ -109,7 +112,7 @@ public class InitialAggregateJob(
         var polygonAggregateResponse = await polygonClient.GetAggregates(polygonAggregateRequest);
         var stocksResponse = mapper.Map<StocksResponse>(polygonAggregateResponse);
 
-        marketCache.SetStocksResponse(stocksResponse, new Timeframe(1, timespan), date);
+        marketCache.SetStocksResponse(stocksResponse, timeframe, date);
     }
 
     private static TimeSpan GetStartOffset(Timespan timespan)
@@ -118,7 +121,7 @@ public class InitialAggregateJob(
         {
             Timespan.minute => TimeSpan.FromDays(-5),
             Timespan.hour => TimeSpan.FromDays(-30),
-            Timespan.day => throw new NotImplementedException(),
+            Timespan.day => TimeSpan.FromDays(-365),
             Timespan.week => throw new NotImplementedException(),
             Timespan.month => throw new NotImplementedException(),
             Timespan.quarter => throw new NotImplementedException(),

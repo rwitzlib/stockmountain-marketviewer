@@ -6,16 +6,24 @@ using System.Text.Json;
 using MarketViewer.Contracts.Responses;
 using MarketViewer.Contracts.Enums;
 using FluentAssertions.Common;
+using MarketViewer.Studies.Studies;
 
 namespace MarketViewer.Studies.UnitTests;
 
-public class EMAUnitTests(StudyFixture fixture) : IClassFixture<StudyFixture>
+public class EMAUnitTests
 {
+    private readonly StudyFactory _classUnderTest;
     private readonly IFixture _autoFixture = new Fixture();
     private readonly JsonSerializerOptions _options = new()
     {
         PropertyNameCaseInsensitive = true,
     };
+    private readonly TimeZoneInfo TimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+
+    public EMAUnitTests()
+    {
+        _classUnderTest = new StudyFactory(new SMA(), new EMA(), new MACD(), new RSI(), new VWAP(), new RVOL(null));
+    }
 
     [Fact]
     public void EMA_With_No_Parameters_Returns_Null()
@@ -27,7 +35,7 @@ public class EMAUnitTests(StudyFixture fixture) : IClassFixture<StudyFixture>
         };
 
         // Act
-        var response = fixture.StudyFactory.Compute(StudyType.ema, null, stocksResponse);
+        var response = _classUnderTest.Compute(StudyType.ema, null, stocksResponse);
 
         // Assert
         response.Should().BeNull();
@@ -44,7 +52,7 @@ public class EMAUnitTests(StudyFixture fixture) : IClassFixture<StudyFixture>
         };
 
         // Act
-        var response = fixture.StudyFactory.Compute(StudyType.ema, parameters, stocksResponse);
+        var response = _classUnderTest.Compute(StudyType.ema, parameters, stocksResponse);
 
         // Assert
         response.Should().BeNull();
@@ -61,7 +69,7 @@ public class EMAUnitTests(StudyFixture fixture) : IClassFixture<StudyFixture>
         };
 
         // Act
-        var response = fixture.StudyFactory.Compute(StudyType.ema, parameters, stocksResponse);
+        var response = _classUnderTest.Compute(StudyType.ema, parameters, stocksResponse);
 
         // Assert
         response.Should().BeNull();
@@ -80,7 +88,7 @@ public class EMAUnitTests(StudyFixture fixture) : IClassFixture<StudyFixture>
         };
 
         // Act
-        var response = fixture.StudyFactory.Compute(StudyType.ema, parameters, stocksResponse);
+        var response = _classUnderTest.Compute(StudyType.ema, parameters, stocksResponse);
 
         // Assert
         response.Should().BeNull();
@@ -90,17 +98,17 @@ public class EMAUnitTests(StudyFixture fixture) : IClassFixture<StudyFixture>
     public void EMA_Returns_Valid_Response()
     {
         // Arrange
-        var json = File.OpenText("./Data/data.json").ReadToEnd();
+        var json = File.OpenText("./Data/minute.json").ReadToEnd();
         var stocksResponse = JsonSerializer.Deserialize<StocksResponse>(json, _options);
 
         string[] parameters = ["9"];
 
         var dateTime = new DateTime(2025, 2, 26, 12, 0, 0);
-        var offset = fixture.TimeZone.IsDaylightSavingTime(dateTime) ? TimeSpan.FromHours(-4) : TimeSpan.FromHours(-5);
+        var offset = TimeZone.IsDaylightSavingTime(dateTime) ? TimeSpan.FromHours(-4) : TimeSpan.FromHours(-5);
         var timestamp = dateTime.ToDateTimeOffset(offset).ToUnixTimeMilliseconds();
 
         // Act
-        var response = fixture.StudyFactory.Compute(StudyType.ema, parameters, stocksResponse);
+        var response = _classUnderTest.Compute(StudyType.ema, parameters, stocksResponse);
 
         // Assert
         response.Results.Should().NotBeNull();

@@ -19,7 +19,7 @@ namespace MarketViewer.Infrastructure.Mapping
             CreateMap<AggregateResponse, StocksResponse>()
                 .ForMember(dest => dest.Status, opt => opt.Ignore())
                 .ForMember(dest => dest.Studies, opt => opt.Ignore())
-                .ForMember(dest => dest.TickerDetails, opt => opt.Ignore());
+                .ForMember(dest => dest.TickerInfo, opt => opt.Ignore());
 
             CreateMap<IEnumerable<AggregateDto>, StocksResponse>()
                 .ConvertUsing<AggregateDtoToResponseConverter>();
@@ -27,7 +27,7 @@ namespace MarketViewer.Infrastructure.Mapping
             CreateMap<AggregateDto, StocksResponse>()
                 .ForMember(dest => dest.Status, opt => opt.Ignore())
                 .ForMember(dest => dest.Studies, opt => opt.Ignore())
-                .ForMember(dest => dest.TickerDetails, opt => opt.Ignore());
+                .ForMember(dest => dest.TickerInfo, opt => opt.Ignore());
 
             CreateMap<AggregateRequest, PolygonAggregateRequest>()
                 .ForMember(dest => dest.Ticker, opt => opt.MapFrom(src => src.Ticker.ToUpperInvariant()))
@@ -42,7 +42,7 @@ namespace MarketViewer.Infrastructure.Mapping
 
             CreateMap<PolygonAggregateResponse, StocksResponse>()
                 .ForMember(dest => dest.Studies, opt => opt.Ignore())
-                .ForMember(dest => dest.TickerDetails, opt => opt.Ignore());
+                .ForMember(dest => dest.TickerInfo, opt => opt.Ignore());
         }
     }
 }

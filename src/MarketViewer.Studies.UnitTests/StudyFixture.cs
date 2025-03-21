@@ -12,7 +12,7 @@ public class StudyFixture : IClassFixture<StudyFactory>
     {
         var marketCache = new Mock<IMarketCache>();
         var polygonClient = new Mock<IPolygonClient>();
-        StudyFactory = new StudyFactory(new SMA(), new EMA(), new MACD(), new RSI(), new VWAP(), new RVOL(marketCache.Object, polygonClient.Object));
+        StudyFactory = new StudyFactory(new SMA(), new EMA(), new MACD(), new RSI(), new VWAP(), new RVOL(marketCache.Object));
     }
 
     public TimeZoneInfo TimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");

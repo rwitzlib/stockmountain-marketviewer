@@ -19,6 +19,8 @@ using MarketViewer.Api.Authentication;
 using MarketViewer.Api.Middleware;
 using Microsoft.AspNetCore.HttpLogging;
 using MarketViewer.Core.Scan;
+using MarketViewer.Studies;
+using MarketViewer.Studies.DependencyInjection;
 
 namespace MarketViewer.Api;
 
@@ -44,9 +46,10 @@ public class Program
             .AddAutoMapper(microserviceApplicationAssemblies)
             .AddMemoryCache(options => options.TrackStatistics = true)
             .AddHttpClient()
-            .RegisterApplication()
+            .RegisterStudies()
             .RegisterCore(builder.Configuration)
             .RegisterInfrastructure(builder.Configuration)
+            .AddSingleton<StudyFactory>()
             .AddHttpContextAccessor()
             .AddSignalR();
 
