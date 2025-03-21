@@ -1,5 +1,4 @@
 ﻿using MarketViewer.Contracts.Responses;
-using MarketViewer.Infrastructure.Services;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -10,69 +9,57 @@ using System.Threading.Tasks;
 using MarketViewer.Contracts.Models;
 using Microsoft.Extensions.Logging;
 using System.Net;
+using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Requests.Scan;
-using MarketViewer.Contracts.Models.ScanV2;
+using MarketViewer.Contracts.Enums.Scan;
+using MarketViewer.Contracts.Models.Scan;
+using MarketViewer.Contracts.Caching;
+using Amazon.Runtime.Internal;
+using MarketViewer.Application.Utilities;
 using MarketViewer.Core.Scan;
 
 namespace MarketViewer.Application.Handlers.Scan;
 
 public class ScanHandler(
-    LiveCache liveCache,
-    HistoryCache backtestingCache,
-    ScanFilterFactory scanFilterFactory,
+    ScanFilterFactoryV2 scanFilterFactory,
+    IMarketCache marketCache,
     ILogger<ScanHandler> logger) : IRequestHandler<ScanRequest, OperationResult<ScanResponse>>
 {
+    private const int MINIMUM_REQUIRED_CANDLES = 30;
+    private const int CANDLES_TO_TAKE = 120;
+
+    private readonly TimeZoneInfo TimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/Chicago");
+    private TimeSpan Offset;
+
     public async Task<OperationResult<ScanResponse>> Handle(ScanRequest request, CancellationToken cancellationToken)
     {
+        Offset = TimeZone.IsDaylightSavingTime(request.Timestamp) ? TimeSpan.FromHours(-5) : TimeSpan.FromHours(-6);
+
         try
         {
-            if (!ValidateScanRequest(request, out var errorMessages))
-            {
-                return new OperationResult<ScanResponse>
-                {
-                    Status = HttpStatusCode.BadRequest,
-                    ErrorMessages = errorMessages
-                };
-            }
-
             var sp = new Stopwatch();
             sp.Start();
 
-            IEnumerable<StocksResponse> stocksResponses;
+            var timespans = ScanUtilities.GetTimespans(request.Argument);
+            await InitializeCacheIfEmpty(request.Timestamp.Date, timespans);
 
-            if (IsDateTimeToday(request.Timestamp))
-            {
-                stocksResponses = await liveCache.GetStocksResponses(request.Timestamp);
-            }
-            else
-            {
-                stocksResponses = await backtestingCache.GetStocksResponses(request.Timestamp);
-            }
-            logger.LogInformation("Total StocksResponses found: {count}", stocksResponses.Count());
-
-            var tasks = new List<Task<ScanResponse.Item>>();
-            foreach (var stocksResponse in stocksResponses)
-            {
-                tasks.Add(Task.Run(() => ApplyFilters(request.Filters, stocksResponse)));
-            }
-            var results = await Task.WhenAll(tasks);
+            var items = ApplyScanToArgument(request.Argument, request.Timestamp);
 
             sp.Stop();
 
-            logger.LogInformation("Total StocksResponses after filtering: {count}", results.Count(q => q is not null));
             return new OperationResult<ScanResponse>
             {
                 Status = HttpStatusCode.OK,
                 Data = new ScanResponse
                 {
-                    Items = results.Where(item => item is not null),
+                    Items = items,
                     TimeElapsed = sp.ElapsedMilliseconds
                 }
             };
         }
         catch (Exception ex)
         {
-            logger.LogError($"Error scanning for {request.Timestamp}: {ex.Message}");
+            logger.LogError("Error scanning for {timestamp}: {message}", request.Timestamp, ex.Message);
             return new OperationResult<ScanResponse>
             {
                 Status = HttpStatusCode.InternalServerError,
@@ -82,45 +69,155 @@ public class ScanHandler(
     }
 
     #region Private Methods
-    private static bool ValidateScanRequest(ScanRequest request, out List<string> errorMessages)
+    private async Task InitializeCacheIfEmpty(DateTime date, IEnumerable<Timespan> timespans)
     {
-        errorMessages = [];
-
-        if (request.Filters is null || !request.Filters.Any())
+        var tasks = new List<Task>();
+        foreach (var timespan in timespans)
         {
-            errorMessages.Add("No filters.");
+            if (marketCache.GetStocksResponse("SPY", new Timeframe(1, timespan), date) is null)
+            {
+                tasks.Add(Task.Run(async () => await marketCache.Initialize(date, new Timeframe(1, timespan))));
+            }
+        }
+        await Task.WhenAll(tasks);
+    }
+
+    private List<ScanResponse.Item> ApplyScanToArgument(ScanArgument argument, DateTimeOffset timestamp)
+    {
+        if (argument is null || argument.Operator is not "AND" && argument.Operator is not "OR" && argument.Operator is not "AVERAGE" || argument.Filters.Count == 0)
+        {
+            return [];
         }
 
-        return errorMessages.Count == 0;
-    }
+        var sortedFitlers = argument.Filters.OrderByDescending(filter => filter.FirstOperand.GetPriority()).ToList();
 
-    private static bool IsDateTimeToday(DateTimeOffset date)
-    {
-        return date.ToString("yyyy-MM-dd").Equals(DateTime.Now.ToString("yyyy-MM-dd"));
-    }
-
-    private ScanResponse.Item ApplyFilters(IEnumerable<Filter> filters, StocksResponse stocksResponse)
-    {
-        var sortedFilters = filters.OrderBy(filter => filter.Type);
-
-        foreach (var filter in sortedFilters)
+        List<ScanResponse.Item> results = [];
+        for (int i = 0; i < sortedFitlers.Count; i++)
         {
-            var filterService = scanFilterFactory.GetScanFilter(filter);
+            var filter = sortedFitlers[i];
 
-            if (!filterService.ApplyFilter(filter, stocksResponse))
+            if (results.Count == 0 && i > 0)
+            {
+                return [];
+            }
+
+            bool hasTimeframe = filter.FirstOperand.HasTimeframe(out var multiplier, out var timespan);
+            var tickersToScan = hasTimeframe ? marketCache.GetTickersByTimeframe(new Timeframe(1, timespan.Value), timestamp) : marketCache.GetTickersByTimeframe(new Timeframe(1, Timespan.minute), timestamp);
+            if (results.Count != 0)
+            {
+                var currentTickerResults = results.Select(item => item.Ticker);
+                tickersToScan = tickersToScan.Where(ticker => currentTickerResults.Contains(ticker));
+
+                // List should reset each time so we can narrow down each time to smaller and smaller list
+                results = [];
+            }
+
+            foreach (var ticker in tickersToScan)
+            {
+                var stocksResponse = hasTimeframe ? marketCache.GetStocksResponse(ticker, new Timeframe(1, timespan.Value), timestamp) : marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), timestamp);
+
+                var item = ApplyFilterToStocksResponse(sortedFitlers[i], timestamp, stocksResponse);
+
+                if (item is not null && !results.Any(result => result.Ticker == item.Ticker))
+                {
+                    results.Add(item);
+                }
+            }
+        }
+        return results;
+    }
+
+    private ScanResponse.Item ApplyFilterToStocksResponse(FilterV2 filter, DateTimeOffset timestamp, StocksResponse stocksResponse, int candlesToTake = CANDLES_TO_TAKE)
+    {
+        bool passesFilter = false;
+
+        var reducedStocksResponse = new StocksResponse
+        {
+            Ticker = stocksResponse.Ticker,
+            TickerDetails = stocksResponse.TickerDetails,
+            Results = stocksResponse.Results.Where(candle => candle.Timestamp <= timestamp.ToUnixTimeMilliseconds()).TakeLast(candlesToTake).ToList()
+        };
+
+        if (reducedStocksResponse.Results is null || reducedStocksResponse.Results.Count < MINIMUM_REQUIRED_CANDLES)
+        {
+            return null;
+        }
+
+        var firstFilter = scanFilterFactory.GetScanFilter(filter.FirstOperand);
+        var firstOperandResult = firstFilter.Compute(filter.FirstOperand, reducedStocksResponse, filter.Timeframe);
+
+        var secondFilter = scanFilterFactory.GetScanFilter(filter.SecondOperand);
+        var secondOperandResult = secondFilter.Compute(filter.SecondOperand, reducedStocksResponse, filter.Timeframe);
+
+        if (firstOperandResult.Length == 0 || secondOperandResult.Length == 0)
+        {
+            return null;
+        }
+
+        if (filter.Timeframe is not null)
+        {
+            if (reducedStocksResponse.Results.Count < filter.Timeframe.Multiplier)
             {
                 return null;
             }
         }
 
-        var multiplier = filters.Max(q => q.Multiplier);
-        var lastCandles = stocksResponse.Results.TakeLast(multiplier);
+        if (filter.CollectionModifier is null)
+        {
+            passesFilter = filter.Operator switch
+            {
+                FilterOperator.lt => firstOperandResult.First() < secondOperandResult.First(),
+                FilterOperator.le => firstOperandResult.First() <= secondOperandResult.First(),
+                FilterOperator.eq => firstOperandResult.First() == secondOperandResult.First(),
+                FilterOperator.ge => firstOperandResult.First() >= secondOperandResult.First(),
+                FilterOperator.gt => firstOperandResult.First() > secondOperandResult.First(),
+                _ => throw new NotImplementedException(),
+            };
+        }
+        else
+        {
+            passesFilter = filter.CollectionModifier.ToLowerInvariant() switch
+            {
+                "all" => filter.Operator switch
+                {
+                    FilterOperator.lt => firstOperandResult.Zip(secondOperandResult, (x, y) => x < y).All(result => result == true),
+                    FilterOperator.le => firstOperandResult.Zip(secondOperandResult, (x, y) => x <= y).All(result => result == true),
+                    FilterOperator.eq => firstOperandResult.Zip(secondOperandResult, (x, y) => x == y).All(result => result == true),
+                    FilterOperator.ge => firstOperandResult.Zip(secondOperandResult, (x, y) => x >= y).All(result => result == true),
+                    FilterOperator.gt => firstOperandResult.Zip(secondOperandResult, (x, y) => x > y).All(result => result == true),
+                    _ => throw new NotImplementedException(),
+                },
+                "any" => filter.Operator switch
+                {
+                    FilterOperator.lt => firstOperandResult.Zip(secondOperandResult, (x, y) => x < y).Any(result => result == true),
+                    FilterOperator.le => firstOperandResult.Zip(secondOperandResult, (x, y) => x <= y).Any(result => result == true),
+                    FilterOperator.eq => firstOperandResult.Zip(secondOperandResult, (x, y) => x == y).Any(result => result == true),
+                    FilterOperator.ge => firstOperandResult.Zip(secondOperandResult, (x, y) => x >= y).Any(result => result == true),
+                    FilterOperator.gt => firstOperandResult.Zip(secondOperandResult, (x, y) => x > y).Any(result => result == true),
+                    _ => throw new NotImplementedException(),
+                },
+                "average" => filter.Operator switch
+                {
+                    FilterOperator.lt => firstOperandResult.Average() < secondOperandResult.Average(),
+                    FilterOperator.le => firstOperandResult.Average() <= secondOperandResult.Average(),
+                    FilterOperator.eq => firstOperandResult.Average() == secondOperandResult.Average(),
+                    FilterOperator.ge => firstOperandResult.Average() >= secondOperandResult.Average(),
+                    FilterOperator.gt => firstOperandResult.Average() > secondOperandResult.Average(),
+                    _ => throw new NotImplementedException(),
+                },
+                _ => throw new NotImplementedException()
+            };
+        }
+
+        if (!passesFilter)
+        {
+            return null;
+        }
 
         return new ScanResponse.Item
         {
             Ticker = stocksResponse.Ticker,
             Price = stocksResponse.Results.Last().Close,
-            Volume = lastCandles.Sum(x => x.Volume),
             Float = stocksResponse.TickerDetails?.Float
         };
     }

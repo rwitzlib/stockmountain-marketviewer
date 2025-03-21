@@ -3,8 +3,8 @@ using Amazon.S3;
 using MarketViewer.Application.Handlers.Scan;
 using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Requests.Scan;
-using MarketViewer.Core.ScanV2;
-using MarketViewer.Core.ScanV2.Filters;
+using MarketViewer.Core.Scan;
+using MarketViewer.Core.Scan.Filters;
 using MarketViewer.Infrastructure.Services;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,10 +21,8 @@ namespace MarketViewer.Application.UnitTests.Handlers;
 
 public class ScanHandlerV2UnitTests
 {
-    private readonly ScanHandlerV2 _classUnderTest;
+    private readonly ScanHandler _classUnderTest;
     private readonly MemoryMarketCache _marketCache;
-    private readonly LiveCache _liveCache;
-    private readonly HistoryCache _historyCache;
 
     public ScanHandlerV2UnitTests()
     {
@@ -43,7 +41,7 @@ public class ScanHandlerV2UnitTests
 
         var scanFilterFactory = new ScanFilterFactoryV2(serviceProvider);
 
-        _classUnderTest = new ScanHandlerV2(scanFilterFactory, _marketCache, new NullLogger<ScanHandlerV2>());
+        _classUnderTest = new ScanHandler(scanFilterFactory, _marketCache, new NullLogger<ScanHandler>());
     }
 
     [Fact(Skip = "Timezone works weird in pipeline")]
@@ -56,7 +54,7 @@ public class ScanHandlerV2UnitTests
 
         var json = "{\"Timestamp\":\"2024-09-17T07:49:00-05:00\",\"Argument\":{\"Operator\":\"AND\",\"Filters\":[{\"CollectionModifier\":\"ANY\",\"FirstOperand\":{\"Study\":\"rsi\",\"Modifier\":\"Slope\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"lt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":4,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"Study\":\"rsi\",\"Modifier\":\"Slope\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":3,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"Study\":\"macd\",\"Modifier\":\"Slope\",\"Parameters\":\"12,26,9,ema\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":3,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"Study\":\"macd\",\"Modifier\":\"Value\",\"Parameters\":\"12,26,9,ema\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"lt\",\"SecondOperand\":{\"Value\":0},\"Timeframe\":{\"Multiplier\":2,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"PriceAction\":\"Volume\",\"Modifier\":\"Value\",\"Multiplier\":1,\"Timespan\":\"minute\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":50000},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"PriceAction\":\"Vwap\",\"Modifier\":\"Value\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"gt\",\"SecondOperand\":{\"Value\":2},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"minute\"}},{\"CollectionModifier\":\"ALL\",\"FirstOperand\":{\"PriceAction\":\"Vwap\",\"Modifier\":\"Value\",\"Multiplier\":1,\"Timespan\":\"hour\"},\"Operator\":\"lt\",\"SecondOperand\":{\"Value\":25},\"Timeframe\":{\"Multiplier\":5,\"Timespan\":\"minute\"}}]}}\r\n";
 
-        var request = JsonSerializer.Deserialize<ScanV2Request>(json);
+        var request = JsonSerializer.Deserialize<ScanRequest>(json);
 
         //for (int i = 0; i < 389; i++)
         //{

@@ -5,6 +5,7 @@ using Amazon.S3.Model;
 using MarketViewer.Api.Authorization;
 using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Enums;
+using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Requests.Scan;
 using MarketViewer.Contracts.Responses;
 using MediatR;
@@ -23,34 +24,7 @@ namespace MarketViewer.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [RequiredPermissions([UserRole.None, UserRole.Starter, UserRole.Advanced, UserRole.Premium, UserRole.Admin])]
-        public async Task<IActionResult> HandleScanRequest([FromBody] ScanRequest request)
-        {
-            try
-            {
-                request.UserId = contextAccessor.HttpContext.Items["UserId"].ToString();
-                
-                var response = await _mediator.Send(request);
-
-                return response.Status switch
-                {
-                    HttpStatusCode.OK => Ok(response.Data),
-                    HttpStatusCode.BadRequest => BadRequest(response.ErrorMessages),
-                    _ => StatusCode(StatusCodes.Status500InternalServerError, response.ErrorMessages)
-                };
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, e.Message);
-                return StatusCode(StatusCodes.Status500InternalServerError, new List<string> { "Internal error."});
-            }
-        }
-
-        [HttpPost("v2")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [RequiredPermissions([UserRole.None, UserRole.Starter, UserRole.Advanced, UserRole.Premium, UserRole.Admin])]
-        public async Task<IActionResult> Scan([FromBody] ScanV2Request request)
+        public async Task<IActionResult> Scan([FromBody] ScanRequest request)
         {
             try
             {
@@ -74,15 +48,15 @@ namespace MarketViewer.Api.Controllers
         }
 
         [HttpGet]
-        [Route("v2/print")]
+        [Route("print")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [RequiredPermissions([UserRole.None, UserRole.Starter, UserRole.Advanced, UserRole.Premium, UserRole.Admin])]
         public async Task<IActionResult> Print()
         {
-            var minuteTickers = _marketCache.GetTickersByTimespan(Timespan.minute, DateTimeOffset.Now);
-            var hourTickers = _marketCache.GetTickersByTimespan(Timespan.hour, DateTimeOffset.Now);
+            var minuteTickers = _marketCache.GetTickersByTimeframe(new Timeframe(1, Timespan.minute), DateTimeOffset.Now);
+            var hourTickers = _marketCache.GetTickersByTimeframe(new Timeframe(1, Timespan.hour), DateTimeOffset.Now);
 
             if (!(minuteTickers.Any() || hourTickers.Any()))
             {
@@ -92,14 +66,14 @@ namespace MarketViewer.Api.Controllers
             List<StocksResponse> minuteStocks = [];
             foreach (var ticker in minuteTickers)
             {
-                var stocksResponse = _marketCache.GetStocksResponse(ticker, Timespan.minute, DateTimeOffset.Now);
+                var stocksResponse = _marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), DateTimeOffset.Now);
                 minuteStocks.Add(stocksResponse);
             }
 
             List<StocksResponse> hourStocks = [];
             foreach (var ticker in hourTickers)
             {
-                var stocksResponse = _marketCache.GetStocksResponse(ticker, Timespan.hour, DateTimeOffset.Now);
+                var stocksResponse = _marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.hour), DateTimeOffset.Now);
                 hourStocks.Add(stocksResponse);
             }
 

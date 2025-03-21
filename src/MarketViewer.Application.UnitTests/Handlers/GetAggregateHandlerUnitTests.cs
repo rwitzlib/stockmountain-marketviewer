@@ -10,10 +10,12 @@ using MarketViewer.Contracts.Requests;
 using MarketViewer.Contracts.Enums;
 using Polygon.Client.Models;
 using MarketViewer.Contracts.Models.Study;
+using MarketViewer.Studies;
+using MarketViewer.Studies.UnitTests;
 
 namespace MarketViewer.Application.UnitTests.Handlers
 {
-    public class GetAggregateHandlerUnitTests
+    public class GetAggregateHandlerUnitTests : IClassFixture<StudyFixture>
     {
         #region Private Fields
         private StocksHandler _classUnderTest;
@@ -22,13 +24,12 @@ namespace MarketViewer.Application.UnitTests.Handlers
         #endregion
 
         #region Constructor
-        public GetAggregateHandlerUnitTests()
+        public GetAggregateHandlerUnitTests(StudyFixture fixture)
         {
             _fixture = new Fixture();
 
             _repository = new Mock<IMarketDataRepository>();
-
-            _classUnderTest = new StocksHandler(_repository.Object);
+            _classUnderTest = new StocksHandler(_repository.Object, fixture.StudyFactory);
         }
         #endregion
 
