@@ -107,6 +107,7 @@ public class MemoryMarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3) :
         {
             Timespan.minute => $"backtest/{timestamp.Date.Year}/{month}/{day}/aggregate_{multiplier}_{timespan}",
             Timespan.hour => $"backtest/{timestamp.Date.Year}/{month}/aggregate_{multiplier}_{timespan}",
+            Timespan.day => $"backtest/{timestamp.Date.Year}/aggregate_{multiplier}_{timespan}",
             _ => throw new NotImplementedException()
         };
     }
