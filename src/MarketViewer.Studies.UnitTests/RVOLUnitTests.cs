@@ -49,6 +49,33 @@ public class RVOLUnitTests
     }
 
     [Fact]
+    public void RVOL_With_Empty_Parameters_Returns_Valid_Response()
+    {
+        // Arrange 
+        var minuteJson = File.OpenText("./Data/minute.json").ReadToEnd();
+        var minuteStocksResponse = JsonSerializer.Deserialize<StocksResponse>(minuteJson, _options);
+
+        var dayJson = File.OpenText("./Data/day.json").ReadToEnd();
+        var dayStocksResponse = JsonSerializer.Deserialize<StocksResponse>(dayJson, _options);
+
+        var dateTime = new DateTime(2025, 2, 26, 12, 0, 0);
+        var offset = TimeZone.IsDaylightSavingTime(dateTime) ? TimeSpan.FromHours(-4) : TimeSpan.FromHours(-5);
+        var timestamp = dateTime.ToDateTimeOffset(offset).ToUnixTimeMilliseconds();
+
+        _marketCache.Setup(q => q.GetStocksResponse(It.IsAny<string>(), It.IsAny<Timeframe>(), It.IsAny<DateTimeOffset>())).Returns(dayStocksResponse);
+
+        // Act
+        var response = _classUnderTest.Compute(StudyType.rvol, [], minuteStocksResponse);
+
+        // Assert
+        response.Results.Should().NotBeNull();
+
+        var line = response.Results.First();
+        var candle = line.Single(q => q.Timestamp == timestamp);
+        candle.Value.Should().BeApproximately(.517f, .01f);
+    }
+
+    [Fact]
     public void RVOL_Returns_Valid_Response()
     {
         // Arrange 

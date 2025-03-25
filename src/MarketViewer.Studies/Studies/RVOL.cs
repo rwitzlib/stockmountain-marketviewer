@@ -17,9 +17,12 @@ public class RVOL(IMarketCache marketCache) : IStudy
             new()
         };
 
-        if (parameters is not null || parameters.Any())
+        if (parameters is not null)
         {
-            return [];
+            if (parameters.Any())
+            {
+                return [];
+            }
         }
 
         var dailyResponse = marketCache.GetStocksResponse(stocksResponse.Ticker, new Timeframe(1, Timespan.day), DateTimeOffset.Now);
