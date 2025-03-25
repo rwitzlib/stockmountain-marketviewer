@@ -17,7 +17,7 @@ public class RVOL(IMarketCache marketCache) : IStudy
             new()
         };
 
-        if (parameters is not null)
+        if (parameters is not null || parameters.Any())
         {
             return [];
         }
