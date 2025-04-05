@@ -1,5 +1,9 @@
-﻿namespace MarketViewer.Contracts.Models.Scan;
+﻿using MarketViewer.Contracts.Converters;
+using System.Text.Json.Serialization;
 
+namespace MarketViewer.Contracts.Models.Scan;
+
+[JsonConverter(typeof(ScanArgumentConverter))]
 public class ScanArgument
 {
     public string Operator { get; set; }

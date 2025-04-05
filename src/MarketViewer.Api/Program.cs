@@ -61,6 +61,8 @@ public class Program
             options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
             options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
             options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+            options.JsonSerializerOptions.Converters.Add(new ScanArgumentConverter());
+            options.JsonSerializerOptions.Converters.Add(new FilterConverter());
             options.JsonSerializerOptions.Converters.Add(new StudyConverter());
         });
 
