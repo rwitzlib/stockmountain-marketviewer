@@ -1,11 +1,9 @@
 ﻿using MarketViewer.Contracts.Enums.Scan;
 using MarketViewer.Contracts.Models.Scan;
-using MarketViewer.Contracts.Models.ScanV2;
-using MarketViewer.Contracts.Models.ScanV2.Operands;
+using MarketViewer.Contracts.Models.Scan.Operands;
 using MarketViewer.Contracts.Responses;
-using MarketViewer.Core.Scan.Filters;
 
-namespace MarketViewer.Core.Scan;
+namespace MarketViewer.Core.Scan.Filters;
 
 public class PriceActionFilter : IFilterV2
 {

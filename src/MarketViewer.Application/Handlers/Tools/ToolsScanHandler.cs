@@ -76,8 +76,8 @@ public class ToolsScanHandler(IAmazonS3 s3, IMemoryCache memoryCache, ScanFilter
         {
             var filter = sortedFitlers[i];
 
-            bool hasTimeframe = filter.FirstOperand.HasTimeframe(out var multiplier, out var timespan);
-            var stocksResponse = hasTimeframe ? responses[timespan.Value] : responses[Timespan.minute];
+            bool hasTimeframe = filter.FirstOperand.HasTimeframe(out var timeframe);
+            var stocksResponse = hasTimeframe ? responses[timeframe.Timespan] : responses[Timespan.minute];
             var item = ApplyFilterToStocksResponse(sortedFitlers[i], request.Timestamp, stocksResponse);
 
             if (item is null)
@@ -222,7 +222,7 @@ public class ToolsScanHandler(IAmazonS3 s3, IMemoryCache memoryCache, ScanFilter
         }
     }
 
-    public ScanResponse.Item ApplyFilterToStocksResponse(FilterV2 filter, DateTimeOffset timestamp, StocksResponse stocksResponse, int candlesToTake = CANDLES_TO_TAKE)
+    public ScanResponse.Item ApplyFilterToStocksResponse(Contracts.Models.Scan.Filter filter, DateTimeOffset timestamp, StocksResponse stocksResponse, int candlesToTake = CANDLES_TO_TAKE)
     {
         bool passesFilter = false;
 

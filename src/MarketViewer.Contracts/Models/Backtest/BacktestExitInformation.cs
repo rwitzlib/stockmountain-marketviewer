@@ -9,7 +9,7 @@ public class BacktestExitInformation
 {
     public Exit StopLoss { get; set; }
     public Exit ProfitTarget { get; set; }
-    public List<FilterV2> Other { get; set; }
+    public List<Filter> Other { get; set; }
     public Timeframe Timeframe { get; set; }
 
     public class Exit

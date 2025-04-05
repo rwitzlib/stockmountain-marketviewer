@@ -1,6 +1,7 @@
 ﻿using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Models.Backtest;
 using MarketViewer.Contracts.Models.Scan;
+using MarketViewer.Contracts.Requests.Scan;
 using MarketViewer.Contracts.Responses.Backtest;
 using MediatR;
 using System.Diagnostics.CodeAnalysis;
@@ -17,5 +18,5 @@ public class BacktestRequestV3 : BaseRequest, IRequest<OperationResult<BacktestR
     public BacktestPositionInformation PositionInfo { get; set; }
     public BacktestExitInformation Exit { get; set; }
     public IEnumerable<Feature> Features { get; set; }
-    public ScanArgument Argument { get; set; }
+    public ScanArgumentRequest Argument { get; set; }
 }

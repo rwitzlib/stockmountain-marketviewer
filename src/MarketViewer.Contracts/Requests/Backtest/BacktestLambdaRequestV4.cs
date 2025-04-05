@@ -1,5 +1,6 @@
 ﻿using MarketViewer.Contracts.Models.Backtest;
 using MarketViewer.Contracts.Models.Scan;
+using MarketViewer.Contracts.Requests.Scan;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MarketViewer.Contracts.Requests.Backtest;
@@ -12,5 +13,5 @@ public class BacktestLambdaRequestV4
     public BacktestPositionInformation PositionInfo { get; set; }
     public BacktestExitInformation Exit { get; set; }
     public IEnumerable<Feature> Features { get; set; }
-    public ScanArgument Argument { get; set; }
+    public ScanArgumentRequest Argument { get; set; }
 }

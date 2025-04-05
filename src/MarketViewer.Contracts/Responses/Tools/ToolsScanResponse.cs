@@ -17,7 +17,7 @@ public class ToolsScanResponse
 public class ToolsScanResult
 {
     public bool IsSuccess { get; set; }
-    public List<FilterV2> PassedFilters { get; set; }
-    public List<FilterV2> FailedFilters { get; set; }
+    public List<Filter> PassedFilters { get; set; }
+    public List<Filter> FailedFilters { get; set; }
     public Dictionary<Timespan, StocksResponse> StocksResponses { get; set; }
 }

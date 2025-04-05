@@ -1,5 +1,4 @@
 ﻿using MarketViewer.Contracts.Models;
-using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Responses;
 using MediatR;
 using System.Diagnostics.CodeAnalysis;
@@ -10,5 +9,5 @@ namespace MarketViewer.Contracts.Requests.Scan;
 public class ScanRequest : BaseRequest, IRequest<OperationResult<ScanResponse>>
 {
     public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.Now;
-    public ScanArgument Argument { get; set; }
+    public ScanArgumentRequest Argument { get; set; }
 }

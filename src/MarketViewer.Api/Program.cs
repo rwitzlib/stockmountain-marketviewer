@@ -3,7 +3,6 @@ using MarketViewer.Infrastructure.DependencyInjection;
 using MarketViewer.Api.Hubs;
 using System.Diagnostics.CodeAnalysis;
 using MarketViewer.Infrastructure.Mapping;
-using MarketViewer.Application.Mapping;
 using MarketViewer.Core.DependencyInjection;
 using Quartz;
 using MarketViewer.Api.Jobs;
@@ -19,7 +18,6 @@ using MarketViewer.Api.Authentication;
 using MarketViewer.Api.Middleware;
 using Microsoft.AspNetCore.HttpLogging;
 using MarketViewer.Core.Scan;
-using MarketViewer.Studies;
 using MarketViewer.Studies.DependencyInjection;
 
 namespace MarketViewer.Api;
@@ -37,7 +35,6 @@ public class Program
         var microserviceApplicationAssemblies = new[]
         {
             typeof(StocksHandler).Assembly,
-            typeof(FilterProfile).Assembly,
             typeof(AggregateProfile).Assembly,
             typeof(ScanFilterFactoryV2).Assembly
         };
@@ -47,9 +44,9 @@ public class Program
             .AddMemoryCache(options => options.TrackStatistics = true)
             .AddHttpClient()
             .RegisterStudies()
+            .RegisterApplication()
             .RegisterCore(builder.Configuration)
             .RegisterInfrastructure(builder.Configuration)
-            .AddSingleton<StudyFactory>()
             .AddHttpContextAccessor()
             .AddSignalR();
 
@@ -64,8 +61,6 @@ public class Program
             options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
             options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
             options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-            options.JsonSerializerOptions.Converters.Add(new ScanArgumentConverter());
-            options.JsonSerializerOptions.Converters.Add(new FilterConverter());
             options.JsonSerializerOptions.Converters.Add(new StudyConverter());
         });
 
@@ -148,39 +143,11 @@ public class Program
         var tickerJob = JobBuilder.Create<TickerInfoJob>()
             .Build();
 
-        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "local")
-        {
-            var scheduleTrigger = TriggerBuilder.Create()
+        var scheduleTrigger = TriggerBuilder.Create()
             .StartNow()
             .ForJob(tickerJob)
             .Build();
 
-            await scheduler.ScheduleJob(tickerJob, scheduleTrigger);    
-        }
-        else
-        {
-            TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
-            var offset = timeZone.GetUtcOffset(DateTimeOffset.Now);
-
-            var startTime = DateTimeOffset.Now;
-            if (DateTimeOffset.Now.ToOffset(offset).Hour < 6)
-            {
-                startTime = new DateTimeOffset(DateTimeOffset.Now.Year, DateTimeOffset.Now.Month, DateTimeOffset.Now.Day, 6, 0, 1, 0, offset);
-            }
-            else
-            {
-                startTime = new DateTimeOffset(DateTimeOffset.Now.Year, DateTimeOffset.Now.Month, DateTimeOffset.Now.AddDays(1).Day, 6, 0, 1, 0, offset);
-            }
-
-            Console.WriteLine("Starting data aggregation at: " + startTime);
-
-            var scheduleTrigger = TriggerBuilder.Create()
-                .StartAt(startTime)
-                .WithSimpleSchedule(schedule => schedule.WithIntervalInHours(24).RepeatForever())
-                .ForJob(tickerJob)
-                .Build();
-
-            await scheduler.ScheduleJob(tickerJob, scheduleTrigger);
-        }
+        await scheduler.ScheduleJob(tickerJob, scheduleTrigger);
     }
 }

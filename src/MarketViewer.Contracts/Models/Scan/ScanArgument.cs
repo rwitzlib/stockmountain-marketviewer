@@ -1,13 +1,9 @@
-﻿using MarketViewer.Contracts.Converters;
-using System.Text.Json.Serialization;
+﻿namespace MarketViewer.Contracts.Models.Scan;
 
-namespace MarketViewer.Contracts.Models.Scan;
-
-[JsonConverter(typeof(ScanArgumentConverter))]
 public class ScanArgument
 {
     public string Operator { get; set; }
-    public List<FilterV2> Filters { get; set; }
+    public List<Filter> Filters { get; set; }
     public ScanArgument Argument { get; set; }
 
     public List<Timeframe> GetTimeframes()
@@ -21,13 +17,13 @@ public class ScanArgument
 
         foreach (var filter in Filters)
         {
-            if (filter.FirstOperand.HasTimeframe(out var firstMultiplier, out var firstTimespan))
+            if (filter.FirstOperand.HasTimeframe(out var firstTimeframe))
             {
-                timeFrames.Add(new Timeframe(firstMultiplier.Value, firstTimespan.Value));
+                timeFrames.Add(firstTimeframe);
             }
-            if (filter.SecondOperand.HasTimeframe(out var secondMultiplier, out var secondTimespan))
+            if (filter.SecondOperand.HasTimeframe(out var secondTimeframe))
             {
-                timeFrames.Add(new Timeframe(secondMultiplier.Value, secondTimespan.Value));
+                timeFrames.Add(secondTimeframe);
             }
         }
 
@@ -50,13 +46,13 @@ public class ScanArgument
 
         foreach (var filter in argument.Filters)
         {
-            if (filter.FirstOperand.HasTimeframe(out var firstMultiplier, out var firstTimespan))
+            if (filter.FirstOperand.HasTimeframe(out var firstTimeframe))
             {
-                timeFrames.Add(new Timeframe(firstMultiplier.Value, firstTimespan.Value));
+                timeFrames.Add(firstTimeframe);
             }
-            if (filter.SecondOperand.HasTimeframe(out var secondMultiplier, out var secondTimespan))
+            if (filter.SecondOperand.HasTimeframe(out var secondTimeframe))
             {
-                timeFrames.Add(new Timeframe(secondMultiplier.Value, secondTimespan.Value));
+                timeFrames.Add(secondTimeframe);
             }
         }
 

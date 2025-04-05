@@ -14,9 +14,9 @@ using MarketViewer.Contracts.Requests.Scan;
 using MarketViewer.Contracts.Enums.Scan;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Caching;
-using Amazon.Runtime.Internal;
 using MarketViewer.Application.Utilities;
 using MarketViewer.Core.Scan;
+using MarketViewer.Contracts.Mappers;
 
 namespace MarketViewer.Application.Handlers.Scan;
 
@@ -40,10 +40,12 @@ public class ScanHandler(
             var sp = new Stopwatch();
             sp.Start();
 
-            var timespans = ScanUtilities.GetTimespans(request.Argument);
+            var scanArgument = ScanArgumentMapper.ConvertFromRequest(request.Argument);
+
+            var timespans = ScanUtilities.GetTimespans(scanArgument);
             await InitializeCacheIfEmpty(request.Timestamp.Date, timespans);
 
-            var items = ApplyScanToArgument(request.Argument, request.Timestamp);
+            var items = ApplyScanToArgument(scanArgument, request.Timestamp);
 
             sp.Stop();
 
@@ -101,8 +103,8 @@ public class ScanHandler(
                 return [];
             }
 
-            bool hasTimeframe = filter.FirstOperand.HasTimeframe(out var multiplier, out var timespan);
-            var tickersToScan = hasTimeframe ? marketCache.GetTickersByTimeframe(new Timeframe(1, timespan.Value), timestamp) : marketCache.GetTickersByTimeframe(new Timeframe(1, Timespan.minute), timestamp);
+            bool hasTimeframe = filter.FirstOperand.HasTimeframe(out var timeframe);
+            var tickersToScan = hasTimeframe ? marketCache.GetTickersByTimeframe(timeframe, timestamp) : marketCache.GetTickersByTimeframe(new Timeframe(1, Timespan.minute), timestamp);
             if (results.Count != 0)
             {
                 var currentTickerResults = results.Select(item => item.Ticker);
@@ -114,7 +116,12 @@ public class ScanHandler(
 
             foreach (var ticker in tickersToScan)
             {
-                var stocksResponse = hasTimeframe ? marketCache.GetStocksResponse(ticker, new Timeframe(1, timespan.Value), timestamp) : marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), timestamp);
+                if (!IsMinuteResponseValid(ticker, timestamp))
+                {
+                    continue;
+                }
+
+                var stocksResponse = hasTimeframe ? marketCache.GetStocksResponse(ticker, timeframe, timestamp) : marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), timestamp);
 
                 var item = ApplyFilterToStocksResponse(sortedFitlers[i], timestamp, stocksResponse);
 
@@ -127,7 +134,30 @@ public class ScanHandler(
         return results;
     }
 
-    private ScanResponse.Item ApplyFilterToStocksResponse(FilterV2 filter, DateTimeOffset timestamp, StocksResponse stocksResponse, int candlesToTake = CANDLES_TO_TAKE)
+    private bool IsMinuteResponseValid(string ticker, DateTimeOffset timestamp)
+    {
+        var minuteResponse = marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), timestamp);
+
+        if (minuteResponse.Results.Count < 5)
+        {
+            return false;
+        }
+
+        var lastCandles = minuteResponse.Results.TakeLast(5).ToArray();
+
+        for (int i = 0; i < lastCandles.Length - 1; i++)
+        {
+            if (lastCandles[i].Timestamp - lastCandles[i + 1].Timestamp != 60000)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+    private ScanResponse.Item ApplyFilterToStocksResponse(Filter filter, DateTimeOffset timestamp, StocksResponse stocksResponse, int candlesToTake = CANDLES_TO_TAKE)
     {
         bool passesFilter = false;
 

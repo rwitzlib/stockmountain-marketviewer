@@ -18,13 +18,13 @@ public static class ScanUtilities
 
         foreach (var filter in scanArgument.Filters)
         {
-            if (filter.FirstOperand.HasTimeframe(out var firstMultiplier, out var firstTimespan))
+            if (filter.FirstOperand.HasTimeframe(out var firstTimeframe))
             {
-                timespans.Add(firstTimespan.Value);
+                timespans.Add(firstTimeframe.Timespan);
             }
-            if (filter.SecondOperand.HasTimeframe(out var secondMultiplier, out var secondTimespan))
+            if (filter.SecondOperand.HasTimeframe(out var secondTimeframe))
             {
-                timespans.Add(secondTimespan.Value);
+                timespans.Add(secondTimeframe.Timespan);
             }
         }
 

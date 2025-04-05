@@ -1,8 +1,7 @@
 ﻿using MarketViewer.Contracts.Models.Scan;
 using FluentAssertions;
 using MarketViewer.Contracts.Enums;
-using MarketViewer.Contracts.Models.ScanV2;
-using MarketViewer.Contracts.Models.ScanV2.Operands;
+using MarketViewer.Contracts.Models.Scan.Operands;
 
 namespace MarketViewer.Contracts.UnitTests.Models.Scan;
 
@@ -44,24 +43,22 @@ public class ScanArgumentUnitTests
         var scanArgument = new ScanArgument
         {
             Filters = [
-                new FilterV2
+                new Filter
                 {
                     FirstOperand = new PriceActionOperand
                     {
-                        Multiplier = 1,
-                        Timespan = Timespan.minute
+                        Timeframe = new Timeframe(1, Timespan.minute)
                     },
                     SecondOperand = new FixedOperand
                     {
                         Value = 1
                     }
                 },
-                new FilterV2
+                new Filter
                 {
                     FirstOperand = new PriceActionOperand
                     {
-                        Multiplier = 1,
-                        Timespan = Timespan.hour
+                        Timeframe = new Timeframe(1, Timespan.hour)
                     },
                     SecondOperand = new FixedOperand
                     {
@@ -87,24 +84,22 @@ public class ScanArgumentUnitTests
         var scanArgument = new ScanArgument
         {
             Filters = [
-                new FilterV2
+                new Filter
                 {
                     FirstOperand = new PriceActionOperand
                     {
-                        Multiplier = 1,
-                        Timespan = Timespan.minute
+                        Timeframe = new Timeframe(1, Timespan.minute)
                     },
                     SecondOperand = new FixedOperand
                     {
                         Value = 1
                     }
                 },
-                new FilterV2
+                new Filter
                 {
                     FirstOperand = new PriceActionOperand
                     {
-                        Multiplier = 1,
-                        Timespan = Timespan.minute
+                        Timeframe = new Timeframe(1, Timespan.minute)
                     },
                     SecondOperand = new FixedOperand
                     {
@@ -130,12 +125,11 @@ public class ScanArgumentUnitTests
         var nestedArgument = new ScanArgument
         {
             Filters = [
-                new FilterV2
+                new Filter
                 {
                     FirstOperand = new PriceActionOperand
                     {
-                        Multiplier = 1,
-                        Timespan = Timespan.minute
+                        Timeframe = new Timeframe(1, Timespan.minute)
                     },
                     SecondOperand = new FixedOperand
                     {

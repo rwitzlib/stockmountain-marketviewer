@@ -11,6 +11,7 @@ using MarketViewer.Contracts.Models.Backtest;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Models.ScanV2;
 using MarketViewer.Contracts.Requests.Backtest;
+using MarketViewer.Contracts.Requests.Scan;
 using MarketViewer.Contracts.Responses.Backtest;
 using MarketViewer.Infrastructure.Services;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -61,7 +62,7 @@ public class BacktestHandlerV3UnitTests
             {
                 Timeframe = new Timeframe(5, Timespan.day)
             },
-            Argument = new ScanArgument()
+            Argument = new ScanArgumentRequest()
         };
 
         GivenLambdaReturnsEntriesForDates([
@@ -96,7 +97,7 @@ public class BacktestHandlerV3UnitTests
             {
                 Timeframe = new Timeframe(5, Timespan.day)
             },
-            Argument = new ScanArgument()
+            Argument = new ScanArgumentRequest()
         };
 
         GivenLambdaReturnsEntriesForDates([

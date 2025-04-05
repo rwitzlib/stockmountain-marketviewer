@@ -1,22 +1,27 @@
 ﻿using MarketViewer.Contracts.Enums;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MarketViewer.Contracts.Models.ScanV2.Operands;
+namespace MarketViewer.Contracts.Models.Scan.Operands;
 
 [ExcludeFromCodeCoverage]
 public class FixedOperand : IScanOperand
 {
+
     public float Value { get; set; }
+
+    public OperandType GetOperandType()
+    {
+        return OperandType.Fixed;
+    }
 
     public int GetPriority()
     {
         return 100;
     }
 
-    public bool HasTimeframe(out int? multiplier, out Timespan? timespan)
+    public bool HasTimeframe(out Timeframe timeframe)
     {
-        multiplier = null;
-        timespan = null;
+        timeframe = null;
         return false;
     }
 }

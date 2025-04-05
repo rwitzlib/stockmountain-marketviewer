@@ -1,38 +1,35 @@
 ﻿using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Enums.Scan;
-using MarketViewer.Contracts.Models.ScanV2.Operands;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
-namespace MarketViewer.Contracts.Models.ScanV2;
+namespace MarketViewer.Contracts.Models.Scan.Operands;
 
 [ExcludeFromCodeCoverage]
 public class PriceActionOperand : IScanOperand
 {
-    [JsonConverter(typeof(JsonStringEnumConverter))]
     public PriceActionType PriceAction { get; set; }
-    
-    [JsonConverter(typeof(JsonStringEnumConverter))]
     public OperandModifier Modifier { get; set; }
+    public Timeframe Timeframe { get; set; }
 
-    public int Multiplier { get; set; }
-
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public Timespan Timespan { get; set; }
+    public OperandType GetOperandType()
+    {
+        return OperandType.PriceAction;
+    }
 
     public int GetPriority()
     {
         return 50;
     }
 
-    public bool HasTimeframe(out int? multiplier, out Timespan? timespan)
+    public bool HasTimeframe(out Timeframe timeframe)
     {
-        multiplier = Multiplier;
-        timespan = Timespan;
+        timeframe = Timeframe;
         return true;
     }
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum PriceActionType
 {
     Open,

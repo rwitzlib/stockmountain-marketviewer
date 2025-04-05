@@ -3,7 +3,7 @@ using MarketViewer.Contracts.Enums.Scan;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
-namespace MarketViewer.Contracts.Models.ScanV2.Operands;
+namespace MarketViewer.Contracts.Models.Scan.Operands;
 
 [ExcludeFromCodeCoverage]
 public class StudyOperand : IScanOperand
@@ -16,20 +16,21 @@ public class StudyOperand : IScanOperand
 
     public string Parameters { get; set; }
 
-    public int Multiplier { get; set; }
+    public Timeframe Timeframe { get; set; }
 
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public Timespan Timespan { get; set; }
+    public OperandType GetOperandType()
+    {
+        return OperandType.Study;
+    }
 
     public int GetPriority()
     {
         return 10;
     }
 
-    public bool HasTimeframe(out int? multiplier, out Timespan? timespan)
+    public bool HasTimeframe(out Timeframe timeframe)
     {
-        multiplier = Multiplier;
-        timespan = Timespan;
+        timeframe = Timeframe;
         return true;
     }
 }

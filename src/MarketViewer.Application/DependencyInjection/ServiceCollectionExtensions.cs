@@ -16,7 +16,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection RegisterApplication(this IServiceCollection services)
     {
-        return services.AddScoped<IValidator<BacktestRequest>, BacktestRequestValidator>()
+        return services.AddScoped<IValidator<BacktestRequestV3>, BacktestRequestValidator>()
             .AddSingleton<IAmazonLambda, AmazonLambdaClient>(client => new AmazonLambdaClient(new AmazonLambdaConfig
             {
                 Timeout = TimeSpan.FromMinutes(5),

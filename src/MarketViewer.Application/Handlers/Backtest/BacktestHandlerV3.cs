@@ -17,7 +17,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -49,7 +48,7 @@ public class BacktestHandlerV3(
             List<BacktestLambdaResponseV3> entries = [];
             List<BacktestLambdaResponseV3> s3Entries = [];
 
-            if (_backtestService.CheckForBacktestHistory(CompressRequestDetails(request), out var record))
+            if (false && _backtestService.CheckForBacktestHistory(CompressRequestDetails(request), out var record))
             {
                 s3Entries = await _backtestService.GetBacktestResultsFromS3(record);
 
@@ -108,6 +107,10 @@ public class BacktestHandlerV3(
             var otherOpenPositions = new List<BacktestEntryResultCollection>();
             var highOpenPositions = new List<BacktestEntryResultCollection>();
 
+            int maxConcurrentHoldPositions = 0;
+            int maxConcurrentHighPositions = 0;
+            int maxConcurrentOtherPositions = 0;
+
             var dayRange = GetDateRange(request, relevantEntries);
 
             var backtestDayResults = new List<BacktestDayResultV3>();
@@ -160,20 +163,24 @@ public class BacktestHandlerV3(
                         BuyPositionIfApplicable("other", entry, currentTime, request, ref availableFundsOther, otherOpenPositions, backtestEntryDay);
                     }
                     BuyPositionIfApplicable("high", entry, currentTime, request, ref availableFundsHigh, highOpenPositions, backtestEntryDay);
+
+                    maxConcurrentHoldPositions = holdOpenPositions.Count > maxConcurrentHoldPositions ? holdOpenPositions.Count : maxConcurrentHoldPositions;
+                    maxConcurrentHighPositions = highOpenPositions.Count > maxConcurrentHighPositions ? highOpenPositions.Count : maxConcurrentHighPositions;
+                    if (request.Exit.Other is not null)
+                    {
+                        maxConcurrentOtherPositions = otherOpenPositions.Count > maxConcurrentHighPositions ? otherOpenPositions.Count : maxConcurrentHighPositions;
+                    }
                 }
 
-                backtestEntryDay.Hold.OpenPositions = holdOpenPositions.Count;
                 backtestEntryDay.Hold.EndCashAvailable = availableFundsHold;
                 backtestEntryDay.Hold.TotalBalance = holdOpenPositions.Sum(q => q.StartPosition) + backtestEntryDay.Hold.EndCashAvailable;
 
                 if (request.Exit.Other is not null)
                 {
-                    backtestEntryDay.Other.OpenPositions = otherOpenPositions.Count;
                     backtestEntryDay.Other.EndCashAvailable = availableFundsOther;
                     backtestEntryDay.Other.TotalBalance = otherOpenPositions.Sum(q => q.StartPosition) + backtestEntryDay.Other.EndCashAvailable;
                 }
 
-                backtestEntryDay.High.OpenPositions = highOpenPositions.Count;
                 backtestEntryDay.High.EndCashAvailable = availableFundsHigh;
                 backtestEntryDay.High.TotalBalance = highOpenPositions.Sum(q => q.StartPosition) + backtestEntryDay.High.EndCashAvailable;
 
@@ -204,8 +211,7 @@ public class BacktestHandlerV3(
                         WinRatio = holdWins.Any() ? (float)holdWins.Count() / (float)(holdWins.Count() + holdLosses.Count()) : 0,
                         AvgWin = holdWins.Any() ? holdWins.Average(q => q.Profit) : 0,
                         AvgLoss = holdLosses.Any() ? holdLosses.Average(q => q.Profit) : 0,
-                        //AvgProfit = backtestDayResults.SelectMany(q => q.Hold.Sold).Average(q => q.Profit),
-                        MaxConcurrentPositions = backtestDayResults.Any() ? backtestDayResults.Max(result => result.Hold.OpenPositions) : 0
+                        MaxConcurrentPositions = maxConcurrentHoldPositions
                     },
                     High = new BacktestEntryStats
                     {
@@ -215,8 +221,7 @@ public class BacktestHandlerV3(
                         WinRatio = highWins.Any() ? (float)highWins.Count() / (float)(highWins.Count() + highLosses.Count()) : 0,
                         AvgWin = highWins.Any() ? highWins.Average(q => q.Profit) : 0,
                         AvgLoss = highLosses.Any() ? highLosses.Average(q => q.Profit) : 0,
-                        //AvgProfit = backtestDayResults.SelectMany(q => q.High.Sold).Average(q => q.Profit),
-                        MaxConcurrentPositions = backtestDayResults.Any() ? backtestDayResults.Max(result => result.High.OpenPositions) : 0
+                        MaxConcurrentPositions = maxConcurrentHighPositions
                     },
                     Other = request.Exit.Other is null ? null : new BacktestEntryStats
                     {
@@ -226,8 +231,7 @@ public class BacktestHandlerV3(
                         WinRatio = otherWins.Any() ? (float)otherWins.Count() / (float)(otherWins.Count() + otherLosses.Count()) : 0,
                         AvgWin = otherWins.Any() ? otherWins.Average(q => q.Profit) : 0,
                         AvgLoss = otherLosses.Any() ? otherLosses.Average(q => q.Profit) : 0,
-                        //AvgProfit = backtestDayResults.SelectMany(q => q.Other.Sold).Average(q => q.Profit),
-                        MaxConcurrentPositions = backtestDayResults.Any() ? backtestDayResults.Max(result => result.Other.OpenPositions) : 0
+                        MaxConcurrentPositions = maxConcurrentOtherPositions
                     },
                     Results = backtestDayResults,
                     Entries = relevantEntries
@@ -240,7 +244,7 @@ public class BacktestHandlerV3(
                 CustomerId = Guid.Empty.ToString(),
                 CreatedAt = DateTimeOffset.Now.ToString("yyyy-MM-ddThh:mmZ"),
                 CreditsUsed = relevantEntries.Where(result => result is not null).Sum(result => result.CreditsUsed),
-                S3ObjectName = record is null ? Guid.NewGuid().ToString() : record.S3ObjectName,
+                //S3ObjectName = record is null ? Guid.NewGuid().ToString() : record.S3ObjectName,
                 HoldProfit = response.Data.Hold.SumProfit,
                 HighProfit = response.Data.High.SumProfit,
                 RequestDetails = CompressRequestDetails(request)
@@ -310,8 +314,8 @@ public class BacktestHandlerV3(
         {
             entriesWithDates.Max(q => q.Results.Max(result => result.Hold.SoldAt)),
             entriesWithDates.Max(q => q.Results.Max(result => result.High.SoldAt)),
-            entriesWithDates.Max(q => q.Results.Max(result => result.Other.SoldAt))
-        };
+            entriesWithDates.Any(q => q.Other is not null) ? entriesWithDates.Max(q => q.Results.Where(q => q.Other is not null).Max(result => result.Other.SoldAt)) : DateTimeOffset.MinValue
+        };       
 
         if (lastDate.Length <= 0)
         {
