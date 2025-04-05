@@ -3,15 +3,15 @@ using AutoMapper;
 using Moq;
 using Xunit;
 using FluentAssertions;
-using MarketViewer.Contracts.Responses;
 using MarketViewer.Application.Handlers;
 using MarketViewer.Contracts.Interfaces;
-using MarketViewer.Contracts.Requests;
 using MarketViewer.Contracts.Enums;
 using Polygon.Client.Models;
 using MarketViewer.Contracts.Models.Study;
 using MarketViewer.Studies;
 using MarketViewer.Studies.UnitTests;
+using MarketViewer.Contracts.Presentation.Responses;
+using MarketViewer.Contracts.Presentation.Requests;
 
 namespace MarketViewer.Application.UnitTests.Handlers
 {

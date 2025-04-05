@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using MarketDataProvider.Contracts.Dtos;
-using MarketViewer.Contracts.Responses;
+using MarketViewer.Contracts.Presentation.Responses;
 using Polygon.Client.Models;
 using System.Collections.Generic;
 using System.Linq;

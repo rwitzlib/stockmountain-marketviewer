@@ -1,15 +1,5 @@
-﻿using System.Text.Json;
-using Xunit;
-using FluentAssertions;
-using System.Diagnostics;
+﻿using Xunit;
 using Xunit.Abstractions;
-using Amazon.S3;
-using Amazon.S3.Model;
-using System.Net;
-using Polygon.Client.Responses;
-using MarketViewer.Contracts.Responses;
-using MemoryPack;
-using MemoryPack.Streaming;
 
 namespace MarketViewer.Infrastructure.UnitTests.Performance
 {

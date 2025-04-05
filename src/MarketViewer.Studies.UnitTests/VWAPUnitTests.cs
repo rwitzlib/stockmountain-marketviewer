@@ -4,9 +4,9 @@ using FluentAssertions;
 using Polygon.Client.Models;
 using MarketViewer.Studies.Studies;
 using MarketViewer.Contracts.Enums;
-using MarketViewer.Contracts.Responses;
 using System.Text.Json;
 using FluentAssertions.Common;
+using MarketViewer.Contracts.Presentation.Responses;
 
 namespace MarketViewer.Studies.UnitTests;
 

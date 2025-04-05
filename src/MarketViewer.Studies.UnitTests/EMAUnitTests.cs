@@ -3,10 +3,10 @@ using Xunit;
 using FluentAssertions;
 using Polygon.Client.Models;
 using System.Text.Json;
-using MarketViewer.Contracts.Responses;
 using MarketViewer.Contracts.Enums;
 using FluentAssertions.Common;
 using MarketViewer.Studies.Studies;
+using MarketViewer.Contracts.Presentation.Responses;
 
 namespace MarketViewer.Studies.UnitTests;
 

@@ -1,8 +1,6 @@
 ﻿using System.Net;
-using Amazon.Runtime.Internal;
 using MarketViewer.Api.Authorization;
-using MarketViewer.Contracts.Requests;
-using MarketViewer.Contracts.Requests.Backtest;
+using MarketViewer.Contracts.Presentation.Requests.Backtest;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

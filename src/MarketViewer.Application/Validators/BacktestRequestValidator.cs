@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using MarketViewer.Contracts.Requests.Backtest;
+using MarketViewer.Contracts.Presentation.Requests.Backtest;
 using System;
 
 namespace MarketViewer.Application.Validators

@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using MarketViewer.Contracts.Interfaces;
-using MarketViewer.Contracts.Responses;
 using AutoMapper;
-using MarketViewer.Contracts.Requests;
 using MarketDataProvider.Contracts.Requests;
 using System.Linq;
 using MarketDataProvider.Contracts.Dtos;
@@ -17,6 +15,8 @@ using MarketDataProvider.Clients.Interfaces;
 using Polygon.Client.Models;
 using Polygon.Client.Requests;
 using Polygon.Client.Responses;
+using MarketViewer.Contracts.Presentation.Responses;
+using MarketViewer.Contracts.Presentation.Requests;
 
 namespace MarketViewer.Infrastructure.Services
 {

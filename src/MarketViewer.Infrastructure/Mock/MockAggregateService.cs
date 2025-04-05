@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 using MarketViewer.Contracts.Interfaces;
 using MarketViewer.Contracts.Models;
 using System.Diagnostics.CodeAnalysis;
-using MarketViewer.Contracts.Responses;
-using MarketViewer.Contracts.Requests;
 using MarketDataProvider.Contracts.Models;
 using Polygon.Client.Models;
+using MarketViewer.Contracts.Presentation.Responses;
+using MarketViewer.Contracts.Presentation.Requests;
 
 namespace MarketViewer.Infrastructure.Mock
 {

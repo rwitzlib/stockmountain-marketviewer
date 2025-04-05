@@ -1,5 +1,4 @@
-﻿using MarketViewer.Contracts.Responses;
-using MediatR;
+﻿using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -7,10 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using MarketViewer.Contracts.Interfaces;
 using MarketViewer.Contracts.Models;
-using MarketViewer.Contracts.Requests;
 using MarketViewer.Studies;
 using System.Linq;
 using MarketViewer.Contracts.Models.Study;
+using MarketViewer.Contracts.Presentation.Responses;
+using MarketViewer.Contracts.Presentation.Requests;
 
 namespace MarketViewer.Application.Handlers;
 

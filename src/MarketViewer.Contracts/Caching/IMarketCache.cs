@@ -1,6 +1,6 @@
-﻿using MarketViewer.Contracts.Responses;
-using Polygon.Client.Models;
+﻿using Polygon.Client.Models;
 using MarketViewer.Contracts.Models.Scan;
+using MarketViewer.Contracts.Presentation.Responses;
 
 namespace MarketViewer.Contracts.Caching;
 

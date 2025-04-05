@@ -1,0 +1,25 @@
+﻿using MarketViewer.Contracts.Models.Backtest;
+using System.Diagnostics.CodeAnalysis;
+
+namespace MarketViewer.Contracts.Entities.Backtest;
+
+[ExcludeFromCodeCoverage]
+public class BacktestDayResultV3
+{
+    public DateTimeOffset Date { get; set; }
+    public BacktestDayDetails Hold { get; set; }
+    public BacktestDayDetails High { get; set; }
+    public BacktestDayDetails Other { get; set; }
+}
+
+[ExcludeFromCodeCoverage]
+public class BacktestDayDetails
+{
+    public float StartCashAvailable { get; set; }
+    public float EndCashAvailable { get; set; }
+    public float TotalBalance { get; set; }
+    public float Profit { get; set; }
+    public int OpenPositions { get; set; }
+    public List<BacktestDayPosition> Bought { get; set; }
+    public List<BacktestDayPosition> Sold { get; set; }
+}

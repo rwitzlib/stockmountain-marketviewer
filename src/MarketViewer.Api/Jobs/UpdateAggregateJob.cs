@@ -1,13 +1,13 @@
 ﻿using AutoMapper;
 using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Enums;
-using MarketViewer.Contracts.Responses;
 using Polygon.Client.Requests;
 using Quartz;
 using System.Diagnostics;
 using Polygon.Client.Interfaces;
 using Polygon.Client.Models;
 using MarketViewer.Contracts.Models.Scan;
+using MarketViewer.Contracts.Presentation.Responses;
 
 namespace MarketViewer.Api.Jobs;
 
