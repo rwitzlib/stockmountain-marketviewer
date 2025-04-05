@@ -5,6 +5,8 @@ using MarketViewer.Contracts.Mappers;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Models.Scan.Operands;
 using MarketViewer.Contracts.Requests.Scan;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace MarketViewer.Contracts.UnitTests.Mappers;
 
@@ -108,5 +110,17 @@ public class ScanArgumentMapperUnitTests
             Value = 10000
         });
         result.Filters[1].Timeframe.Should().BeEquivalentTo(new Timeframe(1, Timespan.minute));
+    }
+
+    [Fact]
+    public void Map_From_Json()
+    {
+        var json = "{\r\n          \"type\": \"Study\",\r\n          \"name\": \"rsi\",\r\n          \"parameters\": \"14,70,30,ema\",\r\n          \"modifier\": \"Value\",\r\n          \"timeframe\": {\r\n            \"multiplier\": 1,\r\n            \"timespan\": \"minute\"\r\n          }\r\n        }";
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
+        var result = JsonSerializer.Deserialize<OperandRequest>(json, options);
     }
 }

@@ -1,5 +1,8 @@
-﻿namespace MarketViewer.Contracts.Enums;
+﻿using System.Text.Json.Serialization;
 
+namespace MarketViewer.Contracts.Enums;
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum OperandType
 {
     Fixed,
