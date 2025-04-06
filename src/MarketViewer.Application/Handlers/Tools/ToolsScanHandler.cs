@@ -1,6 +1,7 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
 using MarketViewer.Application.Utilities;
+using MarketViewer.Contracts.Entities.Scan;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Enums.Scan;
 using MarketViewer.Contracts.Models;
@@ -10,7 +11,6 @@ using MarketViewer.Contracts.Presentation.Responses.Tools;
 using MarketViewer.Core.Scan;
 using MediatR;
 using Microsoft.Extensions.Caching.Memory;
-using Polygon.Client.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,6 +18,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Filter = MarketViewer.Contracts.Entities.Scan.Filter;
 
 namespace MarketViewer.Application.Handlers.Tools;
 
@@ -221,7 +222,7 @@ public class ToolsScanHandler(IAmazonS3 s3, IMemoryCache memoryCache, ScanFilter
         }
     }
 
-    public ScanResponse.Item ApplyFilterToStocksResponse(Contracts.Entities.Scan.Filter filter, DateTimeOffset timestamp, StocksResponse stocksResponse, int candlesToTake = CANDLES_TO_TAKE)
+    public ScanResponse.Item ApplyFilterToStocksResponse(Filter filter, DateTimeOffset timestamp, StocksResponse stocksResponse, int candlesToTake = CANDLES_TO_TAKE)
     {
         bool passesFilter = false;
 
