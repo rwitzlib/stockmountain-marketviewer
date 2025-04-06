@@ -1,4 +1,5 @@
 ﻿using MarketViewer.Contracts.Converters;
+using MarketViewer.Contracts.Entities.Scan;
 using System.Text.Json.Serialization;
 
 namespace MarketViewer.Contracts.Models.Scan;

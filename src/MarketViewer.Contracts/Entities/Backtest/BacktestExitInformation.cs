@@ -1,4 +1,5 @@
-﻿using MarketViewer.Contracts.Models.Scan;
+﻿using MarketViewer.Contracts.Entities.Scan;
+using MarketViewer.Contracts.Models.Scan;
 using System.Diagnostics.CodeAnalysis;
 using ValueType = MarketViewer.Contracts.Enums.ValueType;
 

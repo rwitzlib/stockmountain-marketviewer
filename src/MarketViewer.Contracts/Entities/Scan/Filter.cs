@@ -1,10 +1,11 @@
 ﻿using MarketViewer.Contracts.Converters;
 using MarketViewer.Contracts.Enums.Scan;
+using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Models.Scan.Operands;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
-namespace MarketViewer.Contracts.Models.Scan;
+namespace MarketViewer.Contracts.Entities.Scan;
 
 [JsonConverter(typeof(FilterConverter))]
 [ExcludeFromCodeCoverage]

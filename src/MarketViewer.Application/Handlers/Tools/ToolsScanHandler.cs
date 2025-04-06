@@ -4,7 +4,6 @@ using MarketViewer.Application.Utilities;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Enums.Scan;
 using MarketViewer.Contracts.Models;
-using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Presentation.Requests.Tools;
 using MarketViewer.Contracts.Presentation.Responses;
 using MarketViewer.Contracts.Presentation.Responses.Tools;
@@ -222,7 +221,7 @@ public class ToolsScanHandler(IAmazonS3 s3, IMemoryCache memoryCache, ScanFilter
         }
     }
 
-    public ScanResponse.Item ApplyFilterToStocksResponse(Contracts.Models.Scan.Filter filter, DateTimeOffset timestamp, StocksResponse stocksResponse, int candlesToTake = CANDLES_TO_TAKE)
+    public ScanResponse.Item ApplyFilterToStocksResponse(Contracts.Entities.Scan.Filter filter, DateTimeOffset timestamp, StocksResponse stocksResponse, int candlesToTake = CANDLES_TO_TAKE)
     {
         bool passesFilter = false;
 

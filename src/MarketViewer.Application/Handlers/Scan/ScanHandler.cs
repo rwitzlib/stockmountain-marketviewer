@@ -17,6 +17,7 @@ using MarketViewer.Core.Scan;
 using MarketViewer.Contracts.Mappers;
 using MarketViewer.Contracts.Presentation.Responses;
 using MarketViewer.Contracts.Presentation.Requests.Scan;
+using MarketViewer.Contracts.Entities.Scan;
 
 namespace MarketViewer.Application.Handlers.Scan;
 
