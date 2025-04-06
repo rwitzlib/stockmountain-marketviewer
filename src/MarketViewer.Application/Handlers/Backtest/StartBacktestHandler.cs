@@ -1,9 +1,9 @@
 ﻿using Amazon.DynamoDBv2.DataModel;
 using Amazon.Lambda;
 using Amazon.Lambda.Model;
+using MarketViewer.Contracts.Entities.Backtest;
 using MarketViewer.Contracts.Enums.Backtest;
 using MarketViewer.Contracts.Models;
-using MarketViewer.Contracts.Models.Backtest;
 using MarketViewer.Contracts.Presentation.Requests.Backtest;
 using MarketViewer.Contracts.Presentation.Responses.Backtest;
 using MarketViewer.Core.Config;
