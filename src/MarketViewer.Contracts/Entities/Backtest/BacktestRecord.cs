@@ -3,7 +3,7 @@ using MarketViewer.Contracts.Enums.Backtest;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
-namespace MarketViewer.Contracts.Models.Backtest;
+namespace MarketViewer.Contracts.Entities.Backtest;
 
 /// <summary>
 /// Database record for storing information about backtest results.

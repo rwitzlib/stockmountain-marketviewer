@@ -1,5 +1,5 @@
-﻿using MarketViewer.Contracts.Models;
-using MarketViewer.Contracts.Models.Backtest;
+﻿using MarketViewer.Contracts.Entities.Backtest;
+using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Presentation.Models;
 using MarketViewer.Contracts.Presentation.Requests;
 using MarketViewer.Contracts.Presentation.Responses.Backtest;

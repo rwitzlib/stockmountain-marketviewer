@@ -1,6 +1,5 @@
 ﻿using MarketViewer.Contracts.Entities.Backtest;
 using MarketViewer.Contracts.Enums.Backtest;
-using MarketViewer.Contracts.Models.Backtest;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MarketViewer.Contracts.Presentation.Responses.Backtest;

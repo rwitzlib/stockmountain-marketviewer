@@ -1,6 +1,5 @@
 ﻿using Amazon.Lambda.Model;
 using Amazon.Lambda;
-using MarketViewer.Contracts.Models.Backtest;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,6 +14,7 @@ using Amazon.DynamoDBv2.Model;
 using Document = Amazon.DynamoDBv2.DocumentModel.Document;
 using MarketViewer.Contracts.Presentation.Responses.Backtest;
 using MarketViewer.Contracts.Presentation.Requests.Backtest;
+using MarketViewer.Contracts.Entities.Backtest;
 
 namespace MarketViewer.Infrastructure.Services;
 

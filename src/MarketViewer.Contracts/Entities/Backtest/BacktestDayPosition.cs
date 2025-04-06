@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace MarketViewer.Contracts.Models.Backtest;
+namespace MarketViewer.Contracts.Entities.Backtest;
 
 [ExcludeFromCodeCoverage]
 public class BacktestDayPosition

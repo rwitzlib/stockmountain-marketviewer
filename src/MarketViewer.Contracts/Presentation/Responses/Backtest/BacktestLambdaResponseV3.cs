@@ -1,4 +1,4 @@
-﻿using MarketViewer.Contracts.Models.Backtest;
+﻿using MarketViewer.Contracts.Entities.Backtest;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MarketViewer.Contracts.Presentation.Responses.Backtest;

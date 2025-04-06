@@ -1,6 +1,6 @@
 ﻿using MarketViewer.Contracts.Models.Scan;
 using System.Diagnostics.CodeAnalysis;
-using static MarketViewer.Contracts.Models.Backtest.BacktestExitInformation;
+using static MarketViewer.Contracts.Entities.Backtest.BacktestExitInformation;
 
 namespace MarketViewer.Contracts.Presentation.Models;
 
@@ -9,6 +9,6 @@ public class ExitInformationDetails
 {
     public Exit StopLoss { get; set; }
     public Exit ProfitTarget { get; set; }
-    public List<FilterDetails> Other { get; set; }
+    public ScanArgumentDetails Other { get; set; }
     public Timeframe Timeframe { get; set; }
 }
