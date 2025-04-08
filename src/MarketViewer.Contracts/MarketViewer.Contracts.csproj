@@ -4,16 +4,15 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <PackageId>MarketViewer.Contracts</PackageId>
-    <Version>5.1.0-preview.7</Version>
+    <Version>5.1.0</Version>
     <Authors>Robert Witzlib</Authors>
 	<Description>
 		Contracts for MarketViewer.  
 	</Description>
-    <Product>MarketDataProvider.Contracts</Product>
+    <Product>MarketViewer.Contracts</Product>
     <PackageProjectUrl>https://github.com/rwitzlib/stockmountain-marketviewer</PackageProjectUrl>
     <RepositoryUrl>https://github.com/rwitzlib/stockmountain-marketviewer</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageReleaseNotes>Add Backtest v3, rename lots of namespaces</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 

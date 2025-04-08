@@ -4,16 +4,15 @@
 	<TargetFramework>net8.0</TargetFramework>
 	<ImplicitUsings>enable</ImplicitUsings>
 	<PackageId>MarketViewer.Studies</PackageId>
-	<Version>3.0.0-preview.3</Version>
+	<Version>3.0.0</Version>
 	<Authors>Robert Witzlib</Authors>
 	<Description>
 		Studies for MarketViewer.
 	</Description>
-	<Product>MarketDataProvider.Studies</Product>
+	<Product>MarketViewer.Studies</Product>
 	<PackageProjectUrl>https://github.com/rwitzlib/stockmountain-marketviewer</PackageProjectUrl>
 	<RepositoryUrl>https://github.com/rwitzlib/stockmountain-marketviewer</RepositoryUrl>
 	<RepositoryType>git</RepositoryType>
-	<PackageReleaseNotes>Add SMA, EMA, VWAP, MACD, RSI studies</PackageReleaseNotes>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
