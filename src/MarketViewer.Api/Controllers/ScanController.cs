@@ -4,6 +4,7 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using MarketViewer.Api.Authorization;
 using MarketViewer.Contracts.Caching;
+using MarketViewer.Contracts.Entities;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Presentation.Requests.Scan;
@@ -11,13 +12,14 @@ using MarketViewer.Contracts.Presentation.Responses;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace MarketViewer.Api.Controllers
 {
     [ApiController]
     [Authorize]
     [Route("api/scan")]
-    public class ScanController(IHttpContextAccessor contextAccessor, IAmazonS3 s3Client, IMarketCache _marketCache, ILogger<ScanController> _logger, IMediator _mediator) : ControllerBase
+    public class ScanController(IHttpContextAccessor contextAccessor, IMemoryCache memoryCache, IAmazonS3 s3Client, IMarketCache _marketCache, ILogger<ScanController> _logger, IMediator _mediator) : ControllerBase
     {
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -55,39 +57,39 @@ namespace MarketViewer.Api.Controllers
         [RequiredPermissions([UserRole.None, UserRole.Starter, UserRole.Advanced, UserRole.Premium, UserRole.Admin])]
         public async Task<IActionResult> Print()
         {
-            var minuteTickers = _marketCache.GetTickersByTimeframe(new Timeframe(1, Timespan.minute), DateTimeOffset.Now);
-            var hourTickers = _marketCache.GetTickersByTimeframe(new Timeframe(1, Timespan.hour), DateTimeOffset.Now);
+            //var minuteTickers = _marketCache.GetTickersByTimeframe(new Timeframe(1, Timespan.minute), DateTimeOffset.Now);
+            //var hourTickers = _marketCache.GetTickersByTimeframe(new Timeframe(1, Timespan.hour), DateTimeOffset.Now);
 
-            if (!(minuteTickers.Any() || hourTickers.Any()))
-            {
-                return NotFound();
-            }
+            //if (!(minuteTickers.Any() || hourTickers.Any()))
+            //{
+            //    return NotFound();
+            //}
 
-            List<StocksResponse> minuteStocks = [];
-            foreach (var ticker in minuteTickers)
-            {
-                var stocksResponse = _marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), DateTimeOffset.Now);
-                minuteStocks.Add(stocksResponse);
-            }
+            //List<StocksResponse> minuteStocks = [];
+            //foreach (var ticker in minuteTickers)
+            //{
+            //    var stocksResponse = _marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), DateTimeOffset.Now);
+            //    minuteStocks.Add(stocksResponse);
+            //}
 
-            List<StocksResponse> hourStocks = [];
-            foreach (var ticker in hourTickers)
-            {
-                var stocksResponse = _marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.hour), DateTimeOffset.Now);
-                hourStocks.Add(stocksResponse);
-            }
+            //List<StocksResponse> hourStocks = [];
+            //foreach (var ticker in hourTickers)
+            //{
+            //    var stocksResponse = _marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.hour), DateTimeOffset.Now);
+            //    hourStocks.Add(stocksResponse);
+            //}
 
-            if (!(minuteTickers.Any() || hourTickers.Any()))
-            {
-                return NotFound();
-            }
+            //if (!(minuteTickers.Any() || hourTickers.Any()))
+            //{
+            //    return NotFound();
+            //}
 
             List<(string, string)> items =
             [
-                ($"{DateTimeOffset.Now.Date:yyyy-MM-dd}-m-ticker.json", JsonSerializer.Serialize(minuteTickers)),
-                ($"{DateTimeOffset.Now.Date:yyyy-MM-dd}-h-ticker.json", JsonSerializer.Serialize(hourTickers)),
-                ($"{DateTimeOffset.Now.Date:yyyy-MM-dd}-m-stocks.json", JsonSerializer.Serialize(minuteStocks)),
-                ($"{DateTimeOffset.Now.Date:yyyy-MM-dd}-h-stocks.json", JsonSerializer.Serialize(hourStocks))
+                //($"{DateTimeOffset.Now.Date:yyyy-MM-dd}-m-ticker.json", JsonSerializer.Serialize(minuteTickers)),
+                //($"{DateTimeOffset.Now.Date:yyyy-MM-dd}-h-ticker.json", JsonSerializer.Serialize(hourTickers)),
+                ($"{DateTimeOffset.Now.Date:yyyy-MM-dd}-m-stocks.json", JsonSerializer.Serialize(memoryCache.Get<PolygonFidelity>("SPY_minute"))),
+                ($"{DateTimeOffset.Now.Date:yyyy-MM-dd}-h-stocks.json", JsonSerializer.Serialize(memoryCache.Get<PolygonFidelity>("SPY_hour")))
             ];
 
             foreach (var path in items)
@@ -99,7 +101,12 @@ namespace MarketViewer.Api.Controllers
                     ContentBody = path.Item2
                 });
             }
-            return Ok();
+
+            return Ok(new PolygonFidelityResponse
+            {
+                Minute = memoryCache.Get<PolygonFidelity>("SPY_minute"),
+                Hour = memoryCache.Get<PolygonFidelity>("SPY_hour")
+            });
         }
     }
 }

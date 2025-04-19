@@ -32,6 +32,19 @@
     <ProjectReference Include="..\MarketViewer.Api\MarketViewer.Api.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Data\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Data\hour.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\minute.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
   <PropertyGroup>
 	<CollectCoverage>true</CollectCoverage>
 	<CoverletOutput>../TestResults/</CoverletOutput>

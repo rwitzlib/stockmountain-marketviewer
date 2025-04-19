@@ -7,10 +7,13 @@ using System.Diagnostics;
 using Polygon.Client.Interfaces;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Presentation.Responses;
+using Microsoft.Extensions.Caching.Memory;
+using MarketViewer.Contracts.Entities;
 
 namespace MarketViewer.Api.Jobs;
 
 public class InitialAggregateJob(
+    IMemoryCache memoryCache,
     IMarketCache marketCache,
     IPolygonClient polygonClient,
     IMapper mapper,
@@ -30,29 +33,31 @@ public class InitialAggregateJob(
             await PopulateStocksResponses(new Timeframe(1, Timespan.minute), DateTimeOffset.Now);
             logger.LogInformation("Finished initializing minute aggregate data at: {time}. Time elapsed: {elapsed}ms.", DateTimeOffset.Now, sp.ElapsedMilliseconds);
 
+            memoryCache.Set<PolygonFidelity>("SPY_minute", new PolygonFidelity
+            {
+                Ticker = "SPY",
+                Data = marketCache.GetStocksResponse("SPY", new Timeframe(1, Timespan.minute), DateTimeOffset.Now),
+                Aggregates = [],
+                Snapshots = []
+            });
+
             await PopulateStocksResponses(new Timeframe(1, Timespan.hour), DateTimeOffset.Now);
             logger.LogInformation("Finished initializing hourly aggregate data at: {time}. Time elapsed: {elapsed}ms.", DateTimeOffset.Now, sp.ElapsedMilliseconds);
+
+            memoryCache.Set<PolygonFidelity>("SPY_hour", new PolygonFidelity
+            {
+                Ticker = "SPY",
+                Data = marketCache.GetStocksResponse("SPY", new Timeframe(1, Timespan.hour), DateTimeOffset.Now),
+                Aggregates = [],
+                Snapshots = []
+            });
 
             await PopulateStocksResponses(new Timeframe(1, Timespan.day), DateTimeOffset.Now);
             logger.LogInformation("Finished initializing daily aggregate data at: {time}. Time elapsed: {elapsed}ms.", DateTimeOffset.Now, sp.ElapsedMilliseconds);
 
             sp.Stop();
 
-            if (sp.Elapsed.TotalSeconds > 60)
-            {
-                logger.LogInformation("Initializing aggregate data took longer than 1 minute");
-
-                var singleSnapshotJob = JobBuilder.Create<SnapshotJob>()
-                    .StoreDurably(true)
-                    .Build();
-
-                var singleSnapshotTrigger = TriggerBuilder.Create()
-                    .ForJob(singleSnapshotJob)
-                    .StartAt(DateTimeOffset.Now)
-                    .Build();
-
-                await context.Scheduler.ScheduleJob(singleSnapshotJob, singleSnapshotTrigger);
-            }
+            
 
             var now = DateTimeOffset.Now;
             var startTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 1, 0, now.Offset);
