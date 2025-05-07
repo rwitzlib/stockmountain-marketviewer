@@ -48,7 +48,7 @@ public class BacktestHandlerV3(
             List<BacktestLambdaResponseV3> entries = [];
             List<BacktestLambdaResponseV3> s3Entries = [];
 
-            if (false && _backtestService.CheckForBacktestHistory(CompressRequestDetails(request), out var record))
+            if (_backtestService.CheckForBacktestHistory(CompressRequestDetails(request), out var record))
             {
                 s3Entries = await _backtestService.GetBacktestResultsFromS3(record);
 
@@ -244,7 +244,7 @@ public class BacktestHandlerV3(
                 CustomerId = Guid.Empty.ToString(),
                 CreatedAt = DateTimeOffset.Now.ToString("yyyy-MM-ddThh:mmZ"),
                 CreditsUsed = relevantEntries.Where(result => result is not null).Sum(result => result.CreditsUsed),
-                //S3ObjectName = record is null ? Guid.NewGuid().ToString() : record.S3ObjectName,
+                S3ObjectName = record is null ? Guid.NewGuid().ToString() : record.S3ObjectName,
                 HoldProfit = response.Data.Hold.SumProfit,
                 HighProfit = response.Data.High.SumProfit,
                 RequestDetails = CompressRequestDetails(request)

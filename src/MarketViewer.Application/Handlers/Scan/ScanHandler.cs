@@ -117,10 +117,10 @@ public class ScanHandler(
 
             foreach (var ticker in tickersToScan)
             {
-                if (!IsMinuteResponseValid(ticker, timestamp))
-                {
-                    continue;
-                }
+                //if (!IsMinuteResponseValid(ticker, timestamp))
+                //{
+                //    continue;
+                //}
 
                 var stocksResponse = hasTimeframe ? marketCache.GetStocksResponse(ticker, timeframe, timestamp) : marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), timestamp);
 
@@ -135,27 +135,27 @@ public class ScanHandler(
         return results;
     }
 
-    private bool IsMinuteResponseValid(string ticker, DateTimeOffset timestamp)
-    {
-        var minuteResponse = marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), timestamp);
+    //private bool IsMinuteResponseValid(string ticker, DateTimeOffset timestamp)
+    //{
+    //    var minuteResponse = marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), timestamp);
 
-        if (minuteResponse.Results.Count < 5)
-        {
-            return false;
-        }
+    //    if (minuteResponse.Results.Count < 5)
+    //    {
+    //        return false;
+    //    }
 
-        var lastCandles = minuteResponse.Results.TakeLast(5).ToArray();
+    //    var lastCandles = minuteResponse.Results.TakeLast(5).ToArray();
 
-        for (int i = 0; i < lastCandles.Length - 1; i++)
-        {
-            if (lastCandles[i].Timestamp - lastCandles[i + 1].Timestamp != 60000)
-            {
-                return false;
-            }
-        }
+    //    for (int i = 0; i < lastCandles.Length - 1; i++)
+    //    {
+    //        if (lastCandles[i].Timestamp - lastCandles[i + 1].Timestamp != 60000)
+    //        {
+    //            return false;
+    //        }
+    //    }
 
-        return true;
-    }
+    //    return true;
+    //}
 
 
     private ScanResponse.Item ApplyFilterToStocksResponse(Filter filter, DateTimeOffset timestamp, StocksResponse stocksResponse, int candlesToTake = CANDLES_TO_TAKE)

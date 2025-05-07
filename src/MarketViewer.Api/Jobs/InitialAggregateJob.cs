@@ -55,9 +55,20 @@ public class InitialAggregateJob(
             await PopulateStocksResponses(new Timeframe(1, Timespan.day), DateTimeOffset.Now);
             logger.LogInformation("Finished initializing daily aggregate data at: {time}. Time elapsed: {elapsed}ms.", DateTimeOffset.Now, sp.ElapsedMilliseconds);
 
-            sp.Stop();
+            if (sp.Elapsed.TotalSeconds > 60)
+            {
+                logger.LogInformation("Initializing aggregate data took longer than 1 minute.");
 
-            
+                var singleSnapshotJob = JobBuilder.Create<SnapshotJob>()
+                .StoreDurably(true)
+                .Build();
+
+                var singleSnapshotTrigger = TriggerBuilder.Create()
+                    .ForJob(singleSnapshotJob)
+                    .StartAt(DateTimeOffset.Now)
+                    .Build();
+            }
+            sp.Stop();
 
             var now = DateTimeOffset.Now;
             var startTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 1, 0, now.Offset);
