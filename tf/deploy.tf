@@ -32,7 +32,7 @@ resource "null_resource" "deploy" {
     command     = <<-EOT
       curl -X POST 'https://management.stockmountain.io/api/deploy/start' \
         -H 'Content-Type: application/json' \
-        -H 'Authorization: Bearer ${data.aws_ssm_parameter.deploy_token.value}' \
+        -H "Authorization: Bearer ${data.aws_ssm_parameter.deploy_token.value}" \
         -d '{
           "id": "${var.run_id}",
           "environment": "${var.environment}",
