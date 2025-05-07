@@ -33,23 +33,23 @@ resource "null_resource" "deploy" {
       curl -X POST 'https://management.stockmountain.io/api/deploy/start' \
         -H 'Content-Type: application/json' \
         -H "Authorization: Bearer $TOKEN" \
-        -d '{
-          "id": "${var.run_id}",
-          "environment": "${var.environment}",
-          "repository": "stockmountain-marketviewer",
-          "file": "deploy.docker-compose.yml",
-          "image": "${data.aws_ecr_image.api.image_uri}",
-          "actor": "${var.actor}"
-        }' > /tmp/deploy_response.txt
-      cat /tmp/deploy_response.txt | tail -n 1 > /tmp/deploy_status.txt
-    EOT
+        -d ${jsonencode({
+    id          = var.run_id
+    environment = var.environment
+    repository  = "stockmountain-marketviewer"
+    file        = "deploy.docker-compose.yml"
+    image       = data.aws_ecr_image.api.image_uri
+    actor       = var.actor
+})} > /tmp/deploy_response.txt
+          cat /tmp/deploy_response.txt | tail -n 1 > /tmp/deploy_status.txt
+            EOT
 
-    environment = {
-      TOKEN = data.aws_ssm_parameter.deploy_token.value
-    }
+environment = {
+  TOKEN = data.aws_ssm_parameter.deploy_token.value
+}
 
-    interpreter = ["/bin/bash", "-c"]
-  }
+interpreter = ["/bin/bash", "-c"]
+}
 }
 
 data "local_file" "deploy_status" {
