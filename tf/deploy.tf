@@ -29,10 +29,10 @@ resource "null_resource" "deploy" {
   }
 
   provisioner "local-exec" {
-    command     = <<-EOT
+    command = <<-EOT
       curl -X POST 'https://management.stockmountain.io/api/deploy/start' \
         -H 'Content-Type: application/json' \
-        -H "Authorization: Bearer ${data.aws_ssm_parameter.deploy_token.value}" \
+        -H "Authorization: Bearer $TOKEN" \
         -d '{
           "id": "${var.run_id}",
           "environment": "${var.environment}",
@@ -41,11 +41,12 @@ resource "null_resource" "deploy" {
           "image": "${data.aws_ecr_image.api.image_uri}",
           "actor": "${var.actor}"
         }'
-    EOT
+      EOT
+
+    environment = {
+      TOKEN = data.aws_ssm_parameter.deploy_token.value
+    }
+
     interpreter = ["/bin/bash", "-c"]
   }
 }
-
-# output "deploy_id" {
-#   value = var.run_id
-# }
