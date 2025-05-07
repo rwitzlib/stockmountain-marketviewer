@@ -29,13 +29,20 @@ resource "null_resource" "deploy" {
   }
 
   provisioner "local-exec" {
-    command = <<-EOT
-      curl -X POST \
-      -H "Content-Type: application/json" \
-      -H "Authorization: Bearer ${data.aws_ssm_parameter.deploy_token.value}" \
-      -d '{"id":"${var.run_id}","environment":"${var.environment}","repository":"stockmountain-marketviewer","file":"deploy.docker-compose.yml","image":"${data.aws_ecr_image.api.image_uri}","actor":"${var.actor}"}' \
-      https://management.stockmountain.io/api/deploy/start
+    command     = <<-EOT
+      curl -X POST 'https://management.stockmountain.io/api/deploy/start' \
+        -H 'Content-Type: application/json' \
+        -H 'Authorization: Bearer ${data.aws_ssm_parameter.deploy_token.value}' \
+        -d '{
+          "id": "${var.run_id}",
+          "environment": "${var.environment}",
+          "repository": "stockmountain-marketviewer",
+          "file": "deploy.docker-compose.yml",
+          "image": "${data.aws_ecr_image.api.image_uri}",
+          "actor": "${var.actor}"
+        }'
     EOT
+    interpreter = ["/bin/bash", "-c"]
   }
 }
 
