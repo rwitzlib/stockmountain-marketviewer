@@ -31,7 +31,7 @@ public class SchedulerJob(ISchedulerFactory schedulerFactory, IMemoryCache memor
         // Schedule the job to run at 8:00 AM the next day
         var now = DateTimeOffset.Now;
         TimeSpan offset = TimeZone.GetUtcOffset(DateTimeOffset.Now.AddDays(1));
-        var startDate = new DateTimeOffset(now.Year, now.Month, now.Day + 1, 8, 0, 1, offset);
+        var startDate = new DateTimeOffset(now.Year, now.Month, now.Day + 1, 8, 25, 1, offset);
         logger.LogInformation("SchedulerJob running next at: {time}.", startDate);
         var scheduleTrigger = TriggerBuilder.Create()
             .StartAt(startDate)
