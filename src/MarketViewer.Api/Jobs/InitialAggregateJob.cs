@@ -57,16 +57,21 @@ public class InitialAggregateJob(
 
             if (sp.Elapsed.TotalSeconds > 60)
             {
-                logger.LogInformation("Initializing aggregate data took longer than 1 minute.");
+                logger.LogInformation("Initializing aggregate data took longer than 1 minute. Starting over.");
 
-                var singleSnapshotJob = JobBuilder.Create<SnapshotJob>()
-                .StoreDurably(true)
-                .Build();
+                var schedulerJob = JobBuilder.Create<SchedulerJob>()
+                    .Build();
 
-                var singleSnapshotTrigger = TriggerBuilder.Create()
-                    .ForJob(singleSnapshotJob)
+                var schedulerTrigger = TriggerBuilder.Create()
+                    .ForJob(schedulerJob)
                     .StartAt(DateTimeOffset.Now)
                     .Build();
+
+                await context.Scheduler.ScheduleJob(schedulerJob, schedulerTrigger);
+
+                sp.Stop();
+
+                return;
             }
             sp.Stop();
 
@@ -80,7 +85,7 @@ public class InitialAggregateJob(
             var scheduledSnapshotTrigger = TriggerBuilder.Create()
                 .WithSimpleSchedule(schedule => schedule
                     .WithIntervalInMinutes(1)
-                    .WithRepeatCount(1800)) // 18 hours
+                    .WithRepeatCount(1080)) // 18 hours
                 .ForJob(scheduledSnapshotJob)
                 .StartAt(startTime)
                 .Build();

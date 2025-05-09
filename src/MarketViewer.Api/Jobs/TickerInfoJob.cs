@@ -46,12 +46,12 @@ public class TickerInfoJob(
                 .StoreDurably(true)
                 .Build();
 
-            var snapshotTrigger = TriggerBuilder.Create()
+            var initTrigger = TriggerBuilder.Create()
                 .ForJob(initJob)
                 .StartAt(startTime)
                 .Build();
 
-            await context.Scheduler.ScheduleJob(initJob, snapshotTrigger);
+            await context.Scheduler.ScheduleJob(initJob, initTrigger);
         }
         catch (Exception ex)
         {

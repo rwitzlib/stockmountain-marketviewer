@@ -142,8 +142,8 @@ public class Program
 
     private static async Task RegisterJobs(IScheduler scheduler)
     {
-        var tickerJob = JobBuilder.Create<TickerInfoJob>()
-            .Build();
+        var tickerJob = JobBuilder.Create<SchedulerJob>()
+           .Build();
 
         var scheduleTrigger = TriggerBuilder.Create()
             .StartNow()
