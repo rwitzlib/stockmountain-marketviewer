@@ -12,7 +12,7 @@ terraform {
 
     httpclient = {
       version = "0.0.3"
-      source  = "github.com/dmachard/http-client"
+      source  = "dmachard/http-client"
     }
   }
 
