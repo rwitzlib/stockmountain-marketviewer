@@ -61,18 +61,7 @@ output "deploy_status_code" {
   value = data.local_file.deploy_status.content
 }
 
-# data "httpclient_request" "req" {
-#   url            = "https://management.stockmountain.io"
-#   request_method = "POST"
-#   request_headers = {
-#     Content-Type  = "application/json"
-#     Authorization = "Bearer ${data.aws_ssm_parameter.deploy_token.value}"
-#   }
-#   request_body = 
-# }
-
-resource "restapi_object" "Foo2" {
-  # provider = restapi.asdf
+resource "restapi_object" "deploy" {
   path = "/api/deploy/start"
   data = jsonencode({
     id          = var.run_id
@@ -84,10 +73,6 @@ resource "restapi_object" "Foo2" {
   })
 }
 
-# output "response_body" {
-#   value = jsondecode(data.httpclient_request.req.response_body).authenticated
-# }
-
-# output "response_code" {
-#   value = data.httpclient_request.req.response_code
-# }
+output "response_body" {
+  value = restapi_object.deploy.api_response
+}
