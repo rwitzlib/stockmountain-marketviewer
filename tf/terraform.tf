@@ -41,7 +41,5 @@ provider "restapi" {
     "Content-Type"  = "application/json"
   }
 
-  create_method  = "PUT"
-  update_method  = "PUT"
-  destroy_method = "PUT"
+  create_method = "POST"
 }
