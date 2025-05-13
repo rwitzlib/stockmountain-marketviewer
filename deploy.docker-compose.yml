@@ -10,4 +10,4 @@ services:
     env_file:
       - ../${ENVIRONMENT}.env
     volumes:
-      - '~/.aws/credentials:/home/app/.aws/credentials:ro'
+      - '~/.aws/credentials:/root/.aws/credentials:ro'

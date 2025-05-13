@@ -14,7 +14,7 @@ services:
     networks:
       - marketviewer
     volumes:
-      - '~/.aws/credentials:/home/app/.aws/credentials:ro'
+      - '~/.aws/credentials:/root/.aws/credentials:ro'
 
   # marketviewer-web:
   #   container_name: marketviewer-frontend
