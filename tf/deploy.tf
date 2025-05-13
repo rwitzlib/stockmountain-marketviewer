@@ -72,8 +72,8 @@ output "deploy_status_code" {
 # }
 
 resource "restapi_object" "Foo2" {
-  provider = restapi.asdf
-  path     = "/api/deploy/start"
+  # provider = restapi.asdf
+  path = "/api/deploy/start"
   data = jsonencode({
     id          = var.run_id
     environment = var.environment
