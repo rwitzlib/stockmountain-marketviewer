@@ -31,4 +31,4 @@ provider "aws" {
   }
 }
 
-provider "httpclient" {}
+# provider "httpclient" {}
