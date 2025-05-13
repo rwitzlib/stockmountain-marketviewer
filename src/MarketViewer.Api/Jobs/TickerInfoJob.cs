@@ -56,6 +56,7 @@ public class TickerInfoJob(
         catch (Exception ex)
         {
             logger.LogError("Error populating ticker data: {message}", ex.Message);
+            logger.LogError("Exception: {e}", ex);
         }
     }
 

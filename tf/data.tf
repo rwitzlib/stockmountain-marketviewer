@@ -1,6 +1,6 @@
 data "aws_ecr_image" "api" {
   repository_name = "${var.team}-${var.environment}-${var.service_name}-api"
-  image_tag       = var.image_tag
+  image_tag       = "latest"
 }
 
 data "aws_ssm_parameter" "polygon_token" {
