@@ -9,6 +9,11 @@ terraform {
       source  = "hashicorp/http"
       version = "~> 3.0"
     }
+
+    http-client = {
+      source  = "dmachard/http-client"
+      version = "0.3.0"
+    }
   }
 
   backend "s3" {
@@ -17,3 +22,13 @@ terraform {
     region = "us-east-2"
   }
 }
+
+provider "aws" {
+  region = var.region
+
+  default_tags {
+    tags = local.default_tags
+  }
+}
+
+provider "http-client" {}

