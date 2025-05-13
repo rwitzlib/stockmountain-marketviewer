@@ -62,7 +62,7 @@ output "deploy_status_code" {
 }
 
 data "httpclient_request" "req" {
-  url            = "http://httpbin.org/hidden-basic-auth/user/passwd"
+  url            = "https://management.stockmountain.io/api/deploy/start"
   request_method = "POST"
   request_headers = {
     Content-Type  = "application/json"
