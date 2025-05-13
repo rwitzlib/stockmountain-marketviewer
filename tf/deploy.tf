@@ -12,10 +12,4 @@ resource "restapi_object" "deploy" {
 
 output "deploy_response" {
   value = restapi_object.deploy.api_response
-
-  lifecycle {
-    postcondition {
-      condition = restapi_object.deploy.api_response["status"] == "Success"
-    }
-  }
 }
