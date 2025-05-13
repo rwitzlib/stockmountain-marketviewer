@@ -10,9 +10,9 @@ terraform {
       version = "~> 3.0"
     }
 
-    httpclient = {
-      version = "0.0.3"
-      source  = "dmachard/http-client"
+    restapi = {
+      source  = "Mastercard/restapi"
+      version = "2.0.1"
     }
   }
 
@@ -31,4 +31,17 @@ provider "aws" {
   }
 }
 
-# provider "httpclient" {}
+provider "restapi" {
+  uri                  = "https://management.stockmountain.io/api/deploy/start"
+  write_returns_object = true
+  debug                = true
+
+  headers = {
+    "Authorization" = "Bearer ${data.aws_ssm_parameter.deploy_token.value}",
+    "Content-Type"  = "application/json"
+  }
+
+  create_method  = "PUT"
+  update_method  = "PUT"
+  destroy_method = "PUT"
+}

@@ -61,14 +61,20 @@ output "deploy_status_code" {
   value = data.local_file.deploy_status.content
 }
 
-data "httpclient_request" "req" {
-  url            = "https://management.stockmountain.io/api/deploy/start"
-  request_method = "POST"
-  request_headers = {
-    Content-Type  = "application/json"
-    Authorization = "Bearer ${data.aws_ssm_parameter.deploy_token.value}"
-  }
-  request_body = jsonencode({
+# data "httpclient_request" "req" {
+#   url            = "https://management.stockmountain.io"
+#   request_method = "POST"
+#   request_headers = {
+#     Content-Type  = "application/json"
+#     Authorization = "Bearer ${data.aws_ssm_parameter.deploy_token.value}"
+#   }
+#   request_body = 
+# }
+
+resource "restapi_object" "Foo2" {
+  # provider = restapi.restapi_headers
+  path = "/api/deploy/start"
+  data = jsonencode({
     id          = var.run_id
     environment = var.environment
     repository  = "stockmountain-marketviewer"
@@ -78,10 +84,10 @@ data "httpclient_request" "req" {
   })
 }
 
-output "response_body" {
-  value = jsondecode(data.httpclient_request.req.response_body).authenticated
-}
+# output "response_body" {
+#   value = jsondecode(data.httpclient_request.req.response_body).authenticated
+# }
 
-output "response_code" {
-  value = data.httpclient_request.req.response_code
-}
+# output "response_code" {
+#   value = data.httpclient_request.req.response_code
+# }
