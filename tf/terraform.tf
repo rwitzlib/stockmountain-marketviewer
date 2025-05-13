@@ -32,7 +32,7 @@ provider "aws" {
 }
 
 provider "restapi" {
-  uri                  = "https://management.stockmountain.io/api/deploy/start"
+  uri                  = "https://management.stockmountain.io"
   write_returns_object = true
   debug                = true
 
