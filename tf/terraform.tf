@@ -10,9 +10,9 @@ terraform {
       version = "~> 3.0"
     }
 
-    http-client = {
-      source  = "dmachard/http-client"
-      version = "0.3.0"
+    httpclient = {
+      version = "0.0.3"
+      source  = "github.com/dmachard/http-client"
     }
   }
 
@@ -31,4 +31,4 @@ provider "aws" {
   }
 }
 
-provider "http-client" {}
+provider "httpclient" {}
