@@ -13,7 +13,9 @@ services:
       - ../docker.env
     networks:
       - marketviewer
-  
+    volumes:
+      - '~/.aws/credentials:/home/app/.aws/credentials:ro'
+
   # marketviewer-web:
   #   container_name: marketviewer-frontend
   #   build:

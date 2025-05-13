@@ -9,3 +9,5 @@ services:
       - ASPNETCORE_ENVIRONMENT=${ENVIRONMENT}
     env_file:
       - ../${ENVIRONMENT}.env
+    volumes:
+      - '~/.aws/credentials:/home/app/.aws/credentials:ro'
