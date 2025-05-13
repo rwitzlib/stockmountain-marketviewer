@@ -8,14 +8,14 @@ resource "restapi_object" "deploy" {
     image       = data.aws_ecr_image.api.image_uri
     actor       = var.actor
   })
+}
+
+output "deploy_response" {
+  value = restapi_object.deploy.api_response
 
   lifecycle {
     postcondition {
       condition = restapi_object.deploy.api_response["status"] == "Success"
     }
   }
-}
-
-output "deploy_response" {
-  value = restapi_object.deploy.api_response
 }
