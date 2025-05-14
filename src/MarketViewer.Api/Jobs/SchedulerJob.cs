@@ -6,6 +6,7 @@ namespace MarketViewer.Api.Jobs;
 public class SchedulerJob(ISchedulerFactory schedulerFactory, IMemoryCache memoryCache, ILogger<ISchedulerFactory> logger) : IJob
 {
     private readonly TimeZoneInfo TimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+
     public async Task Execute(IJobExecutionContext context)
     {
         logger.LogInformation("SchedulerJob started at: {time}.", DateTimeOffset.Now);
@@ -28,10 +29,10 @@ public class SchedulerJob(ISchedulerFactory schedulerFactory, IMemoryCache memor
         var schedulerJob = JobBuilder.Create<SchedulerJob>()
             .Build();
 
-        // Schedule the job to run at 8:00 AM the next day
+        // Schedule the job to run at 9:00 AM EST the next day
         var now = DateTimeOffset.Now;
         TimeSpan offset = TimeZone.GetUtcOffset(DateTimeOffset.Now.AddDays(1));
-        var startDate = new DateTimeOffset(now.Year, now.Month, now.Day + 1, 8, 25, 1, offset);
+        var startDate = new DateTimeOffset(now.Year, now.Month, now.Day + 1, 9, 25, 1, offset);
         logger.LogInformation("SchedulerJob running next at: {time}.", startDate);
         var scheduleTrigger = TriggerBuilder.Create()
             .StartAt(startDate)
