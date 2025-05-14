@@ -29,13 +29,13 @@ public class SchedulerJob(ISchedulerFactory schedulerFactory, IMemoryCache memor
         var schedulerJob = JobBuilder.Create<SchedulerJob>()
             .Build();
 
-        // Schedule the job to run at 9:00 AM EST the next day
+        // Schedule the job to run at 9:25 AM EST the next day
         var now = DateTimeOffset.Now;
-        TimeSpan offset = TimeZone.GetUtcOffset(DateTimeOffset.Now.AddDays(1));
-        var startDate = new DateTimeOffset(now.Year, now.Month, now.Day + 1, 9, 25, 1, offset);
-        logger.LogInformation("SchedulerJob running next at: {time}.", startDate);
+        var offset = TimeZone.GetUtcOffset(DateTimeOffset.Now.AddDays(1));
+        var nextStartDate = new DateTimeOffset(now.Year, now.Month, now.Day + 1, 9, 25, 1, offset);
+        logger.LogInformation("SchedulerJob running next at: {time}.", nextStartDate);
         var scheduleTrigger = TriggerBuilder.Create()
-            .StartAt(startDate)
+            .StartAt(nextStartDate)
             .ForJob(schedulerJob)
             .Build();
 
