@@ -85,7 +85,7 @@ public class InitialAggregateJob(
             var scheduledSnapshotTrigger = TriggerBuilder.Create()
                 .WithSimpleSchedule(schedule => schedule
                     .WithIntervalInMinutes(1)
-                    .WithRepeatCount(720)) // 12 hours
+                    .WithRepeatCount(540)) // 9 hours
                 .ForJob(scheduledSnapshotJob)
                 .StartAt(startTime)
                 .Build();
