@@ -9,6 +9,7 @@ using Microsoft.Extensions.Caching.Memory;
 using MarketViewer.Contracts.Responses;
 using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Models.Scan;
+using MarketViewer.Contracts.Models.Snapshot;
 
 namespace MarketViewer.Api.Jobs;
 
@@ -155,8 +156,8 @@ public class InitialAggregateJob(
         var tickers = marketCache.GetTickers();
         foreach (var ticker in tickers)
         {
-            var minute = marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), DateTimeOffset.Now).Clone();
-            var hour = marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.hour), DateTimeOffset.Now).Clone();
+            var minute = marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), DateTimeOffset.Now)?.Clone();
+            var hour = marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.hour), DateTimeOffset.Now)?.Clone();
 
             if (minute is null || hour is null)
             {
@@ -179,8 +180,8 @@ public class InitialAggregateJob(
             {
                 Timestamp = timestamp,
                 DateTime = dateTime,
-                Minute = minute.Results.TakeLast(60).ToList(),
-                Hour = hour.Results.TakeLast(60).ToList()
+                Minute = minute.Results.Last(),
+                Hour = hour.Results.Last()
             });
         }
 

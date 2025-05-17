@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace MarketViewer.Contracts.Models;
+namespace MarketViewer.Contracts.Models.Snapshot;
 
 [ExcludeFromCodeCoverage]
 public class SnapshotEntry

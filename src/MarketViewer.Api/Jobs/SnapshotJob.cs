@@ -8,11 +8,10 @@ using Polygon.Client.Models;
 using Polygon.Client.Requests;
 using Microsoft.Extensions.Caching.Memory;
 using Polygon.Client.Responses;
-using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Responses;
 using NRedisStack.Search.Aggregation;
-using Snapshot = MarketViewer.Contracts.Models.Snapshot;
+using Snapshot = MarketViewer.Contracts.Models.Snapshot.Snapshot;
 
 namespace MarketViewer.Api.Jobs;
 
@@ -119,17 +118,17 @@ public class SnapshotJob(
 
     private void SetSnapshot()
     {
-        var now = DateTimeOffset.Now;
         var snapshotResponse = memoryCache.Get<SnapshotResponse>("snapshot");
 
+        var now = DateTimeOffset.Now;
         var dateTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, 0, now.Offset);
         var timestamp = dateTime.ToUnixTimeMilliseconds();
 
         var tickers = marketCache.GetTickers();
         foreach (var ticker in tickers)
         {
-            var minute = marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), DateTimeOffset.Now).Clone();
-            var hour = marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.hour), DateTimeOffset.Now).Clone();
+            var minute = marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), DateTimeOffset.Now)?.Clone();
+            var hour = marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.hour), DateTimeOffset.Now)?.Clone();
 
             if (minute is null || hour is null)
             {
@@ -147,8 +146,8 @@ public class SnapshotJob(
             {
                 Timestamp = timestamp,
                 DateTime = dateTime,
-                Minute = minute.Results.TakeLast(60).ToList(),
-                Hour = hour.Results.TakeLast(60).ToList()
+                Minute = minute.Results.Last(),
+                Hour = hour.Results.Last()
             });
         }
         memoryCache.Set("snapshot", snapshotResponse);

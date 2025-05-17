@@ -1,4 +1,4 @@
-﻿using MarketViewer.Contracts.Models;
+﻿using MarketViewer.Contracts.Models.Snapshot;
 using System.Diagnostics.CodeAnalysis;
 
 
