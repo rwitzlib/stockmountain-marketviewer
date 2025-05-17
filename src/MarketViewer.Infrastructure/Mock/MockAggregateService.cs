@@ -8,8 +8,8 @@ using MarketViewer.Contracts.Models;
 using System.Diagnostics.CodeAnalysis;
 using MarketDataProvider.Contracts.Models;
 using Polygon.Client.Models;
-using MarketViewer.Contracts.Presentation.Responses;
-using MarketViewer.Contracts.Presentation.Requests;
+using MarketViewer.Contracts.Requests;
+using MarketViewer.Contracts.Responses;
 
 namespace MarketViewer.Infrastructure.Mock
 {

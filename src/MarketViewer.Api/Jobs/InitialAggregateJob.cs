@@ -5,10 +5,10 @@ using Polygon.Client.Requests;
 using Quartz;
 using System.Diagnostics;
 using Polygon.Client.Interfaces;
-using MarketViewer.Contracts.Models.Scan;
-using MarketViewer.Contracts.Presentation.Responses;
 using Microsoft.Extensions.Caching.Memory;
-using MarketViewer.Contracts.Entities;
+using MarketViewer.Contracts.Responses;
+using MarketViewer.Contracts.Models;
+using MarketViewer.Contracts.Models.Scan;
 
 namespace MarketViewer.Api.Jobs;
 
@@ -30,32 +30,22 @@ public class InitialAggregateJob(
 
         try
         {
-            await PopulateStocksResponses(new Timeframe(1, Timespan.minute), DateTimeOffset.Now);
-            logger.LogInformation("Finished initializing minute aggregate data at: {time}. Time elapsed: {elapsed}ms.", DateTimeOffset.Now, sp.ElapsedMilliseconds);
-
-            memoryCache.Set<PolygonFidelity>("SPY_minute", new PolygonFidelity
+            var timeframes = new List<Timeframe>
             {
-                Ticker = "SPY",
-                Data = marketCache.GetStocksResponse("SPY", new Timeframe(1, Timespan.minute), DateTimeOffset.Now),
-                Aggregates = [],
-                Snapshots = []
-            });
+                new (1, Timespan.minute),
+                new (1, Timespan.hour),
+                new (1, Timespan.day)
+            };
 
-            await PopulateStocksResponses(new Timeframe(1, Timespan.hour), DateTimeOffset.Now);
-            logger.LogInformation("Finished initializing hourly aggregate data at: {time}. Time elapsed: {elapsed}ms.", DateTimeOffset.Now, sp.ElapsedMilliseconds);
-
-            memoryCache.Set<PolygonFidelity>("SPY_hour", new PolygonFidelity
+            foreach (var timeframe in timeframes)
             {
-                Ticker = "SPY",
-                Data = marketCache.GetStocksResponse("SPY", new Timeframe(1, Timespan.hour), DateTimeOffset.Now),
-                Aggregates = [],
-                Snapshots = []
-            });
+                await PopulateStocksResponses(timeframe, DateTimeOffset.Now);
+                logger.LogInformation("Finished initializing {timespan} aggregate data at: {time}. Time elapsed: {elapsed}ms.", timeframe.Timespan, DateTimeOffset.Now, sp.ElapsedMilliseconds);
+            }
 
-            await PopulateStocksResponses(new Timeframe(1, Timespan.day), DateTimeOffset.Now);
-            logger.LogInformation("Finished initializing daily aggregate data at: {time}. Time elapsed: {elapsed}ms.", DateTimeOffset.Now, sp.ElapsedMilliseconds);
+            SetSnapshot();
 
-            if (sp.Elapsed.TotalSeconds > 60)
+            if (sp.Elapsed.TotalSeconds > 60 && Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") is not "local")
             {
                 logger.LogInformation("Initializing aggregate data took longer than 1 minute. Starting over.");
 
@@ -149,5 +139,51 @@ public class InitialAggregateJob(
             Timespan.year => throw new NotImplementedException(),
             _ => throw new NotImplementedException()
         };
+    }
+
+    private void SetSnapshot()
+    {
+        var now = DateTimeOffset.Now;
+        var snapshotResponse = new SnapshotResponse
+        {
+            Entries = []
+        };
+
+        var dateTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, 0, now.Offset);
+        var timestamp = dateTime.ToUnixTimeMilliseconds();
+
+        var tickers = marketCache.GetTickers();
+        foreach (var ticker in tickers)
+        {
+            var minute = marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), DateTimeOffset.Now).Clone();
+            var hour = marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.hour), DateTimeOffset.Now).Clone();
+
+            if (minute is null || hour is null)
+            {
+                continue;
+            }
+
+            var entry = snapshotResponse.Entries.FirstOrDefault(q => q.Ticker == ticker);
+
+            if (entry is null || entry.Results is null)
+            {
+                snapshotResponse.Entries.Add(new SnapshotEntry
+                {
+                    Ticker = ticker,
+                    Results = new List<Snapshot>()
+                });
+                entry = snapshotResponse.Entries.FirstOrDefault(q => q.Ticker == ticker);
+            }
+
+            entry.Results.Add(new Snapshot
+            {
+                Timestamp = timestamp,
+                DateTime = dateTime,
+                Minute = minute.Results.TakeLast(60).ToList(),
+                Hour = hour.Results.TakeLast(60).ToList()
+            });
+        }
+
+        memoryCache.Set("snapshot", snapshotResponse);
     }
 }

@@ -1,13 +1,12 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
 using MarketViewer.Application.Utilities;
-using MarketViewer.Contracts.Entities.Scan;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Enums.Scan;
 using MarketViewer.Contracts.Models;
-using MarketViewer.Contracts.Presentation.Requests.Tools;
-using MarketViewer.Contracts.Presentation.Responses;
-using MarketViewer.Contracts.Presentation.Responses.Tools;
+using MarketViewer.Contracts.Requests.Tools;
+using MarketViewer.Contracts.Responses;
+using MarketViewer.Contracts.Responses.Tools;
 using MarketViewer.Core.Scan;
 using MediatR;
 using Microsoft.Extensions.Caching.Memory;
@@ -18,7 +17,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Filter = MarketViewer.Contracts.Entities.Scan.Filter;
+using Filter = MarketViewer.Contracts.Models.Scan.Filter;
 
 namespace MarketViewer.Application.Handlers.Tools;
 

@@ -1,6 +1,6 @@
 ﻿using System.Net;
 using MarketViewer.Api.Authorization;
-using MarketViewer.Contracts.Presentation.Requests;
+using MarketViewer.Contracts.Requests;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

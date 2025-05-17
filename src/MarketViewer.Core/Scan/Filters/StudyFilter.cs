@@ -1,7 +1,7 @@
 ﻿using MarketViewer.Contracts.Enums.Scan;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Models.Scan.Operands;
-using MarketViewer.Contracts.Presentation.Responses;
+using MarketViewer.Contracts.Responses;
 using MarketViewer.Studies;
 
 namespace MarketViewer.Core.Scan.Filters;

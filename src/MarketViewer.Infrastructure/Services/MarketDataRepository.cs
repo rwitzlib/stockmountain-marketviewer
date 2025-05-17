@@ -15,8 +15,8 @@ using MarketDataProvider.Clients.Interfaces;
 using Polygon.Client.Models;
 using Polygon.Client.Requests;
 using Polygon.Client.Responses;
-using MarketViewer.Contracts.Presentation.Responses;
-using MarketViewer.Contracts.Presentation.Requests;
+using MarketViewer.Contracts.Requests;
+using MarketViewer.Contracts.Responses;
 
 namespace MarketViewer.Infrastructure.Services
 {

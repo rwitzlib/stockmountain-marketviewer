@@ -9,8 +9,8 @@ using System.Text.Json;
 using FluentAssertions.Common;
 using MarketViewer.Contracts.Caching;
 using Moq;
+using MarketViewer.Contracts.Responses;
 using MarketViewer.Contracts.Models.Scan;
-using MarketViewer.Contracts.Presentation.Responses;
 
 namespace MarketViewer.Studies.UnitTests;
 

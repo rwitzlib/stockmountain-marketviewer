@@ -2,8 +2,8 @@
 using MarketDataProvider.Contracts.Dtos;
 using MarketDataProvider.Contracts.Requests;
 using MarketDataProvider.Contracts.Responses;
-using MarketViewer.Contracts.Presentation.Requests;
-using MarketViewer.Contracts.Presentation.Responses;
+using MarketViewer.Contracts.Requests;
+using MarketViewer.Contracts.Responses;
 using Polygon.Client.Requests;
 using Polygon.Client.Responses;
 using System.Collections.Generic;

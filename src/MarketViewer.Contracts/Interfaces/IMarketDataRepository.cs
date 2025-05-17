@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using MarketDataProvider.Contracts.Models;
-using MarketViewer.Contracts.Presentation.Requests;
-using MarketViewer.Contracts.Presentation.Responses;
+using MarketViewer.Contracts.Requests;
+using MarketViewer.Contracts.Responses;
 
 namespace MarketViewer.Contracts.Interfaces
 {

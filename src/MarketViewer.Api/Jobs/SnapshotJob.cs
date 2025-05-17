@@ -5,11 +5,14 @@ using Quartz;
 using System.Diagnostics;
 using Polygon.Client.Interfaces;
 using Polygon.Client.Models;
-using MarketViewer.Contracts.Models.Scan;
 using Polygon.Client.Requests;
 using Microsoft.Extensions.Caching.Memory;
-using MarketViewer.Contracts.Entities;
 using Polygon.Client.Responses;
+using MarketViewer.Contracts.Models;
+using MarketViewer.Contracts.Models.Scan;
+using MarketViewer.Contracts.Responses;
+using NRedisStack.Search.Aggregation;
+using Snapshot = MarketViewer.Contracts.Models.Snapshot;
 
 namespace MarketViewer.Api.Jobs;
 
@@ -17,7 +20,6 @@ public class SnapshotJob(
     IMemoryCache memoryCache,
     IMarketCache marketCache,
     IPolygonClient polygonClient,
-    IMapper mapper,
     ILogger<SnapshotJob> logger) : IJob
 {
     private readonly Stopwatch _sp = new();
@@ -30,76 +32,17 @@ public class SnapshotJob(
         {
             logger.LogInformation("Started snapshot job at: {time}.", DateTimeOffset.Now);
 
-            var snapshotResponse = await polygonClient.GetAllTickersSnapshot(null);
-            var timestamp = snapshotResponse.Tickers.FirstOrDefault(q => q.Ticker == "SPY")?.Minute.Timestamp;
-            var datetime = DateTimeOffset.FromUnixTimeMilliseconds(timestamp.Value).ToOffset(TimeSpan.FromHours(-5));
+            var polygonSnapshotResponse = await polygonClient.GetAllTickersSnapshot(null);
 
-            var minute = memoryCache.Get<PolygonFidelity>("SPY_minute");
-            var minuteResponse = await polygonClient.GetAggregates(new PolygonAggregateRequest
-            {
-                Ticker = "SPY",
-                Multiplier = 1,
-                Timespan = "minute",
-                From = DateTimeOffset.Now.AddDays(-1).ToString("yyyy-MM-dd"),
-                To = DateTimeOffset.Now.ToString("yyyy-MM-dd"),
-            });
-
-            minute.Snapshots.Add(datetime, new PolygonSnapshotResponse
-            {
-                RequestId = snapshotResponse.RequestId,
-                Count = 1,
-                Tickers = snapshotResponse.Tickers.Where(q => q.Ticker == "SPY"),
-                Status = snapshotResponse.Status
-            });
-            minute.Aggregates.Add(datetime, new PolygonAggregateResponse
-            {
-                RequestId = minuteResponse.RequestId,
-                Status = minuteResponse.Status,
-                Ticker = minuteResponse.Ticker,
-                Results = minuteResponse.Results.Where(q => q.Timestamp == timestamp)
-            });
-            memoryCache.Set("SPY_minute", minute);
-
-            var hourResponse = await polygonClient.GetAggregates(new PolygonAggregateRequest
-            {
-                Ticker = "SPY",
-                Multiplier = 1,
-                Timespan = "hour",
-                From = DateTimeOffset.Now.AddDays(-1).ToString("yyyy-MM-dd"),
-                To = DateTimeOffset.Now.ToString("yyyy-MM-dd"),
-            });
-
-            var hour = memoryCache.Get<PolygonFidelity>("SPY_hour");
-            hour.Snapshots.Add(datetime, new PolygonSnapshotResponse
-            {
-                RequestId = snapshotResponse.RequestId,
-                Count = 1,
-                Tickers = snapshotResponse.Tickers.Where(q => q.Ticker == "SPY"),
-                Status = snapshotResponse.Status
-            });
-            hour.Aggregates.Add(datetime, new PolygonAggregateResponse
-            {
-                RequestId = hourResponse.RequestId,
-                Status = hourResponse.Status,
-                Ticker = hourResponse.Ticker,
-                Results = hourResponse.Results.Where(q => q.Timestamp == timestamp)
-            });
-            memoryCache.Set("SPY_hour", hour);
-
-            foreach (var snapshot in snapshotResponse.Tickers)
+            foreach (var snapshot in polygonSnapshotResponse.Tickers)
             {
                 AddBarToCache(snapshot.Ticker, new Timeframe(1, Timespan.minute), snapshot.Minute);
                 AddBarToCache(snapshot.Ticker, new Timeframe(1, Timespan.hour), snapshot.Minute);
             }
 
-            var snapshotVolume = minute.Snapshots.Last().Value.Tickers.FirstOrDefault().Minute.Volume;
-            var aggregateVolume = minute.Aggregates.Last().Value.Results.FirstOrDefault().Volume;
-
-            if (snapshotVolume != aggregateVolume)
+            if (DateTimeOffset.Now.Hour < 15)
             {
-                logger.LogInformation("Value mismatch between snapshot and aggregate at {time}.", datetime);
-                logger.LogInformation("Snapshot: {snapshot}", minute.Snapshots.Last());
-                logger.LogInformation("Aggregate: {aggregate}", minute.Aggregates.Last());
+                SetSnapshot();
             }
 
             _sp.Stop();
@@ -111,7 +54,7 @@ public class SnapshotJob(
         }
     }
 
-    public void AddBarToCache(string ticker, Timeframe timeframe, Bar currentCandle)
+    private void AddBarToCache(string ticker, Timeframe timeframe, Bar currentCandle)
     {
         if (currentCandle.Timestamp == 0)
         {
@@ -132,14 +75,6 @@ public class SnapshotJob(
             {
                 case Timespan.minute:
                     stocksResponse.Results.Add(currentCandle.Clone());
-
-                    if (ticker is "SPY")
-                    {
-                        var minuteFidelity = memoryCache.Get<PolygonFidelity>("SPY_minute");
-                        minuteFidelity.Data = stocksResponse;
-                        memoryCache.Set("SPY_minute", minuteFidelity);
-                    }
-
                     return;
 
                 case Timespan.hour:
@@ -176,17 +111,46 @@ public class SnapshotJob(
 
                         lastCandle.Volume += currentCandle.Volume;
                         lastCandle.TransactionCount += currentCandle.TransactionCount;
-                    }
-
-                    if (ticker is "SPY")
-                    {
-                        var hourfidelity = memoryCache.Get<PolygonFidelity>("SPY_hour");
-                        hourfidelity.Data = stocksResponse;
-                        memoryCache.Set("SPY_hour", hourfidelity);
-                    }
-                    
+                    }                    
                     return;
             }
         }
+    }
+
+    private void SetSnapshot()
+    {
+        var now = DateTimeOffset.Now;
+        var snapshotResponse = memoryCache.Get<SnapshotResponse>("snapshot");
+
+        var dateTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, 0, now.Offset);
+        var timestamp = dateTime.ToUnixTimeMilliseconds();
+
+        var tickers = marketCache.GetTickers();
+        foreach (var ticker in tickers)
+        {
+            var minute = marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), DateTimeOffset.Now).Clone();
+            var hour = marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.hour), DateTimeOffset.Now).Clone();
+
+            if (minute is null || hour is null)
+            {
+                continue;
+            }
+
+            var entry = snapshotResponse.Entries.FirstOrDefault(q => q.Ticker == ticker);
+
+            if (entry is null || entry.Results is null)
+            {
+                return;
+            }
+
+            entry.Results.Add(new Snapshot
+            {
+                Timestamp = timestamp,
+                DateTime = dateTime,
+                Minute = minute.Results.TakeLast(60).ToList(),
+                Hour = hour.Results.TakeLast(60).ToList()
+            });
+        }
+        memoryCache.Set("snapshot", snapshotResponse);
     }
 }

@@ -2,7 +2,6 @@
 using FluentAssertions;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.Scan.Operands;
-using MarketViewer.Contracts.Entities.Scan;
 
 namespace MarketViewer.Contracts.UnitTests.Models.Scan;
 

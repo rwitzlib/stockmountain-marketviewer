@@ -5,12 +5,12 @@ using Amazon.S3;
 using AutoFixture;
 using MarketViewer.Application.Handlers.Backtest;
 using MarketViewer.Contracts.Caching;
-using MarketViewer.Contracts.Entities.Backtest;
+using MarketViewer.Contracts.Dtos;
 using MarketViewer.Contracts.Enums;
+using MarketViewer.Contracts.Models.Backtest;
 using MarketViewer.Contracts.Models.Scan;
-using MarketViewer.Contracts.Presentation.Models;
-using MarketViewer.Contracts.Presentation.Requests.Backtest;
-using MarketViewer.Contracts.Presentation.Responses.Backtest;
+using MarketViewer.Contracts.Requests.Backtest;
+using MarketViewer.Contracts.Responses.Backtest;
 using MarketViewer.Infrastructure.Services;
 using Moq;
 using Moq.AutoMock;
@@ -59,7 +59,7 @@ public class BacktestHandlerV3UnitTests
             {
                 Timeframe = new Timeframe(5, Timespan.day)
             },
-            Argument = new ScanArgumentDetails()
+            Argument = new ScanArgumentDto()
         };
 
         GivenLambdaReturnsEntriesForDates([
@@ -94,7 +94,7 @@ public class BacktestHandlerV3UnitTests
             {
                 Timeframe = new Timeframe(5, Timespan.day)
             },
-            Argument = new ScanArgumentDetails()
+            Argument = new ScanArgumentDto()
         };
 
         GivenLambdaReturnsEntriesForDates([

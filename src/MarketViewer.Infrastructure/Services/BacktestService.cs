@@ -12,9 +12,9 @@ using Amazon.S3.Model;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Document = Amazon.DynamoDBv2.DocumentModel.Document;
-using MarketViewer.Contracts.Presentation.Responses.Backtest;
-using MarketViewer.Contracts.Presentation.Requests.Backtest;
-using MarketViewer.Contracts.Entities.Backtest;
+using MarketViewer.Contracts.Requests.Backtest;
+using MarketViewer.Contracts.Responses.Backtest;
+using MarketViewer.Contracts.Models.Backtest;
 
 namespace MarketViewer.Infrastructure.Services;
 

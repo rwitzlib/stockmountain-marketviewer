@@ -7,7 +7,7 @@ using MarketViewer.Contracts.Enums;
 using FluentAssertions.Common;
 using Moq.AutoMock;
 using MarketViewer.Studies.Studies;
-using MarketViewer.Contracts.Presentation.Responses;
+using MarketViewer.Contracts.Responses;
 
 namespace MarketViewer.Studies.UnitTests;
 

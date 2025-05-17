@@ -2,7 +2,7 @@
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Models.Study;
-using MarketViewer.Contracts.Presentation.Responses;
+using MarketViewer.Contracts.Responses;
 
 namespace MarketViewer.Studies.Studies;
 

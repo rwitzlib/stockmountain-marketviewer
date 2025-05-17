@@ -44,14 +44,14 @@ public class PermissionMiddleware(RequestDelegate next)
             }
 
             context.Items.Add("UserId", subject.Email);
-
-            await next(context);
         }
         catch (Exception ex)
         {
             await GenerateErrorResponse(context, "Permission denied: User does not have required permissions.");
             return;
         }
+
+        await next(context);
     }
 
     private static async Task GenerateErrorResponse(HttpContext context, string errorMessage)

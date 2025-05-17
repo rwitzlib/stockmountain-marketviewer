@@ -7,11 +7,11 @@ using MarketViewer.Application.Handlers;
 using MarketViewer.Contracts.Interfaces;
 using MarketViewer.Contracts.Enums;
 using Polygon.Client.Models;
-using MarketViewer.Contracts.Models.Study;
 using MarketViewer.Studies;
 using MarketViewer.Studies.UnitTests;
-using MarketViewer.Contracts.Presentation.Responses;
-using MarketViewer.Contracts.Presentation.Requests;
+using MarketViewer.Contracts.Requests;
+using MarketViewer.Contracts.Responses;
+using MarketViewer.Contracts.Models.Study;
 
 namespace MarketViewer.Application.UnitTests.Handlers
 {

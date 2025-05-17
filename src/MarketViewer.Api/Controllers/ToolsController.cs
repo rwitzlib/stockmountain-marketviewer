@@ -5,14 +5,14 @@ using MarketViewer.Application.Handlers.Tools;
 using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.Scan;
-using MarketViewer.Contracts.Presentation.Requests.Tools;
-using MarketViewer.Contracts.Presentation.Responses;
+using MarketViewer.Contracts.Requests.Tools;
+using MarketViewer.Contracts.Responses;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using System.Text.Json;
-using StatsResponse = MarketViewer.Contracts.Presentation.Responses.Tools.StatsResponse;
+using StatsResponse = MarketViewer.Contracts.Responses.Tools.StatsResponse;
 
 namespace MarketViewer.Api.Controllers;
 

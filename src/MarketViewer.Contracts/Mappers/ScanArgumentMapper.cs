@@ -1,14 +1,13 @@
-﻿using MarketViewer.Contracts.Entities.Scan;
+﻿using MarketViewer.Contracts.Dtos;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Models.Scan.Operands;
-using MarketViewer.Contracts.Presentation.Models;
 
 namespace MarketViewer.Contracts.Mappers;
 
 public static class ScanArgumentMapper
 {
-    public static ScanArgument ConvertFromScanArgumentDetails(ScanArgumentDetails scanArgumentDetails)
+    public static ScanArgument ConvertFromScanArgumentDto(ScanArgumentDto scanArgumentDetails)
     {
         if (scanArgumentDetails == null)
         {
@@ -18,7 +17,7 @@ public static class ScanArgumentMapper
         var scanArgument = new ScanArgument
         {
             Operator = scanArgumentDetails.Operator,
-            Argument = scanArgumentDetails.Argument != null ? ConvertFromScanArgumentDetails(scanArgumentDetails.Argument) : null,
+            Argument = scanArgumentDetails.Argument != null ? ConvertFromScanArgumentDto(scanArgumentDetails.Argument) : null,
             Filters = []
         };
 
@@ -27,9 +26,9 @@ public static class ScanArgumentMapper
             var newFilter = new Filter
             {
                 CollectionModifier = filterReq.CollectionModifier,
-                FirstOperand = ConvertFromOperandDetails(filterReq.FirstOperand),
+                FirstOperand = ConvertFromOperandDto(filterReq.FirstOperand),
                 Operator = filterReq.Operator,
-                SecondOperand = ConvertFromOperandDetails(filterReq.SecondOperand),
+                SecondOperand = ConvertFromOperandDto(filterReq.SecondOperand),
                 Timeframe = filterReq.Timeframe
             };
             scanArgument.Filters.Add(newFilter);
@@ -38,28 +37,28 @@ public static class ScanArgumentMapper
         return scanArgument;
     }
 
-    public static ScanArgumentDetails ConvertToScanArgumentDetails(ScanArgument scanArgument)
+    public static ScanArgumentDto ConvertToScanArgumentDto(ScanArgument scanArgument)
     {
         if (scanArgument == null)
         {
             return null;
         }
 
-        var scanArgumentDetails = new ScanArgumentDetails
+        var scanArgumentDetails = new ScanArgumentDto
         {
             Operator = scanArgument.Operator,
-            Argument = scanArgument.Argument != null ? ConvertToScanArgumentDetails(scanArgument.Argument) : null,
+            Argument = scanArgument.Argument != null ? ConvertToScanArgumentDto(scanArgument.Argument) : null,
             Filters = []
         };
 
         foreach (var filter in scanArgument.Filters)
         {
-            var newFilter = new FilterDetails
+            var newFilter = new FilterDto
             {
                 CollectionModifier = filter.CollectionModifier,
-                FirstOperand = ConvertToOperandDetails(filter.FirstOperand),
+                FirstOperand = ConvertToOperandDto(filter.FirstOperand),
                 Operator = filter.Operator,
-                SecondOperand = ConvertToOperandDetails(filter.SecondOperand),
+                SecondOperand = ConvertToOperandDto(filter.SecondOperand),
                 Timeframe = filter.Timeframe
             };
             scanArgumentDetails.Filters.Add(newFilter);
@@ -68,7 +67,7 @@ public static class ScanArgumentMapper
         return scanArgumentDetails;
     }
 
-    private static IScanOperand ConvertFromOperandDetails(OperandDetails operandDetails)
+    private static IScanOperand ConvertFromOperandDto(OperandDto operandDetails)
     {
         if (operandDetails == null)
         {
@@ -112,7 +111,7 @@ public static class ScanArgumentMapper
         }
     }
 
-    private static OperandDetails ConvertToOperandDetails(IScanOperand scanOperand)
+    private static OperandDto ConvertToOperandDto(IScanOperand scanOperand)
     {
         if (scanOperand == null)
         {
@@ -121,14 +120,14 @@ public static class ScanArgumentMapper
 
         return scanOperand switch
         {
-            PriceActionOperand priceActionOperand => new OperandDetails
+            PriceActionOperand priceActionOperand => new OperandDto
             {
                 Type = OperandType.PriceAction,
                 Name = priceActionOperand.PriceAction.ToString(),
                 Modifier = priceActionOperand.Modifier,
                 Timeframe = priceActionOperand.Timeframe
             },
-            StudyOperand studyOperand => new OperandDetails
+            StudyOperand studyOperand => new OperandDto
             {
                 Type = OperandType.Study,
                 Name = studyOperand.Study.ToString(),
@@ -136,7 +135,7 @@ public static class ScanArgumentMapper
                 Modifier = studyOperand.Modifier,
                 Timeframe = studyOperand.Timeframe
             },
-            FixedOperand fixedOperand => new OperandDetails
+            FixedOperand fixedOperand => new OperandDto
             {
                 Type = OperandType.Fixed,
                 Value = fixedOperand.Value

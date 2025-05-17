@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MarketViewer.Contracts.Models;
 using Microsoft.Extensions.Logging;
 using System.Net;
 using MarketViewer.Contracts.Enums;
@@ -15,9 +14,9 @@ using MarketViewer.Contracts.Caching;
 using MarketViewer.Application.Utilities;
 using MarketViewer.Core.Scan;
 using MarketViewer.Contracts.Mappers;
-using MarketViewer.Contracts.Presentation.Responses;
-using MarketViewer.Contracts.Presentation.Requests.Scan;
-using MarketViewer.Contracts.Entities.Scan;
+using MarketViewer.Contracts.Requests.Scan;
+using MarketViewer.Contracts.Responses;
+using MarketViewer.Contracts.Models;
 
 namespace MarketViewer.Application.Handlers.Scan;
 
@@ -41,7 +40,7 @@ public class ScanHandler(
             var sp = new Stopwatch();
             sp.Start();
 
-            var scanArgument = ScanArgumentMapper.ConvertFromScanArgumentDetails(request.Argument);
+            var scanArgument = ScanArgumentMapper.ConvertFromScanArgumentDto(request.Argument);
 
             var timespans = ScanUtilities.GetTimespans(scanArgument);
             await InitializeCacheIfEmpty(request.Timestamp.Date, timespans);

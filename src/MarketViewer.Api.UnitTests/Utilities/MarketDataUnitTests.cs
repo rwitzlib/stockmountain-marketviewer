@@ -1,6 +1,5 @@
 using FluentAssertions;
-using MarketViewer.Contracts.Entities;
-using MarketViewer.Contracts.Presentation.Responses;
+using MarketViewer.Contracts.Responses;
 using Polygon.Client;
 using Polygon.Client.Interfaces;
 using Polygon.Client.Requests;

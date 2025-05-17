@@ -10,8 +10,8 @@ using Xunit;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Moq.AutoMock;
-using MarketViewer.Contracts.Presentation.Responses;
-using MarketViewer.Contracts.Presentation.Requests;
+using MarketViewer.Contracts.Requests;
+using MarketViewer.Contracts.Responses;
 
 namespace MarketViewer.Api.UnitTests.Controllers
 {

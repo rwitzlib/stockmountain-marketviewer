@@ -2,7 +2,7 @@
 using Amazon.S3.Model;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.Scan;
-using MarketViewer.Contracts.Presentation.Responses;
+using MarketViewer.Contracts.Responses;
 using Microsoft.Extensions.Caching.Memory;
 using Polygon.Client.Models;
 using System.Text.Json;
