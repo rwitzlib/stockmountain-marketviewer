@@ -103,6 +103,8 @@ public class StocksHandler(IMarketDataRepository repository, StudyFactory studyF
             errorMessages.Add("'From' date must be earlier than 'To' date.");
         }
 
+        request.To = request.To.AddHours(23).AddMinutes(59);
+
         return errorMessages.Count == 0;
     }
     #endregion
