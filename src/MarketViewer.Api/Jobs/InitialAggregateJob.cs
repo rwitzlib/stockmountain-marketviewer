@@ -188,8 +188,8 @@ public class InitialAggregateJob(
             {
                 Timestamp = minuteTime.ToUnixTimeMilliseconds(),
                 DateTime = minuteTime,
-                Minute = minute.Results.FirstOrDefault(q => q.Timestamp == minuteTime.ToUnixTimeMilliseconds())?.Clone(),
-                Hour = hour.Results.FirstOrDefault(q => q.Timestamp == hourTime.ToUnixTimeMilliseconds())?.Clone()
+                Minute = minute.Results?.FirstOrDefault(q => q.Timestamp == minuteTime.ToUnixTimeMilliseconds())?.Clone(),
+                Hour = hour.Results?.FirstOrDefault(q => q.Timestamp == hourTime.ToUnixTimeMilliseconds())?.Clone()
             });
         }
 
