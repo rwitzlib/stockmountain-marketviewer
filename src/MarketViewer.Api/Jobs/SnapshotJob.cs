@@ -121,8 +121,8 @@ public class SnapshotJob(
         var snapshotResponse = memoryCache.Get<SnapshotResponse>("snapshot");
 
         var now = DateTimeOffset.Now;
-        var dateTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, 0, now.Offset);
-        var timestamp = dateTime.ToUnixTimeMilliseconds();
+        var minuteTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, 0, now.Offset);
+        var hourTime = new DateTimeOffset(minuteTime.Year, minuteTime.Month, minuteTime.Day, minuteTime.Hour, 0, 0, minuteTime.Offset);
 
         var tickers = marketCache.GetTickers();
         foreach (var ticker in tickers)
@@ -144,10 +144,10 @@ public class SnapshotJob(
 
             entry.Results.Add(new Snapshot
             {
-                Timestamp = timestamp,
-                DateTime = dateTime,
-                Minute = minute.Results.Last(),
-                Hour = hour.Results.Last()
+                Timestamp = minuteTime.ToUnixTimeMilliseconds(),
+                DateTime = minuteTime,
+                Minute = minute.Results.FirstOrDefault(q => q.Timestamp == minuteTime.ToUnixTimeMilliseconds())?.Clone(),
+                Hour = hour.Results.FirstOrDefault(q => q.Timestamp == hourTime.ToUnixTimeMilliseconds())?.Clone()
             });
         }
         memoryCache.Set("snapshot", snapshotResponse);

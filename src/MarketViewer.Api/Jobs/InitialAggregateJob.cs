@@ -10,6 +10,7 @@ using MarketViewer.Contracts.Responses;
 using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Models.Snapshot;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MarketViewer.Api.Jobs;
 
@@ -81,6 +82,8 @@ public class InitialAggregateJob(
                 .StartAt(startTime)
                 .Build();
 
+            var snapshot = memoryCache.Get<SnapshotResponse>("snapshot");
+
             await context.Scheduler.ScheduleJob(scheduledSnapshotJob, scheduledSnapshotTrigger);
         }
         catch (Exception ex)
@@ -150,8 +153,8 @@ public class InitialAggregateJob(
             Entries = []
         };
 
-        var dateTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, 0, now.Offset);
-        var timestamp = dateTime.ToUnixTimeMilliseconds();
+        var minuteTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, 0, now.Offset);
+        var hourTime = new DateTimeOffset(minuteTime.Year, minuteTime.Month, minuteTime.Day, minuteTime.Hour, 0, 0, minuteTime.Offset);
 
         var tickers = marketCache.GetTickers();
         foreach (var ticker in tickers)
@@ -176,12 +179,17 @@ public class InitialAggregateJob(
                 entry = snapshotResponse.Entries.FirstOrDefault(q => q.Ticker == ticker);
             }
 
+            if (ticker is "AAPL")
+            {
+
+            }
+
             entry.Results.Add(new Snapshot
             {
-                Timestamp = timestamp,
-                DateTime = dateTime,
-                Minute = minute.Results.Last(),
-                Hour = hour.Results.Last()
+                Timestamp = minuteTime.ToUnixTimeMilliseconds(),
+                DateTime = minuteTime,
+                Minute = minute.Results.FirstOrDefault(q => q.Timestamp == minuteTime.ToUnixTimeMilliseconds())?.Clone(),
+                Hour = hour.Results.FirstOrDefault(q => q.Timestamp == hourTime.ToUnixTimeMilliseconds())?.Clone()
             });
         }
 
