@@ -121,7 +121,7 @@ public class SnapshotJob(
         var snapshotResponse = memoryCache.Get<SnapshotResponse>("snapshot");
 
         var now = DateTimeOffset.Now;
-        var minuteTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute - 1, 0, 0, now.Offset);
+        var minuteTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, 0, now.Offset).AddMinutes(-1);
         var hourTime = new DateTimeOffset(minuteTime.Year, minuteTime.Month, minuteTime.Day, minuteTime.Hour, 0, 0, minuteTime.Offset);
 
         var tickers = marketCache.GetTickers();
