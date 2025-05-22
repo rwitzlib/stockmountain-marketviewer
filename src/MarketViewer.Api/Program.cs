@@ -15,10 +15,11 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using MarketViewer.Api.Authentication;
-using MarketViewer.Api.Middleware;
 using Microsoft.AspNetCore.HttpLogging;
 using MarketViewer.Core.Scan;
 using MarketViewer.Studies.DependencyInjection;
+using MarketViewer.Api.Authorization;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MarketViewer.Api;
 
@@ -87,6 +88,12 @@ public class Program
                 };
             });
 
+        // Register the authorization handler and policy
+        builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+        builder.Services.AddScoped<IAuthorizationHandler, RequiredPermissionsHandler>();
+        builder.Services.AddSingleton<IAuthorizationPolicyProvider, RequiredPermissionsAuthorizationPolicyProvider>();
+        builder.Services.AddAuthorization();
+
         builder.Services.AddHttpLogging(options => options.LoggingFields = HttpLoggingFields.All);
 
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -128,8 +135,6 @@ public class Program
 
         app.UseWebSockets();
         app.UseRouting();
-
-        app.UseMiddleware<PermissionMiddleware>();
 
         app.UseAuthentication();
         app.UseAuthorization();

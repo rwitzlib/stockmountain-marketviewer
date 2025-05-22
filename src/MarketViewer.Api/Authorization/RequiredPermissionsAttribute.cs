@@ -1,10 +1,19 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using Microsoft.AspNetCore.Authorization;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MarketViewer.Api.Authorization;
 
 [ExcludeFromCodeCoverage]
-[AttributeUsage(AttributeTargets.Method)]
-public class RequiredPermissionsAttribute(UserRole[] permission) : Attribute
+public class RequiredPermissionsAttribute : AuthorizeAttribute
 {
-    public UserRole[] Permission { get; } = permission;
+    public UserRole[] Permission { get; }
+
+    public RequiredPermissionsAttribute(params UserRole[] permission)
+    {
+        Permission = permission;
+
+        // Create a unique policy name that includes the roles
+        var roleNames = string.Join(",", permission.Select(r => r.ToString()));
+        Policy = $"RequiredPermissions:{roleNames}";
+    }
 }
