@@ -11,7 +11,7 @@ resource "aws_dynamodb_table" "backtest" {
   }
 
   attribute {
-    name = "CustomerId"
+    name = "UserId"
     type = "S"
   }
 
@@ -21,8 +21,8 @@ resource "aws_dynamodb_table" "backtest" {
   }
 
   global_secondary_index {
-    name            = "CustomerIndex"
-    hash_key        = "CustomerId"
+    name            = "UserIndex"
+    hash_key        = "UserId"
     write_capacity  = 1
     read_capacity   = 1
     projection_type = "ALL"
@@ -47,5 +47,18 @@ resource "aws_dynamodb_table" "user" {
   attribute {
     name = "Id"
     type = "S"
+  }
+
+  attribute {
+    name = "Public"
+    type = "N"
+  }
+
+  global_secondary_index {
+    name            = "PublicIndex"
+    hash_key        = "Public"
+    write_capacity  = 1
+    read_capacity   = 1
+    projection_type = "ALL"
   }
 }
