@@ -23,6 +23,8 @@ public class SnapshotJob(
 {
     private readonly Stopwatch _sp = new();
 
+    private readonly TimeZoneInfo _timeZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+
     public async Task Execute(IJobExecutionContext context)
     {
         _sp.Start();
@@ -33,16 +35,32 @@ public class SnapshotJob(
 
             var polygonSnapshotResponse = await polygonClient.GetAllTickersSnapshot(null);
 
+            var snapshotResponse = memoryCache.Get<SnapshotResponse>("snapshot");
+
             foreach (var snapshot in polygonSnapshotResponse.Tickers)
             {
-                AddBarToCache(snapshot.Ticker, new Timeframe(1, Timespan.minute), snapshot.Minute);
-                AddBarToCache(snapshot.Ticker, new Timeframe(1, Timespan.hour), snapshot.Minute);
+                var minuteCandle = AddBarToCache(snapshot.Ticker, new Timeframe(1, Timespan.minute), snapshot.Minute);
+                var hourCandle = AddBarToCache(snapshot.Ticker, new Timeframe(1, Timespan.hour), snapshot.Minute);
+
+                var snapshotEntry = snapshotResponse.Entries.FirstOrDefault(q => q.Ticker == snapshot.Ticker);
+
+                if (snapshotEntry is null || snapshotEntry.Results is null)
+                {
+                    return;
+                }
+
+                var offset = _timeZone.GetUtcOffset(DateTimeOffset.FromUnixTimeMilliseconds(snapshot.Minute.Timestamp));
+
+                snapshotEntry.Results.Add(new Snapshot
+                {
+                    Timestamp = snapshot.Minute.Timestamp,
+                    DateTime = DateTimeOffset.FromUnixTimeMilliseconds(snapshot.Minute.Timestamp).ToOffset(offset),
+                    Minute = minuteCandle?.Clone(),
+                    Hour = hourCandle?.Clone()
+                });
             }
 
-            if (DateTimeOffset.Now.Hour < 15)
-            {
-                SetSnapshot();
-            }
+            memoryCache.Set("snapshot", snapshotResponse);
 
             _sp.Stop();
             logger.LogInformation("Finished snapshot job at: {time}. Time elapsed: {elapsed}ms.", DateTimeOffset.Now, _sp.ElapsedMilliseconds);
@@ -53,103 +71,67 @@ public class SnapshotJob(
         }
     }
 
-    private void AddBarToCache(string ticker, Timeframe timeframe, Bar currentCandle)
+    private Bar AddBarToCache(string ticker, Timeframe timeframe, Bar newCandle)
     {
-        if (currentCandle.Timestamp == 0)
-        {
-            return;
-        }
-
         var stocksResponse = marketCache.GetStocksResponse(ticker, timeframe, DateTimeOffset.Now);
 
         if (stocksResponse is null || !stocksResponse.Results.Any())
         {
-            return;
+            return null;
         }
 
         var lastCandle = stocksResponse.Results.Last();
-        if (lastCandle.Timestamp < currentCandle.Timestamp)
+
+        if (lastCandle.Timestamp >= newCandle.Timestamp)
         {
-            switch (timeframe.Timespan)
-            {
-                case Timespan.minute:
-                    stocksResponse.Results.Add(currentCandle.Clone());
-                    return;
+            return null;
+        }
 
-                case Timespan.hour:
-                    var lastDateTimeOffset = DateTimeOffset.FromUnixTimeMilliseconds(lastCandle.Timestamp);
-                    var currentDateTimeOffset = DateTimeOffset.FromUnixTimeMilliseconds(currentCandle.Timestamp);
+        switch (timeframe.Timespan)
+        {
+            case Timespan.minute:
+                stocksResponse.Results.Add(newCandle.Clone());
+                return newCandle.Clone();
 
-                    if (lastDateTimeOffset.Hour < currentDateTimeOffset.Hour)
+            case Timespan.hour:
+                var lastDateTimeOffset = DateTimeOffset.FromUnixTimeMilliseconds(lastCandle.Timestamp);
+                var currentDateTimeOffset = DateTimeOffset.FromUnixTimeMilliseconds(newCandle.Timestamp);
+
+                if (lastDateTimeOffset.Hour < currentDateTimeOffset.Hour)
+                {
+                    stocksResponse.Results.Add(newCandle.Clone());
+                }
+                else
+                {
+                    if (newCandle.Volume == lastCandle.Volume && newCandle.TransactionCount == lastCandle.TransactionCount)
                     {
-                        stocksResponse.Results.Add(currentCandle.Clone());
+                        // There hasnt been a new candle yet so dont update
+                        return null;
                     }
-                    else
+
+                    if (newCandle.High > lastCandle.High)
                     {
-                        if (currentCandle.Volume == lastCandle.Volume && currentCandle.TransactionCount == lastCandle.TransactionCount)
-                        {
-                            // There hasnt been a new candle yet so dont update
-                            return;
-                        }
+                        lastCandle.High = newCandle.High;
+                    }
 
-                        if (currentCandle.High > lastCandle.High)
-                        {
-                            lastCandle.High = currentCandle.High;
-                        }
-
-                        if (currentCandle.Low < lastCandle.Low)
-                        {
-                            lastCandle.Low = currentCandle.Low;
-                        }
+                    if (newCandle.Low < lastCandle.Low)
+                    {
+                        lastCandle.Low = newCandle.Low;
+                    }
 
 
-                        lastCandle.Close = currentCandle.Close;
+                    lastCandle.Close = newCandle.Close;
 
-                        // TODO: How to do a more precise VWAP?
-                        lastCandle.Vwap = (currentCandle.Close + currentCandle.High + currentCandle.Low) / 3;
+                    // TODO: How to do a more precise VWAP?
+                    lastCandle.Vwap = (newCandle.Close + newCandle.High + newCandle.Low) / 3;
 
-                        lastCandle.Volume += currentCandle.Volume;
-                        lastCandle.TransactionCount += currentCandle.TransactionCount;
-                    }                    
-                    return;
-            }
+                    lastCandle.Volume += newCandle.Volume;
+                    lastCandle.TransactionCount += newCandle.TransactionCount;
+                }
+                return lastCandle;
+
+            default:
+                return null;
         }
-    }
-
-    private void SetSnapshot()
-    {
-        var snapshotResponse = memoryCache.Get<SnapshotResponse>("snapshot");
-
-        var now = DateTimeOffset.Now;
-        var minuteTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, 0, now.Offset).AddMinutes(-1);
-        var hourTime = new DateTimeOffset(minuteTime.Year, minuteTime.Month, minuteTime.Day, minuteTime.Hour, 0, 0, minuteTime.Offset);
-
-        var tickers = marketCache.GetTickers();
-        foreach (var ticker in tickers)
-        {
-            var minute = marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), DateTimeOffset.Now)?.Clone();
-            var hour = marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.hour), DateTimeOffset.Now)?.Clone();
-
-            if (minute is null || hour is null)
-            {
-                continue;
-            }
-
-            var entry = snapshotResponse.Entries.FirstOrDefault(q => q.Ticker == ticker);
-
-            if (entry is null || entry.Results is null)
-            {
-                return;
-            }
-
-            entry.Results.Add(new Snapshot
-            {
-                Timestamp = minuteTime.ToUnixTimeMilliseconds(),
-                DateTime = minuteTime,
-                Minute = minute.Results?.FirstOrDefault(q => q.Timestamp == minuteTime.ToUnixTimeMilliseconds())?.Clone(),
-                Hour = hour.Results?.FirstOrDefault(q => q.Timestamp == hourTime.ToUnixTimeMilliseconds())?.Clone()
-            });
-        }
-        memoryCache.Set("snapshot", snapshotResponse);
     }
 }
