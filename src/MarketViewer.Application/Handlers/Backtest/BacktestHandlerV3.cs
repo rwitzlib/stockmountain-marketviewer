@@ -234,7 +234,8 @@ public class BacktestHandlerV3(
                         MaxConcurrentPositions = maxConcurrentOtherPositions
                     },
                     Results = backtestDayResults,
-                    Entries = relevantEntries
+                    Entries = relevantEntries,
+                    Snapshot = relevantEntries.Last().Snapshot
                 }
             };
 
