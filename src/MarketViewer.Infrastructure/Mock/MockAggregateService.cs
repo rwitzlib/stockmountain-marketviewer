@@ -1,15 +1,8 @@
-﻿using System;
-using System.IO;
-using System.Reflection;
-using System.Text.Json;
-using System.Threading.Tasks;
-using MarketViewer.Contracts.Interfaces;
-using MarketViewer.Contracts.Models;
+﻿using MarketViewer.Contracts.Interfaces;
 using System.Diagnostics.CodeAnalysis;
-using MarketDataProvider.Contracts.Models;
 using Polygon.Client.Models;
-using MarketViewer.Contracts.Requests;
-using MarketViewer.Contracts.Responses;
+using MarketViewer.Contracts.Requests.Market;
+using MarketViewer.Contracts.Responses.Market;
 
 namespace MarketViewer.Infrastructure.Mock
 {

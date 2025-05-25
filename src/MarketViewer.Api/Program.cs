@@ -6,7 +6,6 @@ using MarketViewer.Infrastructure.Mapping;
 using MarketViewer.Core.DependencyInjection;
 using Quartz;
 using MarketViewer.Api.Jobs;
-using MarketViewer.Application.Handlers;
 using MarketViewer.Contracts.Converters;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -20,6 +19,8 @@ using MarketViewer.Core.Scan;
 using MarketViewer.Studies.DependencyInjection;
 using MarketViewer.Api.Authorization;
 using Microsoft.AspNetCore.Authorization;
+using MarketViewer.Application.Handlers.Market;
+using MarketViewer.Core.Auth;
 
 namespace MarketViewer.Api;
 

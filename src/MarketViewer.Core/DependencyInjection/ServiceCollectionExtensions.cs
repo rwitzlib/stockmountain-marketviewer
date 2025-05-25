@@ -1,4 +1,4 @@
-﻿using MarketViewer.Core.Config;
+﻿using MarketViewer.Core.Auth;
 using MarketViewer.Core.Scan;
 using MarketViewer.Core.Scan.Filters;
 using Microsoft.Extensions.Configuration;
@@ -12,9 +12,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection RegisterCore(this IServiceCollection services, IConfiguration configuration)
     {
-        var config = configuration.GetSection("ServiceConfigs").Get<ServiceConfigs>();
-
-        services.AddSingleton(config);
+        services.AddScoped<AuthContext>();
 
         services.AddSingleton<ScanFilterFactoryV2>()
             .AddSingleton<PriceActionFilter>()

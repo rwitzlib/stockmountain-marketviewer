@@ -6,11 +6,12 @@ using Quartz;
 using System.Diagnostics;
 using Polygon.Client.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
-using MarketViewer.Contracts.Responses;
 using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Models.Snapshot;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using MarketViewer.Contracts.Responses.Tools;
+using MarketViewer.Contracts.Responses.Market;
 
 namespace MarketViewer.Api.Jobs;
 
