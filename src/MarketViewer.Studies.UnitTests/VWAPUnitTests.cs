@@ -6,7 +6,7 @@ using MarketViewer.Studies.Studies;
 using MarketViewer.Contracts.Enums;
 using System.Text.Json;
 using FluentAssertions.Common;
-using MarketViewer.Contracts.Responses;
+using MarketViewer.Contracts.Responses.Market;
 
 namespace MarketViewer.Studies.UnitTests;
 

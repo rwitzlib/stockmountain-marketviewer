@@ -3,8 +3,9 @@ using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.Lambda;
 using FluentValidation;
+using MarketViewer.Application.Handlers.Management;
 using MarketViewer.Application.Validators;
-using MarketViewer.Contracts.Requests.Backtest;
+using MarketViewer.Contracts.Requests.Market.Backtest;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -22,9 +23,8 @@ public static class ServiceCollectionExtensions
                 Timeout = TimeSpan.FromMinutes(5),
                 RegionEndpoint = RegionEndpoint.USEast2
             }))
-            .AddSingleton<IDynamoDBContext, DynamoDBContext>(context => new DynamoDBContext(new AmazonDynamoDBClient(new AmazonDynamoDBConfig
-            {
-                RegionEndpoint = RegionEndpoint.USEast2
-            })));
+            .AddScoped<StrategyHandler>()
+            .AddScoped<UserHandler>()
+            .AddScoped<TradeHandler>();
     }
 }

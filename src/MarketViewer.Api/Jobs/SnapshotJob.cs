@@ -9,9 +9,8 @@ using Polygon.Client.Requests;
 using Microsoft.Extensions.Caching.Memory;
 using Polygon.Client.Responses;
 using MarketViewer.Contracts.Models.Scan;
-using MarketViewer.Contracts.Responses;
-using NRedisStack.Search.Aggregation;
 using Snapshot = MarketViewer.Contracts.Models.Snapshot.Snapshot;
+using MarketViewer.Contracts.Responses.Tools;
 
 namespace MarketViewer.Api.Jobs;
 

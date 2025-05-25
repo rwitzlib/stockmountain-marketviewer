@@ -1,5 +1,4 @@
 ﻿using AutoFixture;
-using MarketViewer.Api.Controllers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -10,8 +9,9 @@ using Xunit;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Moq.AutoMock;
-using MarketViewer.Contracts.Requests;
-using MarketViewer.Contracts.Responses;
+using MarketViewer.Api.Controllers.Market;
+using MarketViewer.Contracts.Requests.Market;
+using MarketViewer.Contracts.Responses.Market;
 
 namespace MarketViewer.Api.UnitTests.Controllers
 {

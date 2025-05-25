@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MarketViewer.Core.Enums;
+using Microsoft.AspNetCore.Authorization;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MarketViewer.Api.Authorization;

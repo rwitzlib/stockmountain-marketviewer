@@ -1,4 +1,4 @@
-﻿using MarketViewer.Contracts.Responses;
+﻿using MarketViewer.Contracts.Responses.Market;
 using Polygon.Client.Models;
 using Polygon.Client.Responses;
 using System.Diagnostics.CodeAnalysis;

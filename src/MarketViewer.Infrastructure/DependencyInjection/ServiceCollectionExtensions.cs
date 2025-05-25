@@ -1,18 +1,15 @@
 ﻿using Amazon;
 using Amazon.S3;
-using MarketViewer.Infrastructure.Mock;
 using MarketViewer.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using MarketViewer.Contracts.Interfaces;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Configuration;
-using StackExchange.Redis;
-using MarketDataProvider.Clients.Interfaces;
-using MarketDataProvider.Clients;
 using Polygon.Client.DependencyInjection;
 using MarketViewer.Contracts.Caching;
 using Amazon.DynamoDBv2;
+using MarketViewer.Infrastructure.Config;
+using MarketViewer.Core.Services;
 
 namespace MarketViewer.Infrastructure.DependencyInjection;
 
@@ -21,33 +18,22 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection RegisterInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        //var redisUrl = configuration.GetSection("Urls").GetValue<string>("RedisUrl");
-        var marketDataProviderUrl = configuration.GetSection("Urls").GetValue<string>("MarketDataProviderUrl");
         var token = configuration.GetSection("Tokens").GetValue<string>("PolygonApi");
 
-        //var connectionMultiplexer = ConnectionMultiplexer.Connect(redisUrl);
+        services.AddSingleton(configuration.GetSection("ServiceConfigs").Get<ServiceConfigs>());
+        services.AddSingleton(configuration.GetSection("UserConfig").Get<UserConfig>());
+        services.AddSingleton(configuration.GetSection("StrategyConfig").Get<StrategyConfig>());
+        services.AddSingleton(configuration.GetSection("TradeConfig").Get<TradeConfig>());
 
         services.AddSingleton<IAmazonS3>(client => new AmazonS3Client(RegionEndpoint.USEast2))
             .AddPolygonClient(token)
-            //.AddSingleton<IConnectionMultiplexer>(connectionMultiplexer)
             .AddSingleton<IMarketCache, MemoryMarketCache>()
-            .AddSingleton<BacktestService>()
-            .AddSingleton<IAmazonDynamoDB, AmazonDynamoDBClient>(client => new AmazonDynamoDBClient(RegionEndpoint.USEast2));
-            //.AddSingleton<IMarketCacheClient, MarketCacheClient>();
-
-        //services.AddHttpClient("marketdataprovider", client =>
-        //{
-        //    client.BaseAddress = new Uri(marketDataProviderUrl);
-        //});
-
-        //if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").Equals("Local"))
-        //{
-        //    services.AddTransient<IMarketDataRepository, MockAggregateService>();
-        //}
-        //else
-        //{
-            services.AddTransient<IMarketDataRepository, MarketDataRepository>();
-        //}
+            .AddSingleton<BacktestRepository>()
+            .AddSingleton<IAmazonDynamoDB, AmazonDynamoDBClient>(client => new AmazonDynamoDBClient(RegionEndpoint.USEast2))
+            .AddSingleton<IMarketDataRepository, MarketDataRepository>()
+            .AddSingleton<ITradeRepository, TradeRepository>()
+            .AddSingleton<IStrategyRepository, StrategyRepository>()
+            .AddSingleton<IUserRepository, UserRepository>();
 
         return services;
     }

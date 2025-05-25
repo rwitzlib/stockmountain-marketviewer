@@ -1,5 +1,5 @@
 ﻿using MarketViewer.Contracts.Models.Study;
-using MarketViewer.Contracts.Responses;
+using MarketViewer.Contracts.Responses.Market;
 
 namespace MarketViewer.Studies.Studies;
 

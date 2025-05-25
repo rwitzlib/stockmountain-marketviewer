@@ -1,4 +1,4 @@
-﻿using MarketViewer.Contracts.Responses;
+﻿using MarketViewer.Contracts.Responses.Market;
 using System.Collections.Generic;
 
 namespace MarketViewer.Contracts.Comparers
