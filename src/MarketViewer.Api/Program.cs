@@ -21,6 +21,7 @@ using MarketViewer.Api.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using MarketViewer.Application.Handlers.Market;
 using MarketViewer.Core.Auth;
+using MarketViewer.Api.Middleware;
 
 namespace MarketViewer.Api;
 
@@ -138,6 +139,7 @@ public class Program
         app.UseRouting();
 
         app.UseAuthentication();
+        app.UseMiddleware<AuthContextMiddleware>();
         app.UseAuthorization();
 
         app.UseEndpoints(q => q.MapHub<ChatHub>("/chathub"));
