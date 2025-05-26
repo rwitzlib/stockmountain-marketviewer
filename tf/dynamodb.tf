@@ -51,7 +51,7 @@ resource "aws_dynamodb_table" "user" {
 
   attribute {
     name = "Public"
-    type = "B"
+    type = "BOOL"
   }
 
   global_secondary_index {
