@@ -93,7 +93,7 @@ public class StrategyRepository(StrategyConfig config, IAmazonDynamoDB dynamoDb,
                 KeyConditionExpression = "Public = :isPublic",
                 ExpressionAttributeValues = new Dictionary<string, AttributeValue>
                 {
-                    { ":isPublic", new AttributeValue { BOOL = isPublic } }
+                    { ":isPublic", new AttributeValue { S = isPublic.ToString() } }
                 }
             };
 
