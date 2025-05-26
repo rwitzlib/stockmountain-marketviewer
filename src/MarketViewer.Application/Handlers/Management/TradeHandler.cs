@@ -102,7 +102,7 @@ public class TradeHandler(AuthContext authContext, ITradeRepository tradeReposit
             {
                 var strategy = await strategyRepository.Get(request.Strategy);
 
-                if (strategy == null || (strategy.Public && request.User != authContext.UserId))
+                if (strategy == null || (strategy.IsPublic && request.User != authContext.UserId))
                 {
                     return new OperationResult<IEnumerable<TradeRecord>>
                     {

@@ -34,7 +34,7 @@ public class ClientUsageExample(
             {
                 Name = "Example Strategy",
                 Enabled = true,
-                Public = false
+                IsPublic = false
                 // Add other required properties based on your StrategyPutRequest model
             };
 

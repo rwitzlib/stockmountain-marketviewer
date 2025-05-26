@@ -12,7 +12,7 @@ public class StrategyDto
     public string UserId { get; set; }
     public string Name { get; set; }
     public bool Enabled { get; set; }
-    public bool Public { get; set; }
+    public bool IsPublic { get; set; }
     public TradeType Type { get; set; }
     public IntegrationType Integration { get; set; }
     public BacktestPositionInformation PositionInfo { get; set; }

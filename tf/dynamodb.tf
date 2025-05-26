@@ -50,13 +50,13 @@ resource "aws_dynamodb_table" "user" {
   }
 
   attribute {
-    name = "Public"
+    name = "IsPublic"
     type = "S"
   }
 
   global_secondary_index {
     name            = "PublicIndex"
-    hash_key        = "Public"
+    hash_key        = "IsPublic"
     write_capacity  = 1
     read_capacity   = 1
     projection_type = "ALL"

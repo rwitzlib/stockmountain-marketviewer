@@ -29,7 +29,7 @@ public class StrategyHandler(AuthContext authContext, IStrategyRepository reposi
                 UserId = authContext.UserId.ToString(),
                 Name = request.Name,
                 Enabled = request.Enabled,
-                Public = request.Public,
+                IsPublic = request.IsPublic,
                 Type = request.Type,
                 Integration = request.Integration,
                 PositionInfo = request.PositionInfo,
@@ -61,6 +61,7 @@ public class StrategyHandler(AuthContext authContext, IStrategyRepository reposi
                 Name = strategyDto.Name,
                 Integration = strategyDto.Integration,
                 Type = strategyDto.Type,
+                IsPublic = strategyDto.IsPublic,
                 Enabled = strategyDto.Enabled,
                 PositionInfo = strategyDto.PositionInfo,
                 ExitInfo = new ExitInformationDto
@@ -96,7 +97,7 @@ public class StrategyHandler(AuthContext authContext, IStrategyRepository reposi
         {
             var strategy = await repository.Get(strategyId);
 
-            if (strategy == null || (strategy.UserId != authContext.UserId && !strategy.Public))
+            if (strategy == null || (strategy.UserId != authContext.UserId && !strategy.IsPublic))
             {
                 return new OperationResult<StrategyResponse>
                 {
@@ -111,6 +112,7 @@ public class StrategyHandler(AuthContext authContext, IStrategyRepository reposi
                 Name = strategy.Name,
                 Integration = strategy.Integration,
                 Type = strategy.Type,
+                IsPublic = strategy.IsPublic,
                 Enabled = strategy.Enabled,
                 PositionInfo = strategy.PositionInfo,
                 ExitInfo = new ExitInformationDto
@@ -169,7 +171,7 @@ public class StrategyHandler(AuthContext authContext, IStrategyRepository reposi
                     Integration = strategy.Integration,
                     Type = strategy.Type,
                     Enabled = strategy.Enabled,
-                    Public = strategy.Public,
+                    IsPublic = strategy.IsPublic,
                     PositionInfo = strategy.PositionInfo,
                     ExitInfo = new ExitInformationDto
                     {
@@ -220,7 +222,7 @@ public class StrategyHandler(AuthContext authContext, IStrategyRepository reposi
                 UserId = authContext.UserId,
                 Name = request.Name,
                 Enabled = request.Enabled,
-                Public = request.Public,
+                IsPublic = request.IsPublic,
                 Type = request.Type,
                 Integration = request.Integration,
                 PositionInfo = request.PositionInfo,
@@ -252,7 +254,7 @@ public class StrategyHandler(AuthContext authContext, IStrategyRepository reposi
                 Integration = strategy.Integration,
                 Type = strategy.Type,
                 Enabled = strategy.Enabled,
-                Public = strategy.Public,
+                IsPublic = strategy.IsPublic,
                 PositionInfo = strategy.PositionInfo,
                 ExitInfo = new ExitInformationDto
                 {
