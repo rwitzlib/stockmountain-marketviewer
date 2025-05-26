@@ -146,7 +146,7 @@ public class StrategyHandler(AuthContext authContext, IStrategyRepository reposi
     {
         try
         {
-            if (!authContext.IsAuthenticated && !request.Public)
+            if (!authContext.IsAuthenticated && !request.IsPublic)
             {
                 return new OperationResult<IEnumerable<StrategyResponse>>
                 {
@@ -155,9 +155,9 @@ public class StrategyHandler(AuthContext authContext, IStrategyRepository reposi
                 };
             }
 
-            var strategies = request.Public switch
+            var strategies = request.IsPublic switch
             {
-                true => await repository.ListByPublic(request.Public),
+                true => await repository.ListByPublic(request.IsPublic),
                 false => await repository.ListByUser(authContext.UserId)
             };
 

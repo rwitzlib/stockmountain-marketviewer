@@ -5,5 +5,5 @@ namespace MarketViewer.Contracts.Requests.Management.Strategy;
 [ExcludeFromCodeCoverage]
 public class StrategyListRequest
 {
-    public bool Public { get; set; }
+    public bool IsPublic { get; set; }
 }
