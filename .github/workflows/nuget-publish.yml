@@ -28,7 +28,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        project: [./src/MarketViewer.Contracts, ./src/MarketViewer.Studies]
+        project: [./src/MarketViewer.Contracts, ./src/MarketViewer.Studies, ./src/MarketViewer.Clients]
     steps:
       - name: Publish Nuget Packages
         uses: rwitzlib/github-action-templates/.github/actions/nuget-publish@v1.0.0

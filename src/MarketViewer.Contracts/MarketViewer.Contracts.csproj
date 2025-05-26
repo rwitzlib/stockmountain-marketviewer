@@ -4,11 +4,11 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <PackageId>MarketViewer.Contracts</PackageId>
-    <Version>5.3.0-preview.1</Version>
+    <Version>5.3.0-preview.2</Version>
     <Authors>Robert Witzlib</Authors>
-	<Description>
-		Contracts for MarketViewer.  
-	</Description>
+    <Description>
+      Contracts for MarketViewer.  
+    </Description>
     <Product>MarketViewer.Contracts</Product>
     <PackageProjectUrl>https://github.com/rwitzlib/stockmountain-marketviewer</PackageProjectUrl>
     <RepositoryUrl>https://github.com/rwitzlib/stockmountain-marketviewer</RepositoryUrl>
