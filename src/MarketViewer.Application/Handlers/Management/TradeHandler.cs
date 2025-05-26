@@ -70,15 +70,18 @@ public class TradeHandler(AuthContext authContext, ITradeRepository tradeReposit
             // TODO add fluent validation
             if (request.User is not null)
             {
-                var user = await userRepository.Get(request.User);
-
-                if (user == null || (!user.Public && user.Id != authContext.UserId))
+                if (authContext.UserId != request.User)
                 {
-                    return new OperationResult<IEnumerable<TradeRecord>>
+                    var user = await userRepository.Get(request.User);
+
+                    if (user == null || (!user.IsPublic && user.Id != authContext.UserId))
                     {
-                        Status = HttpStatusCode.NotFound,
-                        ErrorMessages = ["No trades found."]
-                    };
+                        return new OperationResult<IEnumerable<TradeRecord>>
+                        {
+                            Status = HttpStatusCode.NotFound,
+                            ErrorMessages = ["No trades found."]
+                        };
+                    }
                 }
 
                 var trades = await tradeRepository.ListTradesByUser(request.User);
@@ -102,7 +105,7 @@ public class TradeHandler(AuthContext authContext, ITradeRepository tradeReposit
             {
                 var strategy = await strategyRepository.Get(request.Strategy);
 
-                if (strategy == null || (strategy.IsPublic && request.User != authContext.UserId))
+                if (strategy == null || (!strategy.IsPublic && strategy.UserId != authContext.UserId))
                 {
                     return new OperationResult<IEnumerable<TradeRecord>>
                     {

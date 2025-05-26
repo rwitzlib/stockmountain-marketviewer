@@ -19,8 +19,8 @@ public class UserRepository(UserConfig config, IAmazonDynamoDB dynamodb, ILogger
             {
                 { "Id", new AttributeValue { S = record.Id } },
                 { "Role", new AttributeValue { S = record.Role.ToString() } },
-                { "Avatar_Url", new AttributeValue { S = record.AvatarUrl } },
-                { "Public", new AttributeValue { S = record.Public.ToString() } },
+                { "AvatarUrl", new AttributeValue { S = record.AvatarUrl } },
+                { "IsPublic", new AttributeValue { S = record.IsPublic.ToString() } },
                 { "Credits", new AttributeValue { N = record.Credits.ToString() } }
             };
             var putItemRequest = new PutItemRequest
@@ -48,7 +48,7 @@ public class UserRepository(UserConfig config, IAmazonDynamoDB dynamodb, ILogger
                 TableName = config.TableName,
                 Key = new Dictionary<string, AttributeValue>
                 {
-                    { "UserId", new AttributeValue { S = id } }
+                    { "Id", new AttributeValue { S = id } }
                 }
             });
 
@@ -59,11 +59,11 @@ public class UserRepository(UserConfig config, IAmazonDynamoDB dynamodb, ILogger
 
             var userRecord = new UserRecord
             {
-                Id = queryResponse.Item["UserId"].S,
+                Id = queryResponse.Item["Id"].S,
                 Role = Enum.Parse<UserRole>(queryResponse.Item["Role"].S),
                 AvatarUrl = queryResponse.Item["AvatarUrl"].S,
-                Public = bool.Parse(queryResponse.Item["Public"].S),
-                Credits = int.Parse(queryResponse.Item["Credits"].N),
+                IsPublic = bool.Parse(queryResponse.Item["IsPublic"].S),
+                Credits = float.Parse(queryResponse.Item["Credits"].N),
             };
 
             return userRecord;
