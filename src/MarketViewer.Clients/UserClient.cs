@@ -1,5 +1,5 @@
 using MarketViewer.Clients.Interfaces;
-using MarketViewer.Core.Records;
+using MarketViewer.Contracts.Records;
 using Microsoft.Extensions.Logging;
 
 namespace MarketViewer.Clients;

@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>MarketViewer.Clients</PackageId>
-    <Version>0.0.0-preview.1</Version>
+    <Version>0.0.0-preview.2</Version>
     <Authors>Robert Witzlib</Authors>
     <Description>
       Clients for MarketViewer.  
@@ -25,7 +25,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MarketViewer.Contracts\MarketViewer.Contracts.csproj" />
-    <ProjectReference Include="..\MarketViewer.Core\MarketViewer.Core.csproj" />
   </ItemGroup>
 
 </Project> 

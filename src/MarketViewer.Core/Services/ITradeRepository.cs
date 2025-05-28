@@ -1,5 +1,5 @@
 using MarketViewer.Contracts.Enums.Strategy;
-using MarketViewer.Core.Records;
+using MarketViewer.Contracts.Records;
 
 namespace MarketViewer.Core.Services;
 

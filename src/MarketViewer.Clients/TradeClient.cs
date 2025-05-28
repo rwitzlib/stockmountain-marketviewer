@@ -1,6 +1,6 @@
 using MarketViewer.Clients.Interfaces;
+using MarketViewer.Contracts.Records;
 using MarketViewer.Contracts.Requests.Management.Trade;
-using MarketViewer.Core.Records;
 using Microsoft.Extensions.Logging;
 
 namespace MarketViewer.Clients;

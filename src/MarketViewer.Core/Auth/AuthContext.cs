@@ -1,4 +1,4 @@
-using MarketViewer.Core.Enums;
+using MarketViewer.Contracts.Enums;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MarketViewer.Core.Auth;

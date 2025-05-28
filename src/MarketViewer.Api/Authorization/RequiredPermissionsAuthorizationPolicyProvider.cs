@@ -1,4 +1,4 @@
-using MarketViewer.Core.Enums;
+using MarketViewer.Contracts.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 

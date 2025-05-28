@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace MarketViewer.Core.Enums;
+namespace MarketViewer.Contracts.Enums;
 
 [JsonConverter(typeof(JsonStringEnumConverter<UserRole>))]
 public enum UserRole

@@ -1,8 +1,8 @@
 using MarketViewer.Api.Authorization;
 using MarketViewer.Application.Handlers.Management;
+using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Requests.Management.Strategy;
 using MarketViewer.Contracts.Responses.Management;
-using MarketViewer.Core.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;

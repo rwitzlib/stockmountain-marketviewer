@@ -1,4 +1,4 @@
-using MarketViewer.Core.Records;
+using MarketViewer.Contracts.Records;
 
 namespace MarketViewer.Core.Services;
 

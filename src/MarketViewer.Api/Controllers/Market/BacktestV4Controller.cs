@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using MarketViewer.Api.Authorization;
+using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Requests.Market.Backtest;
-using MarketViewer.Core.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

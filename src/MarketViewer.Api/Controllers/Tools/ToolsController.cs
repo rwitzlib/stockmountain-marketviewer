@@ -2,13 +2,11 @@
 using Amazon.S3.Model;
 using MarketViewer.Api.Authorization;
 using MarketViewer.Api.Controllers.Market;
-using MarketViewer.Application.Handlers.Tools;
 using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Requests.Tools;
 using MarketViewer.Contracts.Responses.Market;
-using MarketViewer.Core.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -2,7 +2,7 @@
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
 using MarketViewer.Contracts.Enums.Strategy;
-using MarketViewer.Core.Records;
+using MarketViewer.Contracts.Records;
 using MarketViewer.Core.Services;
 using MarketViewer.Infrastructure.Config;
 using Microsoft.Extensions.Logging;

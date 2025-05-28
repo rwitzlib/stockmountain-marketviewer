@@ -1,9 +1,7 @@
-﻿using System.Net;
-using MarketViewer.Api.Authorization;
+﻿using MarketViewer.Api.Authorization;
+using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Requests.Tools;
 using MarketViewer.Contracts.Responses.Tools;
-using MarketViewer.Core.Enums;
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;

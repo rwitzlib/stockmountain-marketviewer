@@ -1,7 +1,7 @@
 ﻿using MarketViewer.Contracts.Enums.Strategy;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MarketViewer.Core.Records;
+namespace MarketViewer.Contracts.Records;
 
 [ExcludeFromCodeCoverage]
 public class TradeRecord

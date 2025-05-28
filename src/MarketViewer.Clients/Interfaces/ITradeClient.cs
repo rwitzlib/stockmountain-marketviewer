@@ -1,5 +1,5 @@
+using MarketViewer.Contracts.Records;
 using MarketViewer.Contracts.Requests.Management.Trade;
-using MarketViewer.Core.Records;
 
 namespace MarketViewer.Clients.Interfaces;
 

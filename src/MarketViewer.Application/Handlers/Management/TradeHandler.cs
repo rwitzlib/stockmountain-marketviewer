@@ -1,8 +1,8 @@
 ﻿using MarketViewer.Contracts.Enums.Strategy;
 using MarketViewer.Contracts.Models;
+using MarketViewer.Contracts.Records;
 using MarketViewer.Contracts.Requests.Management.Trade;
 using MarketViewer.Core.Auth;
-using MarketViewer.Core.Records;
 using MarketViewer.Core.Services;
 using Microsoft.Extensions.Logging;
 using System;
