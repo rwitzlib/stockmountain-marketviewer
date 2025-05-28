@@ -116,19 +116,10 @@ public class TradeHandler(AuthContext authContext, ITradeRepository tradeReposit
 
                 var trades = await tradeRepository.ListTradesByStrategy(request.Strategy, request.Type, request.Status);
 
-                if (trades == null || !trades.Any())
-                {
-                    return new OperationResult<IEnumerable<TradeRecord>>
-                    {
-                        Status = HttpStatusCode.NotFound,
-                        ErrorMessages = ["No trades found."]
-                    };
-                }
-
                 return new OperationResult<IEnumerable<TradeRecord>>
                 {
                     Status = HttpStatusCode.OK,
-                    Data = trades
+                    Data = trades ?? []
                 };
             }
             else
