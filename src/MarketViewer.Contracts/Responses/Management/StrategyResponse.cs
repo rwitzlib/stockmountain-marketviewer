@@ -9,6 +9,7 @@ namespace MarketViewer.Contracts.Responses.Management;
 public class StrategyResponse
 {
     public string Id { get; set; }
+    public string UserId { get; set; }
     public string Name { get; set; }
     public bool Enabled { get; set; }
     public bool IsPublic { get; set; }

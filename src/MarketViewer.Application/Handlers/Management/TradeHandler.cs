@@ -84,7 +84,7 @@ public class TradeHandler(AuthContext authContext, ITradeRepository tradeReposit
                     }
                 }
 
-                var trades = await tradeRepository.ListTradesByUser(request.User);
+                var trades = await tradeRepository.ListTradesByUser(request.User, request.Type, request.Status);
 
                 if (trades == null || !trades.Any())
                 {
@@ -114,7 +114,7 @@ public class TradeHandler(AuthContext authContext, ITradeRepository tradeReposit
                     };
                 }
 
-                var trades = await tradeRepository.ListTradesByStrategy(request.Strategy);
+                var trades = await tradeRepository.ListTradesByStrategy(request.Strategy, request.Type, request.Status);
 
                 if (trades == null || !trades.Any())
                 {

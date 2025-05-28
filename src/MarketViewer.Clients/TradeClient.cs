@@ -30,10 +30,24 @@ public class TradeClient(HttpClient httpClient, ILogger<TradeClient> logger) : B
         var queryParams = new List<string>();
         
         if (!string.IsNullOrWhiteSpace(request.User))
+        {
             queryParams.Add($"user={Uri.EscapeDataString(request.User)}");
+        }
         
         if (!string.IsNullOrWhiteSpace(request.Strategy))
+        {
             queryParams.Add($"strategy={Uri.EscapeDataString(request.Strategy)}");
+        }
+
+        if (request.Type.HasValue)
+        {
+            queryParams.Add($"type={Uri.EscapeDataString(request.Type.Value.ToString())}");
+        }
+
+        if (request.Status.HasValue)
+        {
+            queryParams.Add($"status={Uri.EscapeDataString(request.Status.Value.ToString())}");
+        }
 
         var queryString = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
         return await GetAsync<IEnumerable<TradeRecord>>($"{BaseEndpoint}{queryString}", cancellationToken);

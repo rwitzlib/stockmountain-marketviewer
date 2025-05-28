@@ -69,7 +69,7 @@ public class TradeRepository(TradeConfig config, IAmazonDynamoDB dynamodb, ILogg
         }
     }
 
-    public async Task<IEnumerable<TradeRecord>> ListTradesByUser(string userId, TradeStatus? status = null)
+    public async Task<IEnumerable<TradeRecord>> ListTradesByUser(string userId, TradeType? type = null, TradeStatus? status = null)
     {
         try
         {
@@ -89,6 +89,12 @@ public class TradeRepository(TradeConfig config, IAmazonDynamoDB dynamodb, ILogg
                     }
                 }
             };
+
+            if (type.HasValue)
+            {
+                queryRequest.FilterExpression = "Type = :type";
+                queryRequest.ExpressionAttributeValues.Add(":type", new AttributeValue { S = type.ToString() });
+            }
 
             if (status is not null)
             {
@@ -114,7 +120,7 @@ public class TradeRepository(TradeConfig config, IAmazonDynamoDB dynamodb, ILogg
         }
     }
 
-    public async Task<IEnumerable<TradeRecord>> ListTradesByStrategy(string strategyId, TradeStatus? tradeStatus = null)
+    public async Task<IEnumerable<TradeRecord>> ListTradesByStrategy(string strategyId, TradeType? type = null, TradeStatus? status = null)
     {
         try
         {
@@ -135,10 +141,16 @@ public class TradeRepository(TradeConfig config, IAmazonDynamoDB dynamodb, ILogg
                 }
             };
 
-            if (tradeStatus is not null)
+            if (type.HasValue)
+            {
+                queryRequest.FilterExpression = "Type = :type";
+                queryRequest.ExpressionAttributeValues.Add(":type", new AttributeValue { S = type.ToString() });
+            }
+
+            if (status.HasValue)
             {
                 queryRequest.FilterExpression = "OrderStatus = :orderStatus";
-                queryRequest.ExpressionAttributeValues.Add(":orderStatus", new AttributeValue { S = tradeStatus.ToString() });
+                queryRequest.ExpressionAttributeValues.Add(":orderStatus", new AttributeValue { S = status.ToString() });
             }
 
             var queryResponse = await dynamodb.QueryAsync(queryRequest);
