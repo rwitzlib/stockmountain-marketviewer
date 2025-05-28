@@ -34,6 +34,12 @@ public class SnapshotJob(
 
             var polygonSnapshotResponse = await polygonClient.GetAllTickersSnapshot(null);
 
+            var spy = polygonSnapshotResponse.Tickers.FirstOrDefault(q => q.Ticker == "SPY");
+            if (spy is not null)
+            {
+                logger.LogInformation("Current snapshot: {unix} - {datetime}", spy.Minute.Timestamp, DateTimeOffset.FromUnixTimeMilliseconds(spy.Minute.Timestamp).ToOffset(_timeZone.GetUtcOffset(DateTimeOffset.Now)));
+            }
+
             var snapshotResponse = memoryCache.Get<SnapshotResponse>("snapshot");
 
             foreach (var snapshot in polygonSnapshotResponse.Tickers)
