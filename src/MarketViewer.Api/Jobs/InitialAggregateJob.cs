@@ -48,7 +48,7 @@ public class InitialAggregateJob(
 
             SetSnapshot();
 
-            if (sp.Elapsed.TotalSeconds > 60 && Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") is not "local")
+            if (sp.Elapsed.TotalSeconds > 60)
             {
                 logger.LogInformation("Initializing aggregate data took longer than 1 minute. Starting over.");
 

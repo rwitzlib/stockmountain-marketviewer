@@ -45,7 +45,7 @@ public class SnapshotJob(
 
                 if (snapshotEntry is null || snapshotEntry.Results is null)
                 {
-                    return;
+                    continue;
                 }
 
                 var offset = _timeZone.GetUtcOffset(DateTimeOffset.FromUnixTimeMilliseconds(snapshot.Minute.Timestamp));
