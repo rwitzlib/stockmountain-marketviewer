@@ -239,7 +239,7 @@ public class BacktestHandlerV3(
             var newRecord = new BacktestRecord
             {
                 Id = request.Id,
-                CustomerId = Guid.Empty.ToString(),
+                UserId = Guid.Empty.ToString(),
                 CreatedAt = DateTimeOffset.Now.ToString("yyyy-MM-ddThh:mmZ"),
                 CreditsUsed = relevantEntries.Where(result => result is not null).Sum(result => result.CreditsUsed),
                 S3ObjectName = record is null ? Guid.NewGuid().ToString() : record.S3ObjectName,

@@ -42,7 +42,7 @@ public class StartBacktestHandler(
             var record = new BacktestRecord
             {
                 Id = request.Id,
-                CustomerId = request.UserId,
+                UserId = request.UserId,
                 Status = BacktestStatus.Pending,
                 CreatedAt = DateTimeOffset.Now.ToString()
             };

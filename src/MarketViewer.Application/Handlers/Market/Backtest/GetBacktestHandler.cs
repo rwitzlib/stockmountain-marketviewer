@@ -56,7 +56,7 @@ public class GetBacktestHandler(
         var item = Document.FromJson(JsonSerializer.Serialize(new BacktestRecord
         {
             Id = request.Id,
-            CustomerId = request.UserId,
+            UserId = request.UserId,
             Status = BacktestStatus.Pending,
             CreatedAt = DateTimeOffset.Now.ToString()
         }));

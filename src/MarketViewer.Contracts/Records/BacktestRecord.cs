@@ -10,7 +10,7 @@ namespace MarketViewer.Contracts.Records;
 public class BacktestRecord
 {
     public string Id { get; set; }
-    public string CustomerId { get; set; }
+    public string UserId { get; set; }
     public BacktestStatus Status { get; set; }
     public string CreatedAt { get; set; }
 
