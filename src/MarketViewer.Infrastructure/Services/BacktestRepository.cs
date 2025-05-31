@@ -1,10 +1,5 @@
 ﻿using Amazon.Lambda.Model;
 using Amazon.Lambda;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Amazon.S3;
@@ -15,7 +10,6 @@ using Document = Amazon.DynamoDBv2.DocumentModel.Document;
 using MarketViewer.Contracts.Responses.Market.Backtest;
 using MarketViewer.Contracts.Requests.Market.Backtest;
 using MarketViewer.Core.Services;
-using System.Threading;
 using MarketViewer.Infrastructure.Config;
 using MarketViewer.Contracts.Records;
 

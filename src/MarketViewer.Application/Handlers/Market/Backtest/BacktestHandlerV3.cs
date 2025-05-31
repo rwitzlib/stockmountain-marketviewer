@@ -2,6 +2,7 @@
 using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Models.Backtest;
+using MarketViewer.Contracts.Records;
 using MarketViewer.Contracts.Requests.Market.Backtest;
 using MarketViewer.Contracts.Responses.Market.Backtest;
 using MarketViewer.Core.Services;
@@ -247,7 +248,7 @@ public class BacktestHandlerV3(
                 RequestDetails = CompressRequestDetails(request)
             };
 
-            await backtestRepository.Create(newRecord, s3Entries.Count < entries.Count ? entries : null);
+            await backtestRepository.Put(newRecord, s3Entries.Count < entries.Count ? entries : null);
 
             user.Credits -= response.Data.CreditsUsed;
 

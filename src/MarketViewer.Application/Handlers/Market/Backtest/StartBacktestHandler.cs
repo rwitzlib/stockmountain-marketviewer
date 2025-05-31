@@ -4,6 +4,7 @@ using Amazon.Lambda.Model;
 using MarketViewer.Contracts.Enums.Backtest;
 using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Models.Backtest;
+using MarketViewer.Contracts.Records;
 using MarketViewer.Contracts.Requests.Market.Backtest;
 using MarketViewer.Contracts.Responses.Market.Backtest;
 using MarketViewer.Infrastructure.Config;
