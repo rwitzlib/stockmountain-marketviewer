@@ -20,6 +20,7 @@ public class BacktestRecord
     public float CreditsUsed { get; set; }
     public float HoldProfit { get; set; }
     public float HighProfit { get; set; }
+    public float? OtherProfit { get; set; }
     public string RequestDetails { get; set; }
     public string S3ObjectName { get; set; }
     public List<string> Errors { get; set; }
