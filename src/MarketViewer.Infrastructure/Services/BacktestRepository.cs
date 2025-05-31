@@ -12,12 +12,12 @@ using Amazon.S3.Model;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Document = Amazon.DynamoDBv2.DocumentModel.Document;
-using MarketViewer.Contracts.Models.Backtest;
 using MarketViewer.Contracts.Responses.Market.Backtest;
 using MarketViewer.Contracts.Requests.Market.Backtest;
 using MarketViewer.Core.Services;
 using System.Threading;
 using MarketViewer.Infrastructure.Config;
+using MarketViewer.Contracts.Records;
 
 namespace MarketViewer.Infrastructure.Services;
 
@@ -28,7 +28,7 @@ public class BacktestRepository(
     IAmazonLambda lambda,
     ILogger<BacktestRepository> logger) : IBacktestRepository
 {
-    public async Task<bool> Create(BacktestRecord record, IEnumerable<BacktestLambdaResponseV3> entries)
+    public async Task<bool> Put(BacktestRecord record, IEnumerable<BacktestLambdaResponseV3> entries = null)
     {
         try
         {
@@ -74,7 +74,7 @@ public class BacktestRepository(
                 TableName = config.TableName,
                 IndexName = config.RequestIndexName,
                 KeyConditionExpression = "RequestDetails = :request",
-                ExpressionAttributeValues =
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
                 {
                     {
                         ":request",
@@ -98,6 +98,7 @@ public class BacktestRepository(
         }
         catch (Exception e)
         {
+            logger.LogError(e, "Error checking for backtest history");
             return false;
         }
     }
@@ -157,6 +158,7 @@ public class BacktestRepository(
         }
         catch (Exception e)
         {
+            logger.LogError(e, "Error retrieving backtest results from S3 for record {recordId}", record.Id);
             return [];
         }
     }
@@ -191,6 +193,7 @@ public class BacktestRepository(
         }
         catch (Exception e)
         {
+            logger.LogError(e, "Error invoking backtest lambda for request {request}", request);
             return null;
         }
     }

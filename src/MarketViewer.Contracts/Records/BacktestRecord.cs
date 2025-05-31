@@ -1,22 +1,16 @@
-﻿using Amazon.DynamoDBv2.DataModel;
-using MarketViewer.Contracts.Enums.Backtest;
+﻿using MarketViewer.Contracts.Enums.Backtest;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json.Serialization;
 
-namespace MarketViewer.Contracts.Models.Backtest;
+namespace MarketViewer.Contracts.Records;
 
 /// <summary>
 /// Database record for storing information about backtest results.
 /// </summary>
 [ExcludeFromCodeCoverage]
-[DynamoDBTable("lad-dev-marketviewer-backtest-store")]
 public class BacktestRecord
 {
-    [DynamoDBHashKey]
-    public string Id { get; set; } = Guid.NewGuid().ToString();
-    [DynamoDBGlobalSecondaryIndexHashKey]
+    public string Id { get; set; }
     public string CustomerId { get; set; }
-    [JsonConverter(typeof(JsonStringEnumConverter<BacktestStatus>))]
     public BacktestStatus Status { get; set; }
     public string CreatedAt { get; set; }
 
@@ -26,7 +20,7 @@ public class BacktestRecord
     public float CreditsUsed { get; set; }
     public float HoldProfit { get; set; }
     public float HighProfit { get; set; }
-    [DynamoDBGlobalSecondaryIndexHashKey]
     public string RequestDetails { get; set; }
     public string S3ObjectName { get; set; }
+    public List<string> Errors { get; set; }
 }
