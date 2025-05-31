@@ -7,9 +7,8 @@ namespace MarketViewer.Contracts.Requests.Tools;
 public class SnapshotRequest : BaseRequest
 {
     /// <summary>
-    /// The ticker symbol of the stock/equity.
+    /// Comma-separated list of tickers to filter the snapshot.
     /// </summary>
     [Required]
-    [StringLength(6)]
-    public string Ticker { get; set; }
+    public string Tickers { get; set; }
 }
