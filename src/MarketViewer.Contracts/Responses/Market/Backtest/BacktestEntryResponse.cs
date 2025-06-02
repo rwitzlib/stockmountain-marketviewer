@@ -1,0 +1,24 @@
+﻿using MarketViewer.Contracts.Dtos;
+using MarketViewer.Contracts.Enums.Backtest;
+using MarketViewer.Contracts.Requests.Market.Backtest;
+using System.Diagnostics.CodeAnalysis;
+
+namespace MarketViewer.Contracts.Responses.Market.Backtest;
+
+[ExcludeFromCodeCoverage]
+public class BacktestEntryResponse
+{
+    public string Id { get; set; }
+    public BacktestStatus Status { get; set; }
+    public string CreatedAt { get; set; }
+
+    /// <summary>
+    /// Cost is $0.000133334 per credit assuming 2048 MB Lambda
+    /// </summary>
+    public float CreditsUsed { get; set; }
+    public float HoldProfit { get; set; }
+    public float HighProfit { get; set; }
+    public float? OtherProfit { get; set; }
+    public BacktestCreateRequest RequestDetails { get; set; }
+    public List<string> Errors { get; set; }
+}

@@ -4,6 +4,7 @@ using Amazon.DynamoDBv2.DataModel;
 using Amazon.Lambda;
 using FluentValidation;
 using MarketViewer.Application.Handlers.Management;
+using MarketViewer.Application.Handlers.Market.Backtest;
 using MarketViewer.Application.Handlers.Tools;
 using MarketViewer.Application.Validators;
 using MarketViewer.Contracts.Requests.Market.Backtest;
@@ -27,6 +28,7 @@ public static class ServiceCollectionExtensions
             .AddScoped<StrategyHandler>()
             .AddScoped<UserHandler>()
             .AddScoped<TradeHandler>()
-            .AddScoped<SnapshotHandler>();
+            .AddScoped<SnapshotHandler>()
+            .AddScoped<BacktestHandler>();
     }
 }

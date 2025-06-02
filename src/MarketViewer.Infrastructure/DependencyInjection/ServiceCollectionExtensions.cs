@@ -20,20 +20,21 @@ public static class ServiceCollectionExtensions
     {
         var token = configuration.GetSection("Tokens").GetValue<string>("PolygonApi");
 
-        services.AddSingleton(configuration.GetSection("ServiceConfigs").Get<ServiceConfigs>());
         services.AddSingleton(configuration.GetSection("UserConfig").Get<UserConfig>());
         services.AddSingleton(configuration.GetSection("StrategyConfig").Get<StrategyConfig>());
         services.AddSingleton(configuration.GetSection("TradeConfig").Get<TradeConfig>());
+        services.AddSingleton(configuration.GetSection("BacktestConfig").Get<BacktestConfig>());
 
         services.AddSingleton<IAmazonS3>(client => new AmazonS3Client(RegionEndpoint.USEast2))
             .AddPolygonClient(token)
             .AddSingleton<IMarketCache, MemoryMarketCache>()
-            .AddSingleton<BacktestRepository>()
             .AddSingleton<IAmazonDynamoDB, AmazonDynamoDBClient>(client => new AmazonDynamoDBClient(RegionEndpoint.USEast2))
             .AddSingleton<IMarketDataRepository, MarketDataRepository>()
             .AddSingleton<ITradeRepository, TradeRepository>()
             .AddSingleton<IStrategyRepository, StrategyRepository>()
-            .AddSingleton<IUserRepository, UserRepository>();
+            .AddSingleton<IUserRepository, UserRepository>()
+            .AddSingleton<IBacktestRepository, BacktestRepository>();
+
 
         return services;
     }

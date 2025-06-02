@@ -8,6 +8,7 @@ public class BacktestConfig
 {
     public string TableName { get; set; }
     public string RequestIndexName { get; set; }
+    public string UserIndexName { get; set; }
     public string LambdaName { get; set; }
     public string S3BucketName { get; set; }
 }
