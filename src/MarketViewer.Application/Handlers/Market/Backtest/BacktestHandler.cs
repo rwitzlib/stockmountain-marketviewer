@@ -413,7 +413,7 @@ public class BacktestHandler(
         return JsonSerializer.Deserialize<BacktestCreateRequest>(decompressedData);
     }
 
-    private static IEnumerable<DateTimeOffset> GetDateRange(BacktestCreateRequest request, IEnumerable<BacktestLambdaResponseV3> entries)
+    private static IEnumerable<DateTimeOffset> GetDateRange(BacktestCreateRequest request, IEnumerable<WorkerResponse> entries)
     {
         var entriesWithDates = entries.Where(q => q.Results.Any());
 
@@ -523,7 +523,7 @@ public class BacktestHandler(
 
     private void BuyPositionIfApplicable(
         string type,
-        BacktestLambdaResponseV3 entry,
+        WorkerResponse entry,
         DateTimeOffset timestamp,
         BacktestCreateRequest request,
         ref float availableFunds,

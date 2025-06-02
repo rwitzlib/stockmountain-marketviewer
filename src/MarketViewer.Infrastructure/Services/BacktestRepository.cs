@@ -1,6 +1,4 @@
-﻿using Amazon.Lambda.Model;
-using Amazon.Lambda;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Amazon.S3;
 using Amazon.S3.Model;
@@ -8,7 +6,6 @@ using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Document = Amazon.DynamoDBv2.DocumentModel.Document;
 using MarketViewer.Contracts.Responses.Market.Backtest;
-using MarketViewer.Contracts.Requests.Market.Backtest;
 using MarketViewer.Core.Services;
 using MarketViewer.Infrastructure.Config;
 using MarketViewer.Contracts.Records;
@@ -19,10 +16,9 @@ public class BacktestRepository(
     BacktestConfig config,
     IAmazonDynamoDB dynamoDb,
     IAmazonS3 s3,
-    IAmazonLambda lambda,
     ILogger<BacktestRepository> logger) : IBacktestRepository
 {
-    public async Task<bool> Put(BacktestRecord record, IEnumerable<BacktestLambdaResponseV3> entries = null)
+    public async Task<bool> Put(BacktestRecord record, IEnumerable<WorkerResponse> entries = null)
     {
         try
         {
@@ -157,37 +153,7 @@ public class BacktestRepository(
         }
     }
 
-    public async Task<List<BacktestLambdaResponseV3>> GetBacktestResultsFromLambda(BacktestRequestV3 request)
-    {
-        var days = request.End == request.Start ? [request.Start] : Enumerable.Range(0, (request.End - request.Start).Days + 1)
-            .Select(day => request.Start.AddDays(day))
-            .Where(day => day.DayOfWeek != DayOfWeek.Sunday && day.DayOfWeek != DayOfWeek.Saturday);
-
-        logger.LogInformation("Backtesting strategy between {start} and {end}. Total days: {count}",
-            request.Start.ToString("yyyy-MM-dd"),
-            request.End.ToString("yyyy-MM-dd"),
-            days.Count());
-
-        var tasks = new List<Task<BacktestLambdaResponseV3>>();
-        foreach (var day in days)
-        {
-            var backtesterLambdaRequest = new BacktestLambdaRequestV3
-            {
-                Date = day.Date,
-                PositionInfo = request.PositionInfo,
-                Exit = request.Exit,
-                Features = request.Features,
-                Argument = request.Argument,
-            };
-            tasks.Add(Task.Run(async () => await InvokeWorker(backtesterLambdaRequest)));
-        }
-        var taskResults = await Task.WhenAll(tasks);
-        var lambdaResults = taskResults.Where(q => q is not null && q.Results is not null);
-
-        return lambdaResults.ToList();
-    }
-
-    public async Task<List<BacktestLambdaResponseV3>> GetBacktestResultsFromS3(BacktestRecord record)
+    public async Task<List<WorkerResponse>> GetBacktestResultsFromS3(BacktestRecord record)
     {
         try
         {
@@ -205,7 +171,7 @@ public class BacktestRepository(
             using var streamReader = new StreamReader(s3Response.ResponseStream);
             var json = await streamReader.ReadToEndAsync();
 
-            var s3Results = JsonSerializer.Deserialize<IEnumerable<BacktestLambdaResponseV3>>(json);
+            var s3Results = JsonSerializer.Deserialize<IEnumerable<WorkerResponse>>(json);
             s3Results.ToList().ForEach(q => q.CreditsUsed = 0);
 
             return s3Results.ToList();
@@ -216,43 +182,4 @@ public class BacktestRepository(
             return [];
         }
     }
-
-    #region Private Methods
-
-    private async Task<BacktestLambdaResponseV3> InvokeWorker(BacktestLambdaRequestV3 request)
-    {
-        try
-        {
-            var json = JsonSerializer.Serialize(request);
-
-            var invokeRequest = new InvokeRequest
-            {
-                FunctionName = config.LambdaName,
-                InvocationType = InvocationType.RequestResponse,
-                Payload = json,
-
-            };
-
-            var response = await lambda.InvokeAsync(invokeRequest);
-
-            if (response.StatusCode is not 200)
-            {
-                return null;
-            }
-
-            var streamReader = new StreamReader(response.Payload);
-            var result = streamReader.ReadToEnd();
-
-            var backtestEntry = JsonSerializer.Deserialize<BacktestLambdaResponseV3>(result);
-
-            return backtestEntry;
-        }
-        catch (Exception e)
-        {
-            logger.LogError(e, "Error invoking backtest lambda for request {request}", request);
-            return null;
-        }
-    }
-
-    #endregion
 }

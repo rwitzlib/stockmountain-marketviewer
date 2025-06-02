@@ -19,6 +19,6 @@ public class BacktestResultResponse
     public BacktestEntryStats Other { get; set; }
     public BacktestEntryStats High { get; set; }
     public IEnumerable<BacktestDayResultV3> Results { get; set; }
-    public IEnumerable<BacktestLambdaResponseV3> Entries { get; set; }
+    public IEnumerable<WorkerResponse> Entries { get; set; }
     public SnapshotResponse Snapshot { get; set; }
 }

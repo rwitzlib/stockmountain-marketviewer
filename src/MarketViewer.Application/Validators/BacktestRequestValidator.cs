@@ -4,7 +4,7 @@ using System;
 
 namespace MarketViewer.Application.Validators
 {
-    public class BacktestRequestValidator : AbstractValidator<BacktestRequestV3>
+    public class BacktestRequestValidator : AbstractValidator<BacktestCreateRequest>
     {
         public BacktestRequestValidator()
         {
