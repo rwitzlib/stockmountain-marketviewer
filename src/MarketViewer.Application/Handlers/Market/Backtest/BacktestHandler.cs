@@ -19,6 +19,7 @@ using MarketViewer.Infrastructure.Config;
 using System.Collections.Generic;
 using System.Linq;
 using MarketViewer.Contracts.Caching;
+using System.Text.Json.Serialization;
 
 namespace MarketViewer.Application.Handlers.Market.Backtest;
 
@@ -30,6 +31,11 @@ public class BacktestHandler(
     ILogger<BacktestHandler> logger)
 {
     private readonly TimeZoneInfo TimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+    private readonly JsonSerializerOptions Options = new JsonSerializerOptions
+    {
+        PropertyNameCaseInsensitive = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
 
     public async Task<OperationResult<BacktestEntryResponse>> Create(BacktestCreateRequest request)
     {
@@ -387,9 +393,9 @@ public class BacktestHandler(
 
     #region Private Methods
 
-    private static string CompressRequestDetails(BacktestCreateRequest request)
+    private string CompressRequestDetails(BacktestCreateRequest request)
     {
-        var requestDetails = $"{JsonSerializer.Serialize(request.PositionInfo)}{JsonSerializer.Serialize(request.Exit)}{JsonSerializer.Serialize(request.Argument)}";
+        var requestDetails = JsonSerializer.Serialize(request, Options);
         var bytes = Encoding.UTF8.GetBytes(requestDetails);
         using var outputStream = new MemoryStream();
         using (var compressionStream = new GZipStream(outputStream, CompressionMode.Compress))
@@ -399,7 +405,7 @@ public class BacktestHandler(
         return Convert.ToBase64String(outputStream.ToArray());
     }
 
-    public static BacktestCreateRequest DecompressRequestDetails(string compressedDetails)
+    public BacktestCreateRequest DecompressRequestDetails(string compressedDetails)
     {
         if (string.IsNullOrWhiteSpace(compressedDetails))
         {
@@ -410,7 +416,7 @@ public class BacktestHandler(
         using var decompressionStream = new GZipStream(inputStream, CompressionMode.Decompress);
         using var reader = new StreamReader(decompressionStream, Encoding.UTF8);
         var decompressedData = reader.ReadToEnd();
-        return JsonSerializer.Deserialize<BacktestCreateRequest>(decompressedData);
+        return JsonSerializer.Deserialize<BacktestCreateRequest>(decompressedData, Options);
     }
 
     private static IEnumerable<DateTimeOffset> GetDateRange(BacktestCreateRequest request, IEnumerable<WorkerResponse> entries)
@@ -422,19 +428,24 @@ public class BacktestHandler(
             return [];
         }
 
-        var lastDate = new DateTimeOffset[]
+        var lastDates = new List<DateTimeOffset>
         {
             entriesWithDates.Max(q => q.Results.Max(result => result.Hold.SoldAt)),
             entriesWithDates.Max(q => q.Results.Max(result => result.High.SoldAt)),
-            entriesWithDates.Max(q => q.Results.Max(result => result.Other.SoldAt))
         };
 
-        if (lastDate.Length <= 0)
+        var otherDates = entriesWithDates.Where(q => q.Other is not null);
+        if (otherDates.Any())
+        {
+            lastDates.Add(otherDates.Max(q => q.Results.Max(result => result.Other.SoldAt)));
+        }
+
+        if (!lastDates.Any())
         {
             return [];
         }
 
-        var maxDate = lastDate.Max();
+        var maxDate = lastDates.Max();
         var startDate = request.Start;
 
         return Enumerable.Range(0, (maxDate - startDate).Days + 1)

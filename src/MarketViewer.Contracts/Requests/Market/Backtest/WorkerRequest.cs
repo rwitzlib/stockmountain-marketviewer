@@ -7,7 +7,7 @@ namespace MarketViewer.Contracts.Requests.Market.Backtest;
 [ExcludeFromCodeCoverage]
 public class WorkerRequest
 {
-    public DateTime Date { get; set; }
+    public DateTimeOffset Date { get; set; }
     public BacktestPositionInformation PositionInfo { get; set; }
     public BacktestExitInformation Exit { get; set; }
     public IEnumerable<Feature> Features { get; set; }

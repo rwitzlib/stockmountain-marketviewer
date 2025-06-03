@@ -7,7 +7,7 @@ namespace MarketViewer.Contracts.Responses.Market.Backtest;
 [ExcludeFromCodeCoverage]
 public class WorkerResponse
 {
-    public DateTime Date { get; set; }
+    public DateTimeOffset Date { get; set; }
 
     /// <summary>
     /// Given a 2 GB Lambda, 1 second of backtesting will cost $0.0000333.

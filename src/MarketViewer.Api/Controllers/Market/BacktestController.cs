@@ -59,4 +59,21 @@ public class BacktestController(IHttpContextAccessor contextAccessor, BacktestHa
             _ => StatusCode(StatusCodes.Status500InternalServerError, response.ErrorMessages)
         };
     }
+
+    [HttpGet]
+    [Route("result/{id}")]
+    [RequiredPermissions([UserRole.Basic, UserRole.Advanced, UserRole.Premium, UserRole.Admin])]
+    public async Task<IActionResult> GetBacktestResult(string id)
+    {
+        var userId = contextAccessor.HttpContext.Items["UserId"].ToString();
+
+        var response = await handler.GetResult(id);
+
+        return response.Status switch
+        {
+            HttpStatusCode.OK => Ok(response.Data),
+            HttpStatusCode.BadRequest => BadRequest(response.ErrorMessages),
+            _ => StatusCode(StatusCodes.Status500InternalServerError, response.ErrorMessages)
+        };
+    }
 }
