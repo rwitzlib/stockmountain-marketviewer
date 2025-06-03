@@ -37,7 +37,7 @@ public class AuthContextMiddleware(RequestDelegate next)
 
                     if (subject != null)
                     {
-                        authContext.UserId = subject.Email;
+                        authContext.UserId = subject.Username;
                         authContext.Role = subject.Role;
                         authContext.IsAuthenticated = true;
                     }

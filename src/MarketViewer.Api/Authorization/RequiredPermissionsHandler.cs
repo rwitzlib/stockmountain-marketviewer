@@ -34,7 +34,7 @@ public class RequiredPermissionsHandler(IHttpContextAccessor httpContextAccessor
             // Add UserId to HttpContext items
             if (httpContextAccessor.HttpContext != null)
             {
-                httpContextAccessor.HttpContext.Items["UserId"] = subject.Email;
+                httpContextAccessor.HttpContext.Items["UserId"] = subject.Username;
             }
         }
 
