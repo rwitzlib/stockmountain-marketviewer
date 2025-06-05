@@ -12,6 +12,7 @@ using MarketViewer.Contracts.Models.Study;
 using MarketViewer.Application.Handlers.Market;
 using MarketViewer.Contracts.Requests.Market;
 using MarketViewer.Contracts.Responses.Market;
+using MarketViewer.Contracts.Caching;
 
 namespace MarketViewer.Application.UnitTests.Handlers
 {
@@ -21,6 +22,7 @@ namespace MarketViewer.Application.UnitTests.Handlers
         private StocksHandler _classUnderTest;
         private Fixture _fixture;
         private Mock<IMarketDataRepository> _repository;
+        private Mock<IMarketCache> _cache;
         #endregion
 
         #region Constructor
@@ -29,7 +31,8 @@ namespace MarketViewer.Application.UnitTests.Handlers
             _fixture = new Fixture();
 
             _repository = new Mock<IMarketDataRepository>();
-            _classUnderTest = new StocksHandler(_repository.Object, fixture.StudyFactory);
+            _cache = new Mock<IMarketCache>();
+            _classUnderTest = new StocksHandler(_repository.Object, _cache.Object, fixture.StudyFactory);
         }
         #endregion
 
