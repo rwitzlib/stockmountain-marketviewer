@@ -6,6 +6,7 @@ using Polygon.Client.Requests;
 using Polygon.Client.Responses;
 using MarketViewer.Contracts.Requests.Market;
 using MarketViewer.Contracts.Responses.Market;
+using MarketViewer.Contracts.Enums;
 
 namespace MarketViewer.Infrastructure.Services
 {

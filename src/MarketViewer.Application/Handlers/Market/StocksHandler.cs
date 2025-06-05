@@ -11,10 +11,13 @@ using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Models.Study;
 using MarketViewer.Contracts.Requests.Market;
 using MarketViewer.Contracts.Responses.Market;
+using MarketViewer.Contracts.Caching;
+using MarketViewer.Contracts.Enums;
+using MarketViewer.Contracts.Models.Scan;
 
 namespace MarketViewer.Application.Handlers.Market;
 
-public class StocksHandler(IMarketDataRepository repository, StudyFactory studyFactory) : IRequestHandler<StocksRequest, OperationResult<StocksResponse>>
+public class StocksHandler(IMarketDataRepository repository, IMarketCache marketCache, StudyFactory studyFactory) : IRequestHandler<StocksRequest, OperationResult<StocksResponse>>
 {
     public async Task<OperationResult<StocksResponse>> Handle(StocksRequest request, CancellationToken cancellationToken)
     {
@@ -27,7 +30,24 @@ public class StocksHandler(IMarketDataRepository repository, StudyFactory studyF
             };
         }
 
-        var response = await repository.GetStockDataAsync(request);
+        StocksResponse response;
+
+        // Check if we should use cache: minute timespan and date range within last 5 days
+        if (ShouldUseCache(request))
+        {
+            var timeframe = new Timeframe(1, request.Timespan);
+            response = marketCache.GetStocksResponse(request.Ticker, timeframe, DateTimeOffset.Now);
+            
+            // If cache miss, fall back to repository
+            if (response == null)
+            {
+                response = await repository.GetStockDataAsync(request);
+            }
+        }
+        else
+        {
+            response = await repository.GetStockDataAsync(request);
+        }
 
         if (response is null)
         {
@@ -79,6 +99,21 @@ public class StocksHandler(IMarketDataRepository repository, StudyFactory studyF
     }
 
     #region Private Methods
+    private static bool ShouldUseCache(StocksRequest request)
+    {
+        return request.Timespan switch
+        {
+            Timespan.minute => request.From >= DateTimeOffset.Now.AddDays(-5),
+            Timespan.hour => request.From >= DateTimeOffset.Now.AddDays(-30),
+            Timespan.day => request.From >= DateTimeOffset.Now.AddDays(-365),
+            Timespan.week => throw new NotImplementedException(),
+            Timespan.month => throw new NotImplementedException(),
+            Timespan.quarter => throw new NotImplementedException(),
+            Timespan.year => throw new NotImplementedException(),
+            _ => throw new NotImplementedException()
+        };
+    }
+
     private static bool ValidateAggregateRequest(StocksRequest request, out List<string> errorMessages)
     {
         errorMessages = [];
