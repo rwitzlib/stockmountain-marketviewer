@@ -66,6 +66,8 @@ public class BacktestHandler(
                 UserId = request.UserId,
                 Status = BacktestStatus.Pending,
                 CreatedAt = DateTimeOffset.Now.ToString(),
+                Start = request.Start.ToString("yyyy-MM-dd"),
+                End = request.End.ToString("yyyy-MM-dd"),
                 Parameters = CompressRequestDetails(parameters)
             };
 
