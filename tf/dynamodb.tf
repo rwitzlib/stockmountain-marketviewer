@@ -16,7 +16,7 @@ resource "aws_dynamodb_table" "backtest" {
   }
 
   attribute {
-    name = "Parameters"
+    name = "RequestDetails"
     type = "S"
   }
 
@@ -29,8 +29,8 @@ resource "aws_dynamodb_table" "backtest" {
   }
 
   global_secondary_index {
-    name            = "ParametersIndex"
-    hash_key        = "Parameters"
+    name            = "RequestDetailsIndex"
+    hash_key        = "RequestDetails"
     write_capacity  = 2
     read_capacity   = 2
     projection_type = "ALL"

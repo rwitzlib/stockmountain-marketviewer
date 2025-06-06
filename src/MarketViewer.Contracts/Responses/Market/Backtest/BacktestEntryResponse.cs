@@ -22,6 +22,6 @@ public class BacktestEntryResponse
     public float? OtherProfit { get; set; }
     public string Start { get; set; }
     public string End { get; set; }
-    public BacktestParameters Parameters { get; set; }
+    public BacktestParameters RequestDetails { get; set; }
     public List<string> Errors { get; set; }
 }

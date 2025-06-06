@@ -61,7 +61,7 @@ public class BacktestHandler(
                 CreatedAt = DateTimeOffset.Now.ToString(),
                 Start = request.Start.ToString("yyyy-MM-dd"),
                 End = request.End.ToString("yyyy-MM-dd"),
-                Parameters = BacktestUtilities.CompressBacktestParameters(parameters)
+                RequestDetails = BacktestUtilities.CompressRequestDetails(parameters)
             };
 
             await repository.Put(record, null);
@@ -82,7 +82,7 @@ public class BacktestHandler(
                     Id = request.Id,
                     Status = BacktestStatus.Pending,
                     CreatedAt = record.CreatedAt,
-                    Parameters = parameters,
+                    RequestDetails = parameters,
                 }
             };
         }
@@ -124,7 +124,7 @@ public class BacktestHandler(
                     HoldProfit = record.HoldProfit,
                     HighProfit = record.HighProfit,
                     OtherProfit = record.OtherProfit,
-                    Parameters = BacktestUtilities.DecompressBacktestParameters(record.Parameters),
+                    RequestDetails = BacktestUtilities.DecompressRequestDetails(record.RequestDetails),
                     Errors = record.Errors
                 });
             }
@@ -184,7 +184,7 @@ public class BacktestHandler(
                     HoldProfit = record.HoldProfit,
                     HighProfit = record.HighProfit,
                     OtherProfit = record.OtherProfit,
-                    Parameters = BacktestUtilities.DecompressBacktestParameters(record.Parameters),
+                    RequestDetails = BacktestUtilities.DecompressRequestDetails(record.RequestDetails),
                     Errors = record.Errors
                 }
             };
@@ -235,7 +235,7 @@ public class BacktestHandler(
                 };
             }
 
-            var parameters = BacktestUtilities.DecompressBacktestParameters(record.Parameters);
+            var parameters = BacktestUtilities.DecompressRequestDetails(record.RequestDetails);
 
             var entries = await repository.GetBacktestResultsFromS3(record);
 
