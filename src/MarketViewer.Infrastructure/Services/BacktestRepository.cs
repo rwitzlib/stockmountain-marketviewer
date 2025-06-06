@@ -9,6 +9,8 @@ using MarketViewer.Contracts.Responses.Market.Backtest;
 using MarketViewer.Core.Services;
 using MarketViewer.Infrastructure.Config;
 using MarketViewer.Contracts.Records;
+using MarketViewer.Contracts.Models.Backtest;
+using MarketViewer.Infrastructure.Utilities;
 
 namespace MarketViewer.Infrastructure.Services;
 
@@ -105,51 +107,6 @@ public class BacktestRepository(
         {
             logger.LogError(e, "Error listing backtest records for user {userId}", userId);
             return null;
-        }
-    }
-
-    public bool CheckForBacktestHistory(string compressedRequest, out BacktestRecord record)
-    {
-        record = null;
-        
-        try
-        {
-            if (string.IsNullOrWhiteSpace(compressedRequest))
-            {
-                return false;
-            }
-
-            var dynamoDbRespnonse = dynamoDb.QueryAsync(new QueryRequest
-            {
-                TableName = config.TableName,
-                IndexName = config.RequestIndexName,
-                KeyConditionExpression = "RequestDetails = :request",
-                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
-                {
-                    {
-                        ":request",
-                        new AttributeValue
-                        {
-                            S = compressedRequest
-                        }
-                    }
-                }
-            }).Result;
-
-            if (dynamoDbRespnonse == null || dynamoDbRespnonse.Count <= 0)
-            {
-                return false;
-            }
-
-            var json = Document.FromAttributeMap(dynamoDbRespnonse.Items.FirstOrDefault()).ToJson();
-            record = JsonSerializer.Deserialize<BacktestRecord>(json);
-
-            return record != null;
-        }
-        catch (Exception e)
-        {
-            logger.LogError(e, "Error checking for backtest history");
-            return false;
         }
     }
 

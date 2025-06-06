@@ -3,7 +3,7 @@ using MarketViewer.Contracts.Models.Scan;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MarketViewer.Application.Utilities;
+namespace MarketViewer.Infrastructure.Utilities;
 
 public static class ScanUtilities
 {

@@ -1,6 +1,5 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
-using MarketViewer.Application.Utilities;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Enums.Scan;
 using MarketViewer.Contracts.Models;
@@ -8,6 +7,7 @@ using MarketViewer.Contracts.Requests.Tools;
 using MarketViewer.Contracts.Responses.Market;
 using MarketViewer.Contracts.Responses.Tools;
 using MarketViewer.Core.Scan;
+using MarketViewer.Infrastructure.Utilities;
 using MediatR;
 using Microsoft.Extensions.Caching.Memory;
 using System;

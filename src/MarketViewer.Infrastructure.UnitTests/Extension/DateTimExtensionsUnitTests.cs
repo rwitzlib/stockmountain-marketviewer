@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using MarketViewer.Infrastructure.Utilities;
 using Xunit;
 
 namespace MarketViewer.Infrastructure.UnitTests.Extension

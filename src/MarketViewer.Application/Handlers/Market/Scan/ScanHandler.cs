@@ -11,12 +11,12 @@ using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Enums.Scan;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Caching;
-using MarketViewer.Application.Utilities;
 using MarketViewer.Core.Scan;
 using MarketViewer.Contracts.Mappers;
 using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Requests.Market.Scan;
 using MarketViewer.Contracts.Responses.Market;
+using MarketViewer.Infrastructure.Utilities;
 
 namespace MarketViewer.Application.Handlers.Market.Scan;
 

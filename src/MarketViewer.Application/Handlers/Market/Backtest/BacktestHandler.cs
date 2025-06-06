@@ -18,25 +18,18 @@ using System.Threading.Tasks;
 using MarketViewer.Infrastructure.Config;
 using System.Collections.Generic;
 using System.Linq;
-using MarketViewer.Contracts.Caching;
-using System.Text.Json.Serialization;
-using AutoMapper.Configuration.Annotations;
+using MarketViewer.Infrastructure.Utilities;
 
 namespace MarketViewer.Application.Handlers.Market.Backtest;
 
 public class BacktestHandler(
     BacktestConfig config,
     IAmazonLambda lambda,
-    IMarketCache marketCache,
     IBacktestRepository repository,
     ILogger<BacktestHandler> logger)
 {
     private readonly TimeZoneInfo TimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
-    private readonly JsonSerializerOptions Options = new JsonSerializerOptions
-    {
-        PropertyNameCaseInsensitive = true,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-    };
+
 
     public async Task<OperationResult<BacktestEntryResponse>> Create(BacktestCreateRequest request)
     {
@@ -68,7 +61,7 @@ public class BacktestHandler(
                 CreatedAt = DateTimeOffset.Now.ToString(),
                 Start = request.Start.ToString("yyyy-MM-dd"),
                 End = request.End.ToString("yyyy-MM-dd"),
-                Parameters = CompressRequestDetails(parameters)
+                Parameters = BacktestUtilities.CompressBacktestParameters(parameters)
             };
 
             await repository.Put(record, null);
@@ -131,7 +124,7 @@ public class BacktestHandler(
                     HoldProfit = record.HoldProfit,
                     HighProfit = record.HighProfit,
                     OtherProfit = record.OtherProfit,
-                    Parameters = DecompressRequestDetails(record.Parameters),
+                    Parameters = BacktestUtilities.DecompressBacktestParameters(record.Parameters),
                     Errors = record.Errors
                 });
             }
@@ -191,7 +184,7 @@ public class BacktestHandler(
                     HoldProfit = record.HoldProfit,
                     HighProfit = record.HighProfit,
                     OtherProfit = record.OtherProfit,
-                    Parameters = DecompressRequestDetails(record.Parameters),
+                    Parameters = BacktestUtilities.DecompressBacktestParameters(record.Parameters),
                     Errors = record.Errors
                 }
             };
@@ -223,7 +216,6 @@ public class BacktestHandler(
             logger.LogInformation("Getting backtest result for ID: {id}", id);
 
             var record = await repository.Get(id);
-            var parameters = DecompressRequestDetails(record.Parameters);
 
             if (record is null)
             {
@@ -242,6 +234,8 @@ public class BacktestHandler(
                     ErrorMessages = ["Backtest is not completed yet."]
                 };
             }
+
+            var parameters = BacktestUtilities.DecompressBacktestParameters(record.Parameters);
 
             var entries = await repository.GetBacktestResultsFromS3(record);
 
@@ -402,32 +396,6 @@ public class BacktestHandler(
     }
 
     #region Private Methods
-
-    private string CompressRequestDetails(BacktestParameters parameters)
-    {
-        var json = JsonSerializer.Serialize(parameters, Options);
-        var bytes = Encoding.UTF8.GetBytes(json);
-        using var outputStream = new MemoryStream();
-        using (var compressionStream = new GZipStream(outputStream, CompressionMode.Compress))
-        {
-            compressionStream.Write(bytes, 0, bytes.Length);
-        }
-        return Convert.ToBase64String(outputStream.ToArray());
-    }
-
-    public BacktestParameters DecompressRequestDetails(string compressedDetails)
-    {
-        if (string.IsNullOrWhiteSpace(compressedDetails))
-        {
-            return null;
-        }
-        var bytes = Convert.FromBase64String(compressedDetails);
-        using var inputStream = new MemoryStream(bytes);
-        using var decompressionStream = new GZipStream(inputStream, CompressionMode.Decompress);
-        using var reader = new StreamReader(decompressionStream, Encoding.UTF8);
-        var decompressedData = reader.ReadToEnd();
-        return JsonSerializer.Deserialize<BacktestParameters>(decompressedData, Options);
-    }
 
     private static IEnumerable<DateTimeOffset> GetDateRange(BacktestRecord record, IEnumerable<WorkerResponse> entries)
     {

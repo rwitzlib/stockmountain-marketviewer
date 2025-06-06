@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace MarketViewer.Infrastructure;
+namespace MarketViewer.Infrastructure.Utilities;
 
 public static class DateUtilities
 {
