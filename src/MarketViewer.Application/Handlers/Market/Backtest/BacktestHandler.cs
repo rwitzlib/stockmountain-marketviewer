@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MarketViewer.Contracts.Caching;
 using System.Text.Json.Serialization;
+using AutoMapper.Configuration.Annotations;
 
 namespace MarketViewer.Application.Handlers.Market.Backtest;
 
@@ -52,13 +53,20 @@ public class BacktestHandler(
 
             logger.LogInformation("Creating backtest with ID: {id} for user {userId}", request.Id, request.UserId);
 
+            var parameters = new BacktestParameters
+            {
+                PositionInfo = request.PositionInfo,
+                Exit = request.Exit,
+                Argument = request.Argument
+            };
+
             var record = new BacktestRecord
             {
                 Id = request.Id,
                 UserId = request.UserId,
                 Status = BacktestStatus.Pending,
                 CreatedAt = DateTimeOffset.Now.ToString(),
-                RequestDetails = CompressRequestDetails(request)
+                Parameters = CompressRequestDetails(parameters)
             };
 
             await repository.Put(record, null);
@@ -79,7 +87,7 @@ public class BacktestHandler(
                     Id = request.Id,
                     Status = BacktestStatus.Pending,
                     CreatedAt = record.CreatedAt,
-                    RequestDetails = request,
+                    Parameters = parameters,
                 }
             };
         }
@@ -121,7 +129,7 @@ public class BacktestHandler(
                     HoldProfit = record.HoldProfit,
                     HighProfit = record.HighProfit,
                     OtherProfit = record.OtherProfit,
-                    RequestDetails = DecompressRequestDetails(record.RequestDetails),
+                    Parameters = DecompressRequestDetails(record.Parameters),
                     Errors = record.Errors
                 });
             }
@@ -181,7 +189,7 @@ public class BacktestHandler(
                     HoldProfit = record.HoldProfit,
                     HighProfit = record.HighProfit,
                     OtherProfit = record.OtherProfit,
-                    RequestDetails = DecompressRequestDetails(record.RequestDetails),
+                    Parameters = DecompressRequestDetails(record.Parameters),
                     Errors = record.Errors
                 }
             };
@@ -211,7 +219,9 @@ public class BacktestHandler(
             }
 
             logger.LogInformation("Getting backtest result for ID: {id}", id);
+
             var record = await repository.Get(id);
+            var parameters = DecompressRequestDetails(record.Parameters);
 
             if (record is null)
             {
@@ -242,11 +252,9 @@ public class BacktestHandler(
                 };
             }
 
-            var request = DecompressRequestDetails(record.RequestDetails);
-
-            var availableFundsHold = request.PositionInfo.StartingBalance;
-            var availableFundsOther = request.PositionInfo.StartingBalance;
-            var availableFundsHigh = request.PositionInfo.StartingBalance;
+            var availableFundsHold = parameters.PositionInfo.StartingBalance;
+            var availableFundsOther = parameters.PositionInfo.StartingBalance;
+            var availableFundsHigh = parameters.PositionInfo.StartingBalance;
 
             var holdOpenPositions = new List<BacktestEntryResultCollection>();
             var otherOpenPositions = new List<BacktestEntryResultCollection>();
@@ -256,7 +264,7 @@ public class BacktestHandler(
             int maxConcurrentHighPositions = 0;
             int maxConcurrentOtherPositions = 0;
 
-            var dayRange = GetDateRange(request, entries);
+            var dayRange = GetDateRange(record, entries);
 
             var backtestDayResults = new List<BacktestDayResultV3>();
 
@@ -283,7 +291,7 @@ public class BacktestHandler(
                         Bought = [],
                         Sold = []
                     },
-                    Other = request.Exit.Other is null ? null : new BacktestDayDetails
+                    Other = parameters.Exit.Other is null ? null : new BacktestDayDetails
                     {
                         StartCashAvailable = availableFundsOther,
                         Bought = [],
@@ -296,22 +304,22 @@ public class BacktestHandler(
                     var currentTime = marketOpen.AddMinutes(i);
 
                     SellPositionIfApplicable("hold", holdOpenPositions, currentTime, ref availableFundsHold, backtestEntryDay);
-                    if (request.Exit.Other is not null)
+                    if (parameters.Exit.Other is not null)
                     {
                         SellPositionIfApplicable("other", otherOpenPositions, currentTime, ref availableFundsOther, backtestEntryDay);
                     }
                     SellPositionIfApplicable("high", highOpenPositions, currentTime, ref availableFundsHigh, backtestEntryDay);
 
-                    BuyPositionIfApplicable("hold", entry, currentTime, request, ref availableFundsHold, holdOpenPositions, backtestEntryDay);
-                    if (request.Exit.Other is not null)
+                    BuyPositionIfApplicable("hold", entry, currentTime, parameters, ref availableFundsHold, holdOpenPositions, backtestEntryDay);
+                    if (parameters.Exit.Other is not null)
                     {
-                        BuyPositionIfApplicable("other", entry, currentTime, request, ref availableFundsOther, otherOpenPositions, backtestEntryDay);
+                        BuyPositionIfApplicable("other", entry, currentTime, parameters, ref availableFundsOther, otherOpenPositions, backtestEntryDay);
                     }
-                    BuyPositionIfApplicable("high", entry, currentTime, request, ref availableFundsHigh, highOpenPositions, backtestEntryDay);
+                    BuyPositionIfApplicable("high", entry, currentTime, parameters, ref availableFundsHigh, highOpenPositions, backtestEntryDay);
 
                     maxConcurrentHoldPositions = holdOpenPositions.Count > maxConcurrentHoldPositions ? holdOpenPositions.Count : maxConcurrentHoldPositions;
                     maxConcurrentHighPositions = highOpenPositions.Count > maxConcurrentHighPositions ? highOpenPositions.Count : maxConcurrentHighPositions;
-                    if (request.Exit.Other is not null)
+                    if (parameters.Exit.Other is not null)
                     {
                         maxConcurrentOtherPositions = otherOpenPositions.Count > maxConcurrentHighPositions ? otherOpenPositions.Count : maxConcurrentHighPositions;
                     }
@@ -320,7 +328,7 @@ public class BacktestHandler(
                 backtestEntryDay.Hold.EndCashAvailable = availableFundsHold;
                 backtestEntryDay.Hold.TotalBalance = holdOpenPositions.Sum(q => q.StartPosition) + backtestEntryDay.Hold.EndCashAvailable;
 
-                if (request.Exit.Other is not null)
+                if (parameters.Exit.Other is not null)
                 {
                     backtestEntryDay.Other.EndCashAvailable = availableFundsOther;
                     backtestEntryDay.Other.TotalBalance = otherOpenPositions.Sum(q => q.StartPosition) + backtestEntryDay.Other.EndCashAvailable;
@@ -335,8 +343,8 @@ public class BacktestHandler(
             var holdWins = backtestDayResults.SelectMany(q => q.Hold.Sold).Where(q => q.Profit > 0);
             var holdLosses = backtestDayResults.SelectMany(q => q.Hold.Sold).Where(q => q.Profit < 0);
 
-            var otherWins = request.Exit.Other is null ? [] : backtestDayResults.SelectMany(q => q.Other.Sold).Where(q => q.Profit > 0);
-            var otherLosses = request.Exit.Other is null ? [] : backtestDayResults.SelectMany(q => q.Other.Sold).Where(q => q.Profit < 0);
+            var otherWins = parameters.Exit.Other is null ? [] : backtestDayResults.SelectMany(q => q.Other.Sold).Where(q => q.Profit > 0);
+            var otherLosses = parameters.Exit.Other is null ? [] : backtestDayResults.SelectMany(q => q.Other.Sold).Where(q => q.Profit < 0);
 
             var highWins = backtestDayResults.SelectMany(q => q.High.Sold).Where(q => q.Profit > 0);
             var highLosses = backtestDayResults.SelectMany(q => q.High.Sold).Where(q => q.Profit < 0);
@@ -350,7 +358,7 @@ public class BacktestHandler(
                     Hold = new BacktestEntryStats
                     {
                         EndBalance = availableFundsHold,
-                        SumProfit = availableFundsHold - request.PositionInfo.StartingBalance,
+                        SumProfit = availableFundsHold - parameters.PositionInfo.StartingBalance,
                         WinRatio = holdWins.Any() ? (float)holdWins.Count() / (float)(holdWins.Count() + holdLosses.Count()) : 0,
                         AvgWin = holdWins.Any() ? holdWins.Average(q => q.Profit) : 0,
                         AvgLoss = holdLosses.Any() ? holdLosses.Average(q => q.Profit) : 0,
@@ -359,16 +367,16 @@ public class BacktestHandler(
                     High = new BacktestEntryStats
                     {
                         EndBalance = availableFundsHigh,
-                        SumProfit = availableFundsHigh - request.PositionInfo.StartingBalance,
+                        SumProfit = availableFundsHigh - parameters.PositionInfo.StartingBalance,
                         WinRatio = highWins.Any() ? (float)highWins.Count() / (float)(highWins.Count() + highLosses.Count()) : 0,
                         AvgWin = highWins.Any() ? highWins.Average(q => q.Profit) : 0,
                         AvgLoss = highLosses.Any() ? highLosses.Average(q => q.Profit) : 0,
                         MaxConcurrentPositions = backtestDayResults.Any() ? backtestDayResults.Max(result => result.High.OpenPositions) : 0
                     },
-                    Other = request.Exit.Other is null ? null : new BacktestEntryStats
+                    Other = parameters.Exit.Other is null ? null : new BacktestEntryStats
                     {
                         EndBalance = availableFundsOther,
-                        SumProfit = availableFundsOther - request.PositionInfo.StartingBalance,
+                        SumProfit = availableFundsOther - parameters.PositionInfo.StartingBalance,
                         WinRatio = otherWins.Any() ? (float)otherWins.Count() / (float)(otherWins.Count() + otherLosses.Count()) : 0,
                         AvgWin = otherWins.Any() ? otherWins.Average(q => q.Profit) : 0,
                         AvgLoss = otherLosses.Any() ? otherLosses.Average(q => q.Profit) : 0,
@@ -393,10 +401,10 @@ public class BacktestHandler(
 
     #region Private Methods
 
-    private string CompressRequestDetails(BacktestCreateRequest request)
+    private string CompressRequestDetails(BacktestParameters parameters)
     {
-        var requestDetails = JsonSerializer.Serialize(request, Options);
-        var bytes = Encoding.UTF8.GetBytes(requestDetails);
+        var json = JsonSerializer.Serialize(parameters, Options);
+        var bytes = Encoding.UTF8.GetBytes(json);
         using var outputStream = new MemoryStream();
         using (var compressionStream = new GZipStream(outputStream, CompressionMode.Compress))
         {
@@ -405,7 +413,7 @@ public class BacktestHandler(
         return Convert.ToBase64String(outputStream.ToArray());
     }
 
-    public BacktestCreateRequest DecompressRequestDetails(string compressedDetails)
+    public BacktestParameters DecompressRequestDetails(string compressedDetails)
     {
         if (string.IsNullOrWhiteSpace(compressedDetails))
         {
@@ -416,10 +424,10 @@ public class BacktestHandler(
         using var decompressionStream = new GZipStream(inputStream, CompressionMode.Decompress);
         using var reader = new StreamReader(decompressionStream, Encoding.UTF8);
         var decompressedData = reader.ReadToEnd();
-        return JsonSerializer.Deserialize<BacktestCreateRequest>(decompressedData, Options);
+        return JsonSerializer.Deserialize<BacktestParameters>(decompressedData, Options);
     }
 
-    private static IEnumerable<DateTimeOffset> GetDateRange(BacktestCreateRequest request, IEnumerable<WorkerResponse> entries)
+    private static IEnumerable<DateTimeOffset> GetDateRange(BacktestRecord record, IEnumerable<WorkerResponse> entries)
     {
         var entriesWithDates = entries.Where(q => q.Results.Any());
 
@@ -446,7 +454,7 @@ public class BacktestHandler(
         }
 
         var maxDate = lastDates.Max();
-        var startDate = request.Start;
+        var startDate = DateTimeOffset.Parse(record.Start);
 
         return Enumerable.Range(0, (maxDate - startDate).Days + 1)
             .Select(day => startDate.AddDays(day))
@@ -532,11 +540,11 @@ public class BacktestHandler(
         }
     }
 
-    private void BuyPositionIfApplicable(
+    private static void BuyPositionIfApplicable(
         string type,
         WorkerResponse entry,
         DateTimeOffset timestamp,
-        BacktestCreateRequest request,
+        BacktestParameters parameters,
         ref float availableFunds,
         List<BacktestEntryResultCollection> openPositions,
         BacktestDayResultV3 backtestDay)
@@ -548,14 +556,11 @@ public class BacktestHandler(
 
         var results = entry.Results.Where(result => result.BoughtAt == timestamp);
 
-        var feature = request.Features?.FirstOrDefault(q => q.Type == FeatureType.TickerType);
+        //var feature = parameters.Features?.FirstOrDefault(q => q.Type == FeatureType.TickerType);
 
         foreach (var result in results)
         {
-            var tickerDetails = marketCache.GetTickerDetails(result.Ticker);
-
-            if (tickerDetails is null || (feature != null && !feature.Value.Contains(tickerDetails.Type)) ||
-                availableFunds < request.PositionInfo.PositionSize || openPositions.Count >= request.PositionInfo.MaxConcurrentPositions)
+            if (availableFunds < parameters.PositionInfo.PositionSize || openPositions.Count >= parameters.PositionInfo.MaxConcurrentPositions)
             {
                 continue;
             }

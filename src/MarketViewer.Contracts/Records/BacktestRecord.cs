@@ -1,4 +1,5 @@
 ﻿using MarketViewer.Contracts.Enums.Backtest;
+using MarketViewer.Contracts.Models.Backtest;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MarketViewer.Contracts.Records;
@@ -21,7 +22,9 @@ public class BacktestRecord
     public float HoldProfit { get; set; }
     public float HighProfit { get; set; }
     public float? OtherProfit { get; set; }
-    public string RequestDetails { get; set; }
+    public string Start { get; set; }
+    public string End { get; set; }
+    public string Parameters { get; set; }
     public string S3ObjectName { get; set; }
     public List<string> Errors { get; set; }
 }

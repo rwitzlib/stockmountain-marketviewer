@@ -1,5 +1,6 @@
 ﻿using MarketViewer.Contracts.Dtos;
 using MarketViewer.Contracts.Enums.Backtest;
+using MarketViewer.Contracts.Models.Backtest;
 using MarketViewer.Contracts.Requests.Market.Backtest;
 using System.Diagnostics.CodeAnalysis;
 
@@ -19,6 +20,8 @@ public class BacktestEntryResponse
     public float HoldProfit { get; set; }
     public float HighProfit { get; set; }
     public float? OtherProfit { get; set; }
-    public BacktestCreateRequest RequestDetails { get; set; }
+    public string Start { get; set; }
+    public string End { get; set; }
+    public BacktestParameters Parameters { get; set; }
     public List<string> Errors { get; set; }
 }
