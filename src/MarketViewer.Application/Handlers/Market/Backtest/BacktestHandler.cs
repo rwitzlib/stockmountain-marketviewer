@@ -270,7 +270,7 @@ public class BacktestHandler(
                 var marketOpen = new DateTimeOffset(day.Year, day.Month, day.Day, 9, 30, 0, offset);
                 var marketClose = new DateTimeOffset(day.Year, day.Month, day.Day, 16, 0, 0, offset);
 
-                var entry = entries.FirstOrDefault(q => q.Date == day.Date);
+                var entry = entries.FirstOrDefault(q => q.Date.ToString("yyyy-MM-dd") == day.ToString("yyyy-MM-dd"));
 
                 var backtestEntryDay = new BacktestDayResultV3
                 {
