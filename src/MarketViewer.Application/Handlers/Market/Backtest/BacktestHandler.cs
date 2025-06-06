@@ -46,7 +46,7 @@ public class BacktestHandler(
 
             logger.LogInformation("Creating backtest with ID: {id} for user {userId}", request.Id, request.UserId);
 
-            var parameters = new BacktestParameters
+            var parameters = new BacktestRequestDetails
             {
                 PositionInfo = request.PositionInfo,
                 Exit = request.Exit,
@@ -514,7 +514,7 @@ public class BacktestHandler(
         string type,
         WorkerResponse entry,
         DateTimeOffset timestamp,
-        BacktestParameters parameters,
+        BacktestRequestDetails parameters,
         ref float availableFunds,
         List<BacktestEntryResultCollection> openPositions,
         BacktestDayResultV3 backtestDay)

@@ -16,7 +16,7 @@ public static class BacktestUtilities
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
-    public static string CompressRequestDetails(BacktestParameters parameters)
+    public static string CompressRequestDetails(BacktestRequestDetails parameters)
     {
         var json = JsonSerializer.Serialize(parameters, Options);
         var bytes = Encoding.UTF8.GetBytes(json);
@@ -28,7 +28,7 @@ public static class BacktestUtilities
         return Convert.ToBase64String(outputStream.ToArray());
     }
 
-    public static BacktestParameters DecompressRequestDetails(string compressedDetails)
+    public static BacktestRequestDetails DecompressRequestDetails(string compressedDetails)
     {
         if (string.IsNullOrWhiteSpace(compressedDetails))
         {
@@ -39,6 +39,6 @@ public static class BacktestUtilities
         using var decompressionStream = new GZipStream(inputStream, CompressionMode.Decompress);
         using var reader = new StreamReader(decompressionStream, Encoding.UTF8);
         var decompressedData = reader.ReadToEnd();
-        return JsonSerializer.Deserialize<BacktestParameters>(decompressedData, Options);
+        return JsonSerializer.Deserialize<BacktestRequestDetails>(decompressedData, Options);
     }
 }

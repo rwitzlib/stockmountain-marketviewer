@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace MarketViewer.Contracts.Models.Backtest;
 
 [ExcludeFromCodeCoverage]
-public class BacktestParameters
+public class BacktestRequestDetails
 {
     public BacktestPositionInformation PositionInfo { get; set; }
     public BacktestExitInformation Exit { get; set; }
