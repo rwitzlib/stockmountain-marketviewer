@@ -68,7 +68,7 @@ public class BacktestHandler(
 
             var json = JsonSerializer.Serialize(request);
 
-            _ = await lambda.InvokeAsync(new InvokeRequest
+           _ = lambda.InvokeAsync(new InvokeRequest
             {
                 FunctionName = config.LambdaName,
                 Payload = json
