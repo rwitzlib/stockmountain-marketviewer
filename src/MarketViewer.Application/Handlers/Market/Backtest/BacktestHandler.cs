@@ -68,11 +68,11 @@ public class BacktestHandler(
 
             var json = JsonSerializer.Serialize(request);
 
-            Task.Run(() => lambda.InvokeAsync(new InvokeRequest
+            _ = lambda.InvokeAsync(new InvokeRequest
             {
                 FunctionName = config.LambdaName,
                 Payload = json
-            }));
+            });
 
             return new OperationResult<BacktestEntryResponse>
             {
