@@ -68,11 +68,11 @@ public class BacktestHandler(
 
             var json = JsonSerializer.Serialize(request);
 
-            var lambdaResponse = lambda.InvokeAsync(new InvokeRequest
+            Task.Run(() => lambda.InvokeAsync(new InvokeRequest
             {
                 FunctionName = config.LambdaName,
                 Payload = json
-            });
+            }));
 
             return new OperationResult<BacktestEntryResponse>
             {
@@ -124,6 +124,8 @@ public class BacktestHandler(
                     HoldProfit = record.HoldProfit,
                     HighProfit = record.HighProfit,
                     OtherProfit = record.OtherProfit,
+                    Start = record.Start,
+                    End = record.End,
                     RequestDetails = BacktestUtilities.DecompressRequestDetails(record.RequestDetails),
                     Errors = record.Errors
                 });
@@ -184,6 +186,8 @@ public class BacktestHandler(
                     HoldProfit = record.HoldProfit,
                     HighProfit = record.HighProfit,
                     OtherProfit = record.OtherProfit,
+                    Start = record.Start,
+                    End = record.End,
                     RequestDetails = BacktestUtilities.DecompressRequestDetails(record.RequestDetails),
                     Errors = record.Errors
                 }
@@ -379,7 +383,7 @@ public class BacktestHandler(
                         MaxConcurrentPositions = backtestDayResults.Any() ? backtestDayResults.Max(result => result.Other.OpenPositions) : 0
                     },
                     Results = backtestDayResults,
-                    Entries = entries
+                    Entries = entries,
                 }
             };
 
