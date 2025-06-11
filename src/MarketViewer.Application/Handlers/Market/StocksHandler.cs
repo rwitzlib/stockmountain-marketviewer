@@ -101,6 +101,8 @@ public class StocksHandler(IMarketDataRepository repository, IMarketCache market
             }
         }
 
+        response.Results = response.Results.TakeLast(request.Limit).ToList();
+
         return new OperationResult<StocksResponse>
         {
             Status = HttpStatusCode.OK,

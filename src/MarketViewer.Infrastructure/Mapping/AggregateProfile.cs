@@ -25,7 +25,7 @@ public class AggregateProfile : Profile
             .ForMember(dest => dest.To, opt => opt.MapFrom(src => src.To.ToUnixTimeMilliseconds()))
             .ForMember(dest => dest.Adjusted, opt => opt.MapFrom(src => true))
             .ForMember(dest => dest.Sort, opt => opt.MapFrom(src => "asc"))
-            .ForMember(dest => dest.Limit, opt => opt.MapFrom(src => 50000));
+            .ForMember(dest => dest.Limit, opt => opt.MapFrom(src => src.Limit));
 
         CreateMap<PolygonAggregateResponse, StocksResponse>()
             .ForMember(dest => dest.Studies, opt => opt.Ignore())

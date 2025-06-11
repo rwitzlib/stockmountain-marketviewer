@@ -19,7 +19,6 @@ namespace MarketViewer.Infrastructure.Services
             try
             {
                 var aggregateRequest = mapper.Map<StocksRequest, PolygonAggregateRequest>(request);
-                aggregateRequest.Limit = 50000;
 
                 var polygonResponse = await polygonClient.GetAggregates(aggregateRequest);
 
