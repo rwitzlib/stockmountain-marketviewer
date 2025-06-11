@@ -69,7 +69,7 @@ public class InitialAggregateJob(
             sp.Stop();
 
             var now = DateTimeOffset.Now;
-            var startTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 1, 0, now.Offset);
+            var startTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 3, 0, now.Offset);
 
             var scheduledSnapshotJob = JobBuilder.Create<SnapshotJob>()
                 .StoreDurably(true)
