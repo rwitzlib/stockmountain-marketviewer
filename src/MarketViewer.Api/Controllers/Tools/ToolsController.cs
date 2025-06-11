@@ -11,6 +11,8 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Polygon.Client.Models;
+using Polygon.Client.Responses;
 using System.Text.Json;
 using StatsResponse = MarketViewer.Contracts.Responses.Tools.StatsResponse;
 
@@ -183,5 +185,28 @@ public class ToolsController(
             logger.LogError(e, e.Message);
             return StatusCode(StatusCodes.Status500InternalServerError, new List<string> { "Internal error." });
         }
+    }
+
+    [HttpGet]
+    [Route("websocket/{tickers}")]
+    [RequiredPermissions([UserRole.Admin])]
+    public IActionResult GetWebsocketResponses(string tickers)
+    {
+        var tickersList = tickers.Split(',');
+
+        List<StocksResponse> responses = [];
+        foreach (var ticker in tickersList)
+        {
+            var bar = marketCache.GetLiveBar(ticker);
+
+            responses.Add(new StocksResponse
+            {
+                Ticker = ticker,
+                Status = "OK",
+                Results = new List<Bar> { bar }
+            });
+        }
+
+        return Ok(responses);
     }
 }

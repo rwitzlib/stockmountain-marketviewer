@@ -36,12 +36,22 @@ public class StocksHandler(IMarketDataRepository repository, IMarketCache market
         if (ShouldUseCache(request))
         {
             var timeframe = new Timeframe(1, request.Timespan);
-            response = marketCache.GetStocksResponse(request.Ticker, timeframe, DateTimeOffset.Now);
+            var cacheResponse = marketCache.GetStocksResponse(request.Ticker, timeframe, DateTimeOffset.Now);
             
             // If cache miss, fall back to repository
-            if (response == null)
+            if (cacheResponse is null)
             {
                 response = await repository.GetStockDataAsync(request);
+            }
+            else
+            {
+                response = cacheResponse.Clone();
+                var latestBar = marketCache.GetLiveBar(request.Ticker);
+
+                if (latestBar is not null)
+                {
+                    response.Results.Add(latestBar);
+                }
             }
         }
         else

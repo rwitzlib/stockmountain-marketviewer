@@ -1,6 +1,7 @@
 ﻿using Polygon.Client.Models;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Responses.Market;
+using Polygon.Client.Responses;
 
 namespace MarketViewer.Contracts.Caching;
 
@@ -19,4 +20,7 @@ public interface IMarketCache
 
     TickerDetails GetTickerDetails(string ticker);
     void SetTickerDetails(TickerDetails tickerDetails);
+
+    void AddLiveBar(PolygonWebsocketAggregateResponse bar);
+    Bar GetLiveBar(string ticker);
 }

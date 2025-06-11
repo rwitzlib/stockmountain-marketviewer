@@ -5,6 +5,7 @@ using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Responses.Market;
 using Microsoft.Extensions.Caching.Memory;
 using Polygon.Client.Models;
+using Polygon.Client.Responses;
 using System.Text.Json;
 
 namespace MarketViewer.Contracts.Caching;
@@ -98,6 +99,32 @@ public class MemoryMarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3) :
         _memoryCache.Set($"TickerDetails/{tickerDetails.Ticker}", tickerDetails);
     }
 
+
+    public void AddLiveBar(PolygonWebsocketAggregateResponse webSocketBar)
+    {
+        var bar = new Bar
+        {
+            Close = webSocketBar.Close,
+            High = webSocketBar.High,
+            Low = webSocketBar.Low,
+            Open = webSocketBar.Open,
+            Volume = webSocketBar.Volume,
+            Vwap = webSocketBar.TickVwap,
+            Timestamp = webSocketBar.TickStart,
+        };
+
+        _memoryCache.Set(webSocketBar.Ticker, bar);
+    }
+
+    public Bar GetLiveBar(string ticker)
+    {
+        var bar = _memoryCache.Get<Bar>(ticker);
+
+        return bar;
+    }
+
+    #region Private Methods
+
     private static string BuildS3Key(DateTimeOffset timestamp, int multiplier, Timespan timespan)
     {
         var month = timestamp.Date.Month < 10 ? $"0{timestamp.Date.Month}" : $"{timestamp.Date.Month}";
@@ -111,4 +138,6 @@ public class MemoryMarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3) :
             _ => throw new NotImplementedException()
         };
     }
+
+    #endregion
 }

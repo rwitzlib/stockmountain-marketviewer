@@ -29,5 +29,11 @@ public class StocksResponse
         public float AverageVolume { get; set; }
     }
 
-    public StocksResponse Clone() => (StocksResponse)MemberwiseClone();
+    public StocksResponse Clone()
+    {
+        var response = (StocksResponse)MemberwiseClone();
+        response.Results = response.Results.Select(bar => bar.Clone()).ToList();
+        // TODO: add cloning for studies as well later on?
+        return response;
+    }
 }
