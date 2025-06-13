@@ -19,7 +19,7 @@ public class StocksLiveFeed(
     private bool _isAuthenticated = false;
     private bool _isSubscribed = false;
 
-    private const int MaxBufferSize = 65536;
+    private const int MaxBufferSize = 1024 * 64;
 
     protected async override Task ExecuteAsync(CancellationToken cancellationToken)
     {
@@ -31,12 +31,25 @@ public class StocksLiveFeed(
             {
                 logger.LogInformation("Connecting to PolygonApi Websocket at: {time}", DateTimeOffset.Now);
 
+                var messageBuilder = new StringBuilder();
+
                 await socket.ConnectAsync(new Uri("wss://socket.polygon.io/stocks"), cancellationToken);
 
                 var buffer = new byte[MaxBufferSize];
                 while (socket.State == WebSocketState.Open)
                 {
                     var result = await socket.ReceiveAsync(buffer, cancellationToken);
+
+                    var chunk = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                    messageBuilder.Append(chunk);
+
+                    if (!result.EndOfMessage)
+                    {
+                        continue;
+                    }
+
+                    string completeMessage = messageBuilder.ToString();
+                    messageBuilder.Clear();
 
                     if (result.MessageType == WebSocketMessageType.Close)
                     {
@@ -51,8 +64,7 @@ public class StocksLiveFeed(
                         continue;
                     }
 
-                    var json = Encoding.ASCII.GetString(buffer, 0, result.Count);
-                    if (!TryDeserialize(json, out var response))
+                    if (!TryDeserialize(completeMessage, out var response))
                     {
                         continue;
                     }

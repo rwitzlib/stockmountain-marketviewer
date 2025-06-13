@@ -124,7 +124,7 @@ public class ScanHandler(
                 var stocksResponse = (hasTimeframe ? marketCache.GetStocksResponse(ticker, timeframe, timestamp) : marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), timestamp)).Clone();
                 var latestBar = marketCache.GetLiveBar(ticker);
 
-                if (latestBar is not null)
+                if (latestBar is not null && latestBar.Timestamp > stocksResponse.Results.Last().Timestamp)
                 {
                     stocksResponse.Results.Add(latestBar);
                 }

@@ -48,7 +48,7 @@ public class StocksHandler(IMarketDataRepository repository, IMarketCache market
                 response = cacheResponse.Clone();
                 var latestBar = marketCache.GetLiveBar(request.Ticker);
 
-                if (latestBar is not null)
+                if (latestBar is not null && latestBar.Timestamp > response.Results.Last().Timestamp)
                 {
                     response.Results.Add(latestBar);
                 }
