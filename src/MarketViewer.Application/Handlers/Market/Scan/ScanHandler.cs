@@ -28,12 +28,11 @@ public class ScanHandler(
     private const int MINIMUM_REQUIRED_CANDLES = 30;
     private const int CANDLES_TO_TAKE = 120;
 
-    private readonly TimeZoneInfo TimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/Chicago");
-    private TimeSpan Offset;
+    //private readonly TimeZoneInfo TimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/Chicago");
 
     public async Task<OperationResult<ScanResponse>> Handle(ScanRequest request, CancellationToken cancellationToken)
     {
-        Offset = TimeZone.IsDaylightSavingTime(request.Timestamp) ? TimeSpan.FromHours(-5) : TimeSpan.FromHours(-6);
+        //TimeSpan offset = TimeZone.IsDaylightSavingTime(request.Timestamp) ? TimeSpan.FromHours(-5) : TimeSpan.FromHours(-6);
 
         try
         {
@@ -61,7 +60,7 @@ public class ScanHandler(
         }
         catch (Exception ex)
         {
-            logger.LogError("Error scanning for {timestamp}: {message}", request.Timestamp, ex.Message);
+            logger.LogError(ex, "Error scanning for {timestamp}: {message}", request.Timestamp, ex.Message);
             return new OperationResult<ScanResponse>
             {
                 Status = HttpStatusCode.InternalServerError,
