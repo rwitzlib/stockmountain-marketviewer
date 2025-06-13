@@ -14,7 +14,6 @@ using MarketViewer.Contracts.Responses.Market;
 using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.Scan;
-using System.Runtime.Serialization.Formatters;
 
 namespace MarketViewer.Application.Handlers.Market;
 

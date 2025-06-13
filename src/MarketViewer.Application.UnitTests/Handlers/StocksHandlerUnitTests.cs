@@ -16,7 +16,7 @@ using MarketViewer.Contracts.Caching;
 
 namespace MarketViewer.Application.UnitTests.Handlers
 {
-    public class GetAggregateHandlerUnitTests : IClassFixture<StudyFixture>
+    public class StocksHandlerUnitTests : IClassFixture<StudyFixture>
     {
         #region Private Fields
         private StocksHandler _classUnderTest;
@@ -26,7 +26,7 @@ namespace MarketViewer.Application.UnitTests.Handlers
         #endregion
 
         #region Constructor
-        public GetAggregateHandlerUnitTests(StudyFixture fixture)
+        public StocksHandlerUnitTests(StudyFixture fixture)
         {
             _fixture = new Fixture();
 
@@ -220,6 +220,35 @@ namespace MarketViewer.Application.UnitTests.Handlers
             result.Data.Results.Should().NotBeNullOrEmpty();
             result.Data.Studies.Should().BeNullOrEmpty();
         }
+
+        [Fact]
+        public async Task RequestWithLimitShouldOnlyReturnThatManyResults()
+        {
+            // Arrange
+            var request = GivenAggregateRequestWithStudies();
+            request.Limit = 10;
+
+            var response = GivenSuccessfulResponse();
+
+            _repository.Setup(q => q.GetStockDataAsync(It.IsAny<StocksRequest>()))
+                .ReturnsAsync(response);
+
+            // Act
+            var result = await _classUnderTest.Handle(request, default);
+
+            // Assert
+            result.Data.Results.Should().NotBeNullOrEmpty();
+            result.Data.Results.Count().Should().Be(10);
+
+            foreach (var study in result.Data.Studies)
+            {
+                foreach (var line in study.Results)
+                {
+                    line.Count().Should().Be(10);
+                }
+            }
+        }
+
         #endregion
 
         #region Private Methods
