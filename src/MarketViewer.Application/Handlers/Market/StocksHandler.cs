@@ -14,6 +14,7 @@ using MarketViewer.Contracts.Responses.Market;
 using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.Scan;
+using System.Runtime.Serialization.Formatters;
 
 namespace MarketViewer.Application.Handlers.Market;
 
@@ -98,6 +99,19 @@ public class StocksHandler(IMarketDataRepository repository, IMarketCache market
             if (studies.Count > 0)
             {
                 response.Studies = studies;
+
+                for (int i = 0; i < response.Studies.Count; i++)
+                {
+                    var study = response.Studies[i];
+
+                    for (int j = 0; j < study.Results.Count; j++)
+                    {
+                        if (study.Results[j].Count > request.Limit)
+                        {
+                            study.Results[j] = study.Results[j].TakeLast(request.Limit).ToList();
+                        }
+                    }
+                }
             }
         }
 
