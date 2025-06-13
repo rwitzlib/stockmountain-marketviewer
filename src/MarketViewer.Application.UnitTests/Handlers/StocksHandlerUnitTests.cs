@@ -222,7 +222,7 @@ namespace MarketViewer.Application.UnitTests.Handlers
         }
 
         [Fact]
-        public async Task RequestWithLimitShouldOnlyReturnThatManyResults()
+        public async Task RequestWithLimitShouldOnlyReturnThatManyResults_WithStudies()
         {
             // Arrange
             var request = GivenAggregateRequestWithStudies();
@@ -247,6 +247,27 @@ namespace MarketViewer.Application.UnitTests.Handlers
                     line.Count().Should().Be(10);
                 }
             }
+        }
+
+        [Fact]
+        public async Task RequestWithLimitShouldOnlyReturnThatManyResults_NoStudies()
+        {
+            // Arrange
+            var request = GivenAggregateRequestWithNoStudies();
+            request.Limit = 10;
+
+            var response = GivenSuccessfulResponse();
+
+            _repository.Setup(q => q.GetStockDataAsync(It.IsAny<StocksRequest>()))
+                .ReturnsAsync(response);
+
+            // Act
+            var result = await _classUnderTest.Handle(request, default);
+
+            // Assert
+            result.Data.Results.Should().NotBeNullOrEmpty();
+            result.Data.Results.Count().Should().Be(10);
+            result.Data.Studies.Should().BeNullOrEmpty();
         }
 
         #endregion
