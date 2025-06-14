@@ -126,6 +126,7 @@ public class BacktestHandler(
                     OtherProfit = record.OtherProfit,
                     Start = record.Start,
                     End = record.End,
+                    DurationSeconds = record.DurationSeconds,
                     RequestDetails = BacktestUtilities.DecompressRequestDetails(record.RequestDetails),
                     Errors = record.Errors
                 });
@@ -188,6 +189,7 @@ public class BacktestHandler(
                     OtherProfit = record.OtherProfit,
                     Start = record.Start,
                     End = record.End,
+                    DurationSeconds = record.DurationSeconds,
                     RequestDetails = BacktestUtilities.DecompressRequestDetails(record.RequestDetails),
                     Errors = record.Errors
                 }
