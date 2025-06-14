@@ -27,4 +27,5 @@ public class BacktestRecord
     public string RequestDetails { get; set; }
     public string S3ObjectName { get; set; }
     public List<string> Errors { get; set; }
+    public float DurationSeconds { get; set; }
 }
