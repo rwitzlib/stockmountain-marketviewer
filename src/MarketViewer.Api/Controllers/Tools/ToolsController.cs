@@ -188,6 +188,14 @@ public class ToolsController(
     }
 
     [HttpGet]
+    [Route("websocket/live/SPY")]
+    [RequiredPermissions([UserRole.Admin])]
+    public IActionResult GetWebsocketResponses()
+    {
+        return Ok(memoryCache.Get<List<Bar>>("SPY_LIVE"));
+    }
+
+    [HttpGet]
     [Route("websocket/{tickers}")]
     [RequiredPermissions([UserRole.Admin])]
     public IActionResult GetWebsocketResponses(string tickers)

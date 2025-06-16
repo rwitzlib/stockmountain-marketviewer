@@ -14,6 +14,8 @@ using MarketViewer.Contracts.Responses.Market;
 using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.Scan;
+using Polygon.Client.Models;
+using Amazon.Runtime.Internal;
 
 namespace MarketViewer.Application.Handlers.Market;
 
@@ -46,12 +48,14 @@ public class StocksHandler(IMarketDataRepository repository, IMarketCache market
             else
             {
                 response = cacheResponse.Clone();
+            }
+
+            if (request.To.Date == DateTimeOffset.Now.Date)
+            {
+                // If the request is for today's data, we need to ensure we have the latest live bar
                 var latestBar = marketCache.GetLiveBar(request.Ticker);
 
-                if (latestBar is not null && latestBar.Timestamp > response.Results.Last().Timestamp)
-                {
-                    response.Results.Add(latestBar);
-                }
+                TryAddBarToResponse(request.Multiplier, request.Timespan, latestBar, response);
             }
         }
         else
@@ -167,5 +171,60 @@ public class StocksHandler(IMarketDataRepository repository, IMarketCache market
 
         return errorMessages.Count == 0;
     }
+
+    private static void TryAddBarToResponse(int multiplier, Timespan timespan, Bar latestBar, StocksResponse response)
+    {
+        if (latestBar is null || latestBar.Timestamp <= response.Results.Last().Timestamp)
+        {
+            return;
+        }
+
+        if (!BarPassesRules(latestBar))
+        {
+            return;
+        }
+
+        switch (timespan)
+        {
+            case Timespan.minute:
+                if (multiplier != 1)
+                {
+                    return; // Only add live bar for 1 minute aggregates
+                }
+                response.Results.Add(latestBar);
+                break;
+            case Timespan.hour:
+                if (multiplier != 1)
+                {
+                    return; // Only add live bar for 1 hour aggregates
+                }
+                var last = response.Results.Last();
+                break;
+            case Timespan.day:
+            case Timespan.week:
+            case Timespan.month:
+            case Timespan.quarter:
+            case Timespan.year:
+                return;
+            default:
+                throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Check if the bar passes Polygon's rules that qualify it as an eligible trade.
+    /// See documentation:
+    ///     - https://polygon.io/blog/understanding-trade-eligibility
+    ///     - https://polygon.io/docs/rest/stocks/market-operations/condition-codes
+    ///     - https://polygon.io/knowledge-base/article/how-does-polygon-create-aggregate-bars
+    /// </summary>
+    /// <param name="bar"></param>
+    /// <returns></returns>
+    private static bool BarPassesRules(Bar bar)
+    {
+        // TODO: Holdup - we may not need to worry about these conditions
+        return true;
+    }
+
     #endregion
 }
