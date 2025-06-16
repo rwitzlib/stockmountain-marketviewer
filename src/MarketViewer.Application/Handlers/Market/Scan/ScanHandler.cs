@@ -147,7 +147,7 @@ public class ScanHandler(
 
     private static void TryAddBarToResponse(int multiplier, Timespan timespan, Bar latestBar, StocksResponse response)
     {
-        if (latestBar is null || response.Results?.Count > 0 || latestBar.Timestamp <= response.Results.Last().Timestamp)
+        if (latestBar is null || response is null || response.Results?.Count > 0 || latestBar.Timestamp <= response.Results.Last().Timestamp)
         {
             return;
         }
