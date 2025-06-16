@@ -174,12 +174,7 @@ public class StocksHandler(IMarketDataRepository repository, IMarketCache market
 
     private static void TryAddBarToResponse(int multiplier, Timespan timespan, Bar latestBar, StocksResponse response)
     {
-        if (latestBar is null || latestBar.Timestamp <= response.Results.Last().Timestamp)
-        {
-            return;
-        }
-
-        if (!BarPassesRules(latestBar))
+        if (latestBar is null || response.Results?.Count == 0 || latestBar.Timestamp <= response.Results.Last().Timestamp)
         {
             return;
         }
@@ -199,6 +194,20 @@ public class StocksHandler(IMarketDataRepository repository, IMarketCache market
                     return; // Only add live bar for 1 hour aggregates
                 }
                 var last = response.Results.Last();
+
+                if (last.Timestamp + (60 * 60000) < latestBar.Timestamp)
+                {
+                    response.Results.Add(latestBar);
+                }
+                else
+                {
+                    // Update the last bar with the latest data
+                    last.Close = latestBar.Close;
+                    last.High = Math.Max(last.High, latestBar.High);
+                    last.Low = Math.Min(last.Low, latestBar.Low);
+                    last.Volume += latestBar.Volume;
+                    last.Vwap = (last.Close + last.High + last.Low) / 3;
+                }
                 break;
             case Timespan.day:
             case Timespan.week:
@@ -209,21 +218,6 @@ public class StocksHandler(IMarketDataRepository repository, IMarketCache market
             default:
                 throw new NotImplementedException();
         }
-    }
-
-    /// <summary>
-    /// Check if the bar passes Polygon's rules that qualify it as an eligible trade.
-    /// See documentation:
-    ///     - https://polygon.io/blog/understanding-trade-eligibility
-    ///     - https://polygon.io/docs/rest/stocks/market-operations/condition-codes
-    ///     - https://polygon.io/knowledge-base/article/how-does-polygon-create-aggregate-bars
-    /// </summary>
-    /// <param name="bar"></param>
-    /// <returns></returns>
-    private static bool BarPassesRules(Bar bar)
-    {
-        // TODO: Holdup - we may not need to worry about these conditions
-        return true;
     }
 
     #endregion

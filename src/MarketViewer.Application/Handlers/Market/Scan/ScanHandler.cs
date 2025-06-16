@@ -17,6 +17,8 @@ using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Requests.Market.Scan;
 using MarketViewer.Contracts.Responses.Market;
 using MarketViewer.Infrastructure.Utilities;
+using Polygon.Client.Models;
+using Amazon.Runtime.Internal;
 
 namespace MarketViewer.Application.Handlers.Market.Scan;
 
@@ -122,10 +124,14 @@ public class ScanHandler(
 
                 var stocksResponse = (hasTimeframe ? marketCache.GetStocksResponse(ticker, timeframe, timestamp) : marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), timestamp)).Clone();
                 var latestBar = marketCache.GetLiveBar(ticker);
-
-                if (latestBar is not null && stocksResponse.Results?.Count > 0 && latestBar.Timestamp > stocksResponse.Results.Last().Timestamp)
+                
+                if (hasTimeframe)
                 {
-                    stocksResponse.Results.Add(latestBar);
+                    TryAddBarToResponse(timeframe.Multiplier, timeframe.Timespan, latestBar, stocksResponse);
+                }
+                else
+                {
+                    TryAddBarToResponse(1, Timespan.minute, latestBar, stocksResponse);
                 }
 
                 var item = ApplyFilterToStocksResponse(sortedFitlers[i], timestamp, stocksResponse);
@@ -137,6 +143,54 @@ public class ScanHandler(
             }
         }
         return results;
+    }
+
+    private static void TryAddBarToResponse(int multiplier, Timespan timespan, Bar latestBar, StocksResponse response)
+    {
+        if (latestBar is null || response.Results?.Count > 0 || latestBar.Timestamp <= response.Results.Last().Timestamp)
+        {
+            return;
+        }
+
+        switch (timespan)
+        {
+            case Timespan.minute:
+                if (multiplier != 1)
+                {
+                    return; // Only add live bar for 1 minute aggregates
+                }
+                response.Results.Add(latestBar);
+                break;
+            case Timespan.hour:
+                if (multiplier != 1)
+                {
+                    return; // Only add live bar for 1 hour aggregates
+                }
+                var last = response.Results.Last();
+
+                if (last.Timestamp + (60 * 60000) < latestBar.Timestamp)
+                {
+                    response.Results.Add(latestBar);
+                }
+                else
+                {
+                    // Update the last bar with the latest data
+                    last.Close = latestBar.Close;
+                    last.High = Math.Max(last.High, latestBar.High);
+                    last.Low = Math.Min(last.Low, latestBar.Low);
+                    last.Volume += latestBar.Volume;
+                    last.Vwap = (last.Close + last.High + last.Low) / 3;
+                }
+                break;
+            case Timespan.day:
+            case Timespan.week:
+            case Timespan.month:
+            case Timespan.quarter:
+            case Timespan.year:
+                return;
+            default:
+                throw new NotImplementedException();
+        }
     }
 
     private ScanResponse.Item ApplyFilterToStocksResponse(Filter filter, DateTimeOffset timestamp, StocksResponse stocksResponse, int candlesToTake = CANDLES_TO_TAKE)
