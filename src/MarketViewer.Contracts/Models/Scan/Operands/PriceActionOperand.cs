@@ -33,10 +33,10 @@ public class PriceActionOperand : IScanOperand
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum PriceActionType
 {
-    Open,
-    Close,
-    High,
-    Low,
-    Vwap,
-    Volume
+    open,
+    close,
+    high,
+    low,
+    vwap,
+    volume
 }

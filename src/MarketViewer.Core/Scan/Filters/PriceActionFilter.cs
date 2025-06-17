@@ -13,12 +13,12 @@ public class PriceActionFilter : IFilterV2
 
         var candles = priceActionOperand.PriceAction switch
         {
-            PriceActionType.Open => stocksResponse.Results.Select(q => q.Open),
-            PriceActionType.Close => stocksResponse.Results.Select(q => q.Close),
-            PriceActionType.High => stocksResponse.Results.Select(q => q.High),
-            PriceActionType.Low => stocksResponse.Results.Select(q => q.Low),
-            PriceActionType.Vwap => stocksResponse.Results.Select(q => q.Vwap),
-            PriceActionType.Volume => stocksResponse.Results.Select(q => q.Volume),
+            PriceActionType.open => stocksResponse.Results.Select(q => q.Open),
+            PriceActionType.close => stocksResponse.Results.Select(q => q.Close),
+            PriceActionType.high => stocksResponse.Results.Select(q => q.High),
+            PriceActionType.low => stocksResponse.Results.Select(q => q.Low),
+            PriceActionType.vwap => stocksResponse.Results.Select(q => q.Vwap),
+            PriceActionType.volume => stocksResponse.Results.Select(q => q.Volume),
             _ => [],
         };
 
