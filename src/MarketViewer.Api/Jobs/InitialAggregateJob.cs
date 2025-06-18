@@ -97,6 +97,11 @@ public class InitialAggregateJob(
     {
         var tickers = marketCache.GetTickers();
 
+        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") is "local")
+        {
+            tickers = ["SPY"]; // Limit to 1000 tickers in local environment for testing
+        }
+
         for (int i = 0; i < tickers.Count(); i += BATCH_SIZE)
         {
             var tasks = new List<Task>();

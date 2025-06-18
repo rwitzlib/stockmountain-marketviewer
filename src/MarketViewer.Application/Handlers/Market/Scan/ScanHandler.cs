@@ -122,19 +122,28 @@ public class ScanHandler(
                 //    continue;
                 //}
 
-                var stocksResponse = (hasTimeframe ? marketCache.GetStocksResponse(ticker, timeframe, timestamp) : marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), timestamp)).Clone();
+                var stocksResponse = hasTimeframe ? marketCache.GetStocksResponse(ticker, timeframe, timestamp) : marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), timestamp);
+
+                if (stocksResponse is null)
+                {
+                    logger.LogWarning("No stocks response found for ticker {ticker} at {timestamp}", ticker, timestamp);
+                    continue;
+                }
+
+                var clonedResponse = stocksResponse.Clone();
+
                 var latestBar = marketCache.GetLiveBar(ticker);
                 
                 if (hasTimeframe)
                 {
-                    TryAddBarToResponse(timeframe.Multiplier, timeframe.Timespan, latestBar, stocksResponse);
+                    TryAddBarToResponse(timeframe.Multiplier, timeframe.Timespan, latestBar, clonedResponse);
                 }
                 else
                 {
-                    TryAddBarToResponse(1, Timespan.minute, latestBar, stocksResponse);
+                    TryAddBarToResponse(1, Timespan.minute, latestBar, clonedResponse);
                 }
 
-                var item = ApplyFilterToStocksResponse(sortedFitlers[i], timestamp, stocksResponse);
+                var item = ApplyFilterToStocksResponse(sortedFitlers[i], timestamp, clonedResponse);
 
                 if (item is not null && !results.Any(result => result.Ticker == item.Ticker))
                 {

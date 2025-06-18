@@ -104,7 +104,7 @@ public class MemoryMarketCache(IMemoryCache memoryCache, IAmazonS3 s3) : IMarket
     {
         var currentBar = memoryCache.Get<Bar>(webSocketBar.Ticker);
 
-        if (currentBar is null || webSocketBar.TickStart % 60000 == 0)
+        if (currentBar is null || DateTimeOffset.FromUnixTimeMilliseconds(webSocketBar.TickStart).Minute > DateTimeOffset.FromUnixTimeMilliseconds(currentBar.Timestamp).Minute)
         {
             var bar = new Bar
             {
