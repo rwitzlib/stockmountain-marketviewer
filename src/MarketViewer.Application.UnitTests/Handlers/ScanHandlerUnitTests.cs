@@ -57,7 +57,7 @@ public class ScanHandlerUnitTests
     {
         // Arrange
         var now = DateTimeOffset.Now;
-        SetupMarketCache(now, true, true);
+        SetupMarketCacheForMinuteTimeframe(now, true, true);
 
         var request = new ScanRequest
         {
@@ -100,7 +100,7 @@ public class ScanHandlerUnitTests
     {
         // Arrange
         var now = DateTimeOffset.Now;
-        SetupMarketCache(now, true, false);
+        SetupMarketCacheForMinuteTimeframe(now, true, false);
 
         var request = new ScanRequest
         {
@@ -143,7 +143,7 @@ public class ScanHandlerUnitTests
     {
         // Arrange
         var now = DateTimeOffset.Now;
-        SetupMarketCache(now, false);
+        SetupMarketCacheForMinuteTimeframe(now, false);
 
         var request = new ScanRequest
         {
@@ -186,7 +186,7 @@ public class ScanHandlerUnitTests
     {
         // Arrange
         var now = DateTimeOffset.Now;
-        SetupMarketCache(now, false);
+        SetupMarketCacheForMinuteTimeframe(now, false);
 
         var request = new ScanRequest
         {
@@ -224,9 +224,52 @@ public class ScanHandlerUnitTests
         response.Data.Items.Count().Should().Be(0);
     }
 
+    [Fact]
+    public async Task LatestBarIsIncluded_HourTimeframe()
+    {
+        // Arrange
+        var now = DateTimeOffset.Now;
+        SetupMarketCacheForHourTimeframe(now, true, true);
+
+        var request = new ScanRequest
+        {
+            Timestamp = now,
+            Argument = new ScanArgumentDto
+            {
+                Operator = "AND",
+                Filters =
+                [
+                    new FilterDto {
+                        CollectionModifier = "ALL",
+                        FirstOperand = new OperandDto
+                        {
+                            Type = OperandType.PriceAction,
+                            Name = "volume",
+                            Modifier = OperandModifier.Value,
+                            Timeframe = new Timeframe(1, Timespan.hour),
+                        },
+                        Operator = FilterOperator.gt,
+                        SecondOperand = new OperandDto
+                        {
+                            Type = OperandType.Fixed,
+                            Value = 1000
+                        },
+                        Timeframe = new Timeframe(1, Timespan.minute)
+                    }
+                ]
+            }
+        };
+
+        // Act
+        var response = await _classUnderTest.Handle(request, default);
+
+        // Assert
+        response.Data.Items.Count().Should().Be(1);
+    }
+
     #region Private Methods
 
-    private void SetupMarketCache(DateTimeOffset timestamp, bool includeLatestBar, bool latestBarShouldPassFilters = true)
+    private void SetupMarketCacheForMinuteTimeframe(DateTimeOffset timestamp, bool includeLatestBar, bool latestBarShouldPassFilters = true)
     {
         _marketCache.SetTickers(["SPY"]);
         _marketCache.SetTickersByTimeframe(timestamp, new Timeframe(1, Timespan.minute), ["SPY"]);
@@ -245,7 +288,7 @@ public class ScanHandlerUnitTests
         {
             Ticker = "SPY",
             Results = results
-        }, new Timeframe(1, Timespan.minute), DateTimeOffset.Now);
+        }, new Timeframe(1, Timespan.minute), timestamp);
 
         if (!includeLatestBar)
         {
@@ -260,5 +303,40 @@ public class ScanHandlerUnitTests
         });
     }
 
+    private void SetupMarketCacheForHourTimeframe(DateTimeOffset timestamp, bool includeLatestBar, bool latestBarShouldPassFilters = true)
+    {
+        _marketCache.SetTickers(["SPY"]);
+        _marketCache.SetTickersByTimeframe(timestamp, new Timeframe(1, Timespan.hour), ["SPY"]);
+
+        var nearestHour = new DateTimeOffset(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, 0, 0, timestamp.Offset);
+
+        List<Bar> results = [];
+        for (int i = 30; i >= 0; i--)
+        {
+            results.Add(new Bar
+            {
+                Timestamp = nearestHour.AddHours(-i).ToUnixTimeMilliseconds(),
+                Volume = 1
+            });
+        }
+
+        _marketCache.SetStocksResponse(new StocksResponse
+        {
+            Ticker = "SPY",
+            Results = results
+        }, new Timeframe(1, Timespan.hour), timestamp);
+
+        if (!includeLatestBar)
+        {
+            return;
+        }
+
+        _marketCache.AddLiveBar(new PolygonWebsocketAggregateResponse
+        {
+            Ticker = "SPY",
+            Volume = latestBarShouldPassFilters ? 1000 : 0,
+            TickStart = timestamp.ToUnixTimeMilliseconds()
+        });
+    }
     #endregion
 }

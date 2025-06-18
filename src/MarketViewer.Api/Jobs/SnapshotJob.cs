@@ -47,22 +47,22 @@ public class SnapshotJob(
                 var minuteCandle = AddBarToCache(snapshot.Ticker, new Timeframe(1, Timespan.minute), snapshot.Minute);
                 var hourCandle = AddBarToCache(snapshot.Ticker, new Timeframe(1, Timespan.hour), snapshot.Minute);
 
-                var snapshotEntry = snapshotResponse.Entries.FirstOrDefault(q => q.Ticker == snapshot.Ticker);
+                //var snapshotEntry = snapshotResponse.Entries.FirstOrDefault(q => q.Ticker == snapshot.Ticker);
 
-                if (snapshotEntry is null || snapshotEntry.Results is null)
-                {
-                    continue;
-                }
+                //if (snapshotEntry is null || snapshotEntry.Results is null)
+                //{
+                //    continue;
+                //}
 
-                var offset = _timeZone.GetUtcOffset(DateTimeOffset.FromUnixTimeMilliseconds(snapshot.Minute.Timestamp));
+                //var offset = _timeZone.GetUtcOffset(DateTimeOffset.FromUnixTimeMilliseconds(snapshot.Minute.Timestamp));
 
-                snapshotEntry.Results.Add(new Snapshot
-                {
-                    Timestamp = snapshot.Minute.Timestamp,
-                    DateTime = DateTimeOffset.FromUnixTimeMilliseconds(snapshot.Minute.Timestamp).ToOffset(offset),
-                    Minute = minuteCandle?.Clone(),
-                    Hour = hourCandle?.Clone()
-                });
+                //snapshotEntry.Results.Add(new Snapshot
+                //{
+                //    Timestamp = snapshot.Minute.Timestamp,
+                //    DateTime = DateTimeOffset.FromUnixTimeMilliseconds(snapshot.Minute.Timestamp).ToOffset(offset),
+                //    Minute = minuteCandle?.Clone(),
+                //    Hour = hourCandle?.Clone()
+                //});
             }
 
             memoryCache.Set("snapshot", snapshotResponse);
