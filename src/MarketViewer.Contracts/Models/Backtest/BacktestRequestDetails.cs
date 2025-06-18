@@ -8,6 +8,6 @@ namespace MarketViewer.Contracts.Models.Backtest;
 public class BacktestRequestDetails
 {
     public BacktestPositionInformation PositionInfo { get; set; }
-    public BacktestExitInformation Exit { get; set; }
+    public BacktestExitInformation ExitInfo { get; set; }
     public ScanArgumentDto Argument { get; set; }
 }

@@ -9,7 +9,7 @@ public class WorkerRequest
 {
     public DateTimeOffset Date { get; set; }
     public BacktestPositionInformation PositionInfo { get; set; }
-    public BacktestExitInformation Exit { get; set; }
+    public BacktestExitInformation ExitInfo { get; set; }
     public IEnumerable<Feature> Features { get; set; }
     public ScanArgumentDto Argument { get; set; }
     public bool DetailedResponse { get; set; } = false;

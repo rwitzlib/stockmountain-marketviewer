@@ -11,7 +11,7 @@ public class BacktestCreateRequest : BaseRequest
     public DateTimeOffset Start { get; set; }
     public DateTimeOffset End { get; set; }
     public BacktestPositionInformation PositionInfo { get; set; }
-    public BacktestExitInformation Exit { get; set; }
+    public BacktestExitInformation ExitInfo { get; set; }
     public IEnumerable<Feature> Features { get; set; }
     public ScanArgumentDto Argument { get; set; }
     public bool DetailedResponse { get; set; } = false;
