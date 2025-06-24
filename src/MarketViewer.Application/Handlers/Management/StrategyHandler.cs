@@ -37,7 +37,7 @@ public class StrategyHandler(AuthContext authContext, IStrategyRepository reposi
                 {
                     ProfitTarget = request.ExitInfo?.ProfitTarget,
                     StopLoss = request.ExitInfo?.StopLoss,
-                    Other = ScanArgumentMapper.ConvertFromScanArgumentDto(request.ExitInfo?.Other),
+                    Other = request.ExitInfo?.Other,
                     Timeframe = request.ExitInfo?.Timeframe,
                 },
                 Argument = ScanArgumentMapper.ConvertFromScanArgumentDto(request.Argument)
@@ -68,7 +68,7 @@ public class StrategyHandler(AuthContext authContext, IStrategyRepository reposi
                 {
                     ProfitTarget = strategyDto.ExitInfo?.ProfitTarget,
                     StopLoss = strategyDto.ExitInfo?.StopLoss,
-                    Other = ScanArgumentMapper.ConvertToScanArgumentDto(strategy.ExitInfo?.Other),
+                    Other = strategy.ExitInfo?.Other,
                     Timeframe = strategyDto.ExitInfo?.Timeframe,
                 },
                 Argument = ScanArgumentMapper.ConvertToScanArgumentDto(strategyDto.Argument)
@@ -119,7 +119,7 @@ public class StrategyHandler(AuthContext authContext, IStrategyRepository reposi
                 {
                     StopLoss = strategy.ExitInfo?.StopLoss,
                     ProfitTarget = strategy.ExitInfo?.ProfitTarget,
-                    Other = ScanArgumentMapper.ConvertToScanArgumentDto(strategy.ExitInfo?.Other),
+                    Other = strategy.ExitInfo?.Other,
                     Timeframe = strategy.ExitInfo?.Timeframe,
                 },
                 Argument = ScanArgumentMapper.ConvertToScanArgumentDto(strategy.Argument)
@@ -177,7 +177,7 @@ public class StrategyHandler(AuthContext authContext, IStrategyRepository reposi
                     {
                         StopLoss = strategy.ExitInfo?.StopLoss,
                         ProfitTarget = strategy.ExitInfo?.ProfitTarget,
-                        Other = ScanArgumentMapper.ConvertToScanArgumentDto(strategy.ExitInfo?.Other),
+                        Other = strategy.ExitInfo?.Other,
                         Timeframe = strategy.ExitInfo?.Timeframe,
                     },
                     Argument = ScanArgumentMapper.ConvertToScanArgumentDto(strategy.Argument)
@@ -230,7 +230,7 @@ public class StrategyHandler(AuthContext authContext, IStrategyRepository reposi
                 {
                     StopLoss = request.ExitInfo?.StopLoss,
                     ProfitTarget = request.ExitInfo?.ProfitTarget,
-                    Other = ScanArgumentMapper.ConvertFromScanArgumentDto(request.ExitInfo?.Other),
+                    Other = request.ExitInfo?.Other,
                     Timeframe = request.ExitInfo?.Timeframe,
                 },
                 Argument = ScanArgumentMapper.ConvertFromScanArgumentDto(request.Argument)
@@ -260,7 +260,7 @@ public class StrategyHandler(AuthContext authContext, IStrategyRepository reposi
                 {
                     StopLoss = strategy.ExitInfo?.StopLoss,
                     ProfitTarget = strategy.ExitInfo?.ProfitTarget,
-                    Other = ScanArgumentMapper.ConvertToScanArgumentDto(strategy.ExitInfo?.Other),
+                    Other = strategy.ExitInfo?.Other,
                     Timeframe = strategy.ExitInfo?.Timeframe,
                 },
                 Argument = ScanArgumentMapper.ConvertToScanArgumentDto(strategy.Argument)

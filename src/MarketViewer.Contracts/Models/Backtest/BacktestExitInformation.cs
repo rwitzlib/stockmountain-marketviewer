@@ -1,4 +1,5 @@
-﻿using MarketViewer.Contracts.Models.Scan;
+﻿using MarketViewer.Contracts.Dtos;
+using MarketViewer.Contracts.Models.Scan;
 using System.Diagnostics.CodeAnalysis;
 using ValueType = MarketViewer.Contracts.Enums.ValueType;
 
@@ -9,7 +10,7 @@ public class BacktestExitInformation
 {
     public Exit StopLoss { get; set; }
     public Exit ProfitTarget { get; set; }
-    public ScanArgument Other { get; set; }
+    public ScanArgumentDto Other { get; set; }
     public Timeframe Timeframe { get; set; }
 
     public class Exit
