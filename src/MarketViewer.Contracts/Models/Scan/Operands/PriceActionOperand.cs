@@ -29,14 +29,3 @@ public class PriceActionOperand : IScanOperand
         return true;
     }
 }
-
-[JsonConverter(typeof(JsonStringEnumConverter))]
-public enum PriceActionType
-{
-    open,
-    close,
-    high,
-    low,
-    vwap,
-    volume
-}

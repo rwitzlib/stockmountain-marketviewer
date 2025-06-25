@@ -1,7 +1,6 @@
 ﻿using MarketViewer.Contracts.Dtos;
 using MarketViewer.Contracts.Models.Scan;
 using System.Diagnostics.CodeAnalysis;
-using ValueType = MarketViewer.Contracts.Enums.ValueType;
 
 namespace MarketViewer.Contracts.Models.Backtest;
 
@@ -12,10 +11,4 @@ public class BacktestExitInformation
     public Exit ProfitTarget { get; set; }
     public ScanArgumentDto Other { get; set; }
     public Timeframe Timeframe { get; set; }
-
-    public class Exit
-    {
-        public ValueType Type { get; set; }
-        public float Value { get; set; }
-    }
 }
