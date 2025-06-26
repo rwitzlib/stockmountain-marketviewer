@@ -23,5 +23,6 @@ public class BacktestEntryResponse
     public string Start { get; set; }
     public string End { get; set; }
     public BacktestRequestDetails RequestDetails { get; set; }
+    public float DurationSeconds { get; set; }
     public List<string> Errors { get; set; }
 }

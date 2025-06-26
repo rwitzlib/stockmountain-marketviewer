@@ -5,11 +5,12 @@ using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Responses.Market;
 using Microsoft.Extensions.Caching.Memory;
 using Polygon.Client.Models;
+using Polygon.Client.Responses;
 using System.Text.Json;
 
 namespace MarketViewer.Contracts.Caching;
 
-public class MemoryMarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3) : IMarketCache
+public class MemoryMarketCache(IMemoryCache memoryCache, IAmazonS3 s3) : IMarketCache
 {
     private readonly JsonSerializerOptions Options = new()
     {
@@ -26,7 +27,7 @@ public class MemoryMarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3) :
             Key = BuildS3Key(date, timeframe.Multiplier, timeframe.Timespan)
         };
 
-        using var s3Response = await _amazonS3.GetObjectAsync(s3Request);
+        using var s3Response = await s3.GetObjectAsync(s3Request);
         using var streamReader = new StreamReader(s3Response.ResponseStream);
 
         var json = await streamReader.ReadToEndAsync();
@@ -47,22 +48,22 @@ public class MemoryMarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3) :
 
     public IEnumerable<string> GetTickers()
     {
-        return _memoryCache.Get<IEnumerable<string>>("Tickers");
+        return memoryCache.Get<IEnumerable<string>>("Tickers");
     }
 
     public void SetTickers(IEnumerable<string> tickers)
     {
-        _memoryCache.Set("Tickers", tickers);
+        memoryCache.Set("Tickers", tickers);
     }
 
     public IEnumerable<string> GetTickersByTimeframe(Timeframe timeframe, DateTimeOffset timestamp)
     {
-        return _memoryCache.Get<IEnumerable<string>>($"Tickers/{timeframe.Multiplier}/{timeframe.Timespan}/{timestamp.Date:yyyyMMdd}");
+        return memoryCache.Get<IEnumerable<string>>($"Tickers/{timeframe.Multiplier}/{timeframe.Timespan}/{timestamp.Date:yyyyMMdd}");
     }
 
     public void SetTickersByTimeframe(DateTimeOffset date, Timeframe timeframe, IEnumerable<string> tickers)
     {
-        _memoryCache.GetOrCreate($"Tickers/{timeframe.Multiplier}/{timeframe.Timespan}/{date.Date:yyyyMMdd}", entry =>
+        memoryCache.GetOrCreate($"Tickers/{timeframe.Multiplier}/{timeframe.Timespan}/{date.Date:yyyyMMdd}", entry =>
         {
             entry.SetSlidingExpiration(ExpireIn);
             return tickers;
@@ -71,7 +72,7 @@ public class MemoryMarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3) :
 
     public StocksResponse GetStocksResponse(string ticker, Timeframe timeframe, DateTimeOffset timestamp)
     {
-        return _memoryCache.Get<StocksResponse>($"Stocks/{ticker}/{timeframe.Multiplier}/{timeframe.Timespan}/{timestamp.Date:yyyyMMdd}");
+        return memoryCache.Get<StocksResponse>($"Stocks/{ticker}/{timeframe.Multiplier}/{timeframe.Timespan}/{timestamp.Date:yyyyMMdd}");
     }
 
     public void SetStocksResponse(StocksResponse stocksResponse, Timeframe timeframe, DateTimeOffset date)
@@ -81,7 +82,7 @@ public class MemoryMarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3) :
             return;
         }
 
-        _memoryCache.GetOrCreate($"Stocks/{stocksResponse.Ticker}/{timeframe.Multiplier}/{timeframe.Timespan}/{date.Date:yyyyMMdd}", entry =>
+        memoryCache.GetOrCreate($"Stocks/{stocksResponse.Ticker}/{timeframe.Multiplier}/{timeframe.Timespan}/{date.Date:yyyyMMdd}", entry =>
         {
             entry.SetSlidingExpiration(ExpireIn);
             return stocksResponse;
@@ -90,13 +91,75 @@ public class MemoryMarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3) :
 
     public TickerDetails GetTickerDetails(string ticker)
     {
-        return _memoryCache.Get<TickerDetails>($"TickerDetails/{ticker}");
+        return memoryCache.Get<TickerDetails>($"TickerDetails/{ticker}");
     }
 
     public void SetTickerDetails(TickerDetails tickerDetails)
     {
-        _memoryCache.Set($"TickerDetails/{tickerDetails.Ticker}", tickerDetails);
+        memoryCache.Set($"TickerDetails/{tickerDetails.Ticker}", tickerDetails);
     }
+
+
+    public void AddLiveBar(PolygonWebsocketAggregateResponse webSocketBar)
+    {
+        var currentBar = memoryCache.Get<Bar>(webSocketBar.Ticker);
+
+        if (currentBar is null || DateTimeOffset.FromUnixTimeMilliseconds(webSocketBar.TickStart).Minute > DateTimeOffset.FromUnixTimeMilliseconds(currentBar.Timestamp).Minute)
+        {
+            var bar = new Bar
+            {
+                Close = webSocketBar.Close,
+                High = webSocketBar.High,
+                Low = webSocketBar.Low,
+                Open = webSocketBar.Open,
+                Volume = webSocketBar.Volume,
+                Vwap = webSocketBar.TickVwap,
+                Timestamp = webSocketBar.TickStart,
+            };
+
+            if (webSocketBar.Ticker is "SPY")
+            {
+                var bars = memoryCache.Get<List<Bar>>("SPY_LIVE");
+
+                if (bars is null)
+                {
+                    bars = [bar];
+                    memoryCache.Set("SPY_LIVE", bars);
+                }
+                else
+                {
+                    bars.Add(bar);
+                    memoryCache.Set("SPY_LIVE", bars);
+                }
+            }
+
+            memoryCache.Set(webSocketBar.Ticker, bar);
+            return;
+        }
+
+        if (webSocketBar.High > currentBar.High)
+        {
+            currentBar.High = webSocketBar.High;
+        }
+
+        if (webSocketBar.Low < currentBar.Low)
+        {
+            currentBar.Low = webSocketBar.Low;
+        }
+
+        currentBar.Close = webSocketBar.Close;
+        currentBar.Vwap = webSocketBar.TickVwap;
+        currentBar.Volume += webSocketBar.Volume;
+    }
+
+    public Bar GetLiveBar(string ticker)
+    {
+        var bar = memoryCache.Get<Bar>(ticker);
+
+        return bar;
+    }
+
+    #region Private Methods
 
     private static string BuildS3Key(DateTimeOffset timestamp, int multiplier, Timespan timespan)
     {
@@ -111,4 +174,6 @@ public class MemoryMarketCache(IMemoryCache _memoryCache, IAmazonS3 _amazonS3) :
             _ => throw new NotImplementedException()
         };
     }
+
+    #endregion
 }

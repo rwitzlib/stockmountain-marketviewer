@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       environment:
+        description: 'Deployment environment'
         type: string
         default: dev
 

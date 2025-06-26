@@ -17,6 +17,8 @@ using MarketViewer.Contracts.Models;
 using MarketViewer.Contracts.Requests.Market.Scan;
 using MarketViewer.Contracts.Responses.Market;
 using MarketViewer.Infrastructure.Utilities;
+using Polygon.Client.Models;
+using Amazon.Runtime.Internal;
 
 namespace MarketViewer.Application.Handlers.Market.Scan;
 
@@ -28,12 +30,11 @@ public class ScanHandler(
     private const int MINIMUM_REQUIRED_CANDLES = 30;
     private const int CANDLES_TO_TAKE = 120;
 
-    private readonly TimeZoneInfo TimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/Chicago");
-    private TimeSpan Offset;
+    //private readonly TimeZoneInfo TimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/Chicago");
 
     public async Task<OperationResult<ScanResponse>> Handle(ScanRequest request, CancellationToken cancellationToken)
     {
-        Offset = TimeZone.IsDaylightSavingTime(request.Timestamp) ? TimeSpan.FromHours(-5) : TimeSpan.FromHours(-6);
+        //TimeSpan offset = TimeZone.IsDaylightSavingTime(request.Timestamp) ? TimeSpan.FromHours(-5) : TimeSpan.FromHours(-6);
 
         try
         {
@@ -61,7 +62,7 @@ public class ScanHandler(
         }
         catch (Exception ex)
         {
-            logger.LogError("Error scanning for {timestamp}: {message}", request.Timestamp, ex.Message);
+            logger.LogError(ex, "Error scanning for {timestamp}: {message}", request.Timestamp, ex.Message);
             return new OperationResult<ScanResponse>
             {
                 Status = HttpStatusCode.InternalServerError,
@@ -123,7 +124,26 @@ public class ScanHandler(
 
                 var stocksResponse = hasTimeframe ? marketCache.GetStocksResponse(ticker, timeframe, timestamp) : marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), timestamp);
 
-                var item = ApplyFilterToStocksResponse(sortedFitlers[i], timestamp, stocksResponse);
+                if (stocksResponse is null)
+                {
+                    logger.LogWarning("No stocks response found for ticker {ticker} at {timestamp}", ticker, timestamp);
+                    continue;
+                }
+
+                var clonedResponse = stocksResponse.Clone();
+
+                var latestBar = marketCache.GetLiveBar(ticker);
+                
+                if (hasTimeframe)
+                {
+                    TryAddBarToResponse(timeframe.Multiplier, timeframe.Timespan, latestBar, clonedResponse);
+                }
+                else
+                {
+                    TryAddBarToResponse(1, Timespan.minute, latestBar, clonedResponse);
+                }
+
+                var item = ApplyFilterToStocksResponse(sortedFitlers[i], timestamp, clonedResponse);
 
                 if (item is not null && !results.Any(result => result.Ticker == item.Ticker))
                 {
@@ -134,122 +154,160 @@ public class ScanHandler(
         return results;
     }
 
-    //private bool IsMinuteResponseValid(string ticker, DateTimeOffset timestamp)
-    //{
-    //    var minuteResponse = marketCache.GetStocksResponse(ticker, new Timeframe(1, Timespan.minute), timestamp);
+    private static void TryAddBarToResponse(int multiplier, Timespan timespan, Bar latestBar, StocksResponse response)
+    {
+        if (latestBar is null || response is null || response.Results?.Count <= 0 || latestBar.Timestamp <= response.Results.Last().Timestamp)
+        {
+            return;
+        }
 
-    //    if (minuteResponse.Results.Count < 5)
-    //    {
-    //        return false;
-    //    }
+        switch (timespan)
+        {
+            case Timespan.minute:
+                if (multiplier != 1)
+                {
+                    return; // Only add live bar for 1 minute aggregates
+                }
+                response.Results.Add(latestBar);
+                break;
+            case Timespan.hour:
+                if (multiplier != 1)
+                {
+                    return; // Only add live bar for 1 hour aggregates
+                }
+                var last = response.Results.Last();
 
-    //    var lastCandles = minuteResponse.Results.TakeLast(5).ToArray();
-
-    //    for (int i = 0; i < lastCandles.Length - 1; i++)
-    //    {
-    //        if (lastCandles[i].Timestamp - lastCandles[i + 1].Timestamp != 60000)
-    //        {
-    //            return false;
-    //        }
-    //    }
-
-    //    return true;
-    //}
-
+                if (last.Timestamp + (60 * 60000) < latestBar.Timestamp)
+                {
+                    response.Results.Add(latestBar);
+                }
+                else
+                {
+                    // Update the last bar with the latest data
+                    last.Close = latestBar.Close;
+                    last.High = Math.Max(last.High, latestBar.High);
+                    last.Low = Math.Min(last.Low, latestBar.Low);
+                    last.Volume += latestBar.Volume;
+                    last.Vwap = (last.Close + last.High + last.Low) / 3;
+                }
+                break;
+            case Timespan.day:
+            case Timespan.week:
+            case Timespan.month:
+            case Timespan.quarter:
+            case Timespan.year:
+                return;
+            default:
+                throw new NotImplementedException();
+        }
+    }
 
     private ScanResponse.Item ApplyFilterToStocksResponse(Filter filter, DateTimeOffset timestamp, StocksResponse stocksResponse, int candlesToTake = CANDLES_TO_TAKE)
     {
-        bool passesFilter = false;
-
-        var reducedStocksResponse = new StocksResponse
+        try
         {
-            Ticker = stocksResponse.Ticker,
-            TickerInfo = stocksResponse.TickerInfo,
-            Results = stocksResponse.Results.Where(candle => candle.Timestamp <= timestamp.ToUnixTimeMilliseconds()).TakeLast(candlesToTake).ToList()
-        };
+            bool passesFilter = false;
 
-        if (reducedStocksResponse.Results is null || reducedStocksResponse.Results.Count < MINIMUM_REQUIRED_CANDLES)
-        {
-            return null;
-        }
-
-        var firstFilter = scanFilterFactory.GetScanFilter(filter.FirstOperand);
-        var firstOperandResult = firstFilter.Compute(filter.FirstOperand, reducedStocksResponse, filter.Timeframe);
-
-        var secondFilter = scanFilterFactory.GetScanFilter(filter.SecondOperand);
-        var secondOperandResult = secondFilter.Compute(filter.SecondOperand, reducedStocksResponse, filter.Timeframe);
-
-        if (firstOperandResult.Length == 0 || secondOperandResult.Length == 0)
-        {
-            return null;
-        }
-
-        if (filter.Timeframe is not null)
-        {
-            if (reducedStocksResponse.Results.Count < filter.Timeframe.Multiplier)
+            if (stocksResponse is null || stocksResponse.Results is null || stocksResponse.Results.Count == 0)
             {
                 return null;
             }
-        }
 
-        if (filter.CollectionModifier is null)
-        {
-            passesFilter = filter.Operator switch
+            var reducedStocksResponse = new StocksResponse
             {
-                FilterOperator.lt => firstOperandResult.First() < secondOperandResult.First(),
-                FilterOperator.le => firstOperandResult.First() <= secondOperandResult.First(),
-                FilterOperator.eq => firstOperandResult.First() == secondOperandResult.First(),
-                FilterOperator.ge => firstOperandResult.First() >= secondOperandResult.First(),
-                FilterOperator.gt => firstOperandResult.First() > secondOperandResult.First(),
-                _ => throw new NotImplementedException(),
+                Ticker = stocksResponse.Ticker,
+                TickerInfo = stocksResponse.TickerInfo,
+                Results = stocksResponse.Results.Where(candle => candle.Timestamp <= timestamp.ToUnixTimeMilliseconds()).TakeLast(candlesToTake).ToList()
+            };
+
+            if (reducedStocksResponse.Results is null || reducedStocksResponse.Results.Count < MINIMUM_REQUIRED_CANDLES)
+            {
+                return null;
+            }
+
+            var firstFilter = scanFilterFactory.GetScanFilter(filter.FirstOperand);
+            var firstOperandResult = firstFilter.Compute(filter.FirstOperand, reducedStocksResponse, filter.Timeframe);
+
+            var secondFilter = scanFilterFactory.GetScanFilter(filter.SecondOperand);
+            var secondOperandResult = secondFilter.Compute(filter.SecondOperand, reducedStocksResponse, filter.Timeframe);
+
+            if (firstOperandResult.Length == 0 || secondOperandResult.Length == 0)
+            {
+                return null;
+            }
+
+            if (filter.Timeframe is not null)
+            {
+                if (reducedStocksResponse.Results.Count < filter.Timeframe.Multiplier)
+                {
+                    return null;
+                }
+            }
+
+            if (filter.CollectionModifier is null)
+            {
+                passesFilter = filter.Operator switch
+                {
+                    FilterOperator.lt => firstOperandResult.First() < secondOperandResult.First(),
+                    FilterOperator.le => firstOperandResult.First() <= secondOperandResult.First(),
+                    FilterOperator.eq => firstOperandResult.First() == secondOperandResult.First(),
+                    FilterOperator.ge => firstOperandResult.First() >= secondOperandResult.First(),
+                    FilterOperator.gt => firstOperandResult.First() > secondOperandResult.First(),
+                    _ => throw new NotImplementedException(),
+                };
+            }
+            else
+            {
+                passesFilter = filter.CollectionModifier.ToLowerInvariant() switch
+                {
+                    "all" => filter.Operator switch
+                    {
+                        FilterOperator.lt => firstOperandResult.Zip(secondOperandResult, (x, y) => x < y).All(result => result == true),
+                        FilterOperator.le => firstOperandResult.Zip(secondOperandResult, (x, y) => x <= y).All(result => result == true),
+                        FilterOperator.eq => firstOperandResult.Zip(secondOperandResult, (x, y) => x == y).All(result => result == true),
+                        FilterOperator.ge => firstOperandResult.Zip(secondOperandResult, (x, y) => x >= y).All(result => result == true),
+                        FilterOperator.gt => firstOperandResult.Zip(secondOperandResult, (x, y) => x > y).All(result => result == true),
+                        _ => throw new NotImplementedException(),
+                    },
+                    "any" => filter.Operator switch
+                    {
+                        FilterOperator.lt => firstOperandResult.Zip(secondOperandResult, (x, y) => x < y).Any(result => result == true),
+                        FilterOperator.le => firstOperandResult.Zip(secondOperandResult, (x, y) => x <= y).Any(result => result == true),
+                        FilterOperator.eq => firstOperandResult.Zip(secondOperandResult, (x, y) => x == y).Any(result => result == true),
+                        FilterOperator.ge => firstOperandResult.Zip(secondOperandResult, (x, y) => x >= y).Any(result => result == true),
+                        FilterOperator.gt => firstOperandResult.Zip(secondOperandResult, (x, y) => x > y).Any(result => result == true),
+                        _ => throw new NotImplementedException(),
+                    },
+                    "average" => filter.Operator switch
+                    {
+                        FilterOperator.lt => firstOperandResult.Average() < secondOperandResult.Average(),
+                        FilterOperator.le => firstOperandResult.Average() <= secondOperandResult.Average(),
+                        FilterOperator.eq => firstOperandResult.Average() == secondOperandResult.Average(),
+                        FilterOperator.ge => firstOperandResult.Average() >= secondOperandResult.Average(),
+                        FilterOperator.gt => firstOperandResult.Average() > secondOperandResult.Average(),
+                        _ => throw new NotImplementedException(),
+                    },
+                    _ => throw new NotImplementedException()
+                };
+            }
+
+            if (!passesFilter)
+            {
+                return null;
+            }
+
+            return new ScanResponse.Item
+            {
+                Ticker = stocksResponse.Ticker,
+                Price = stocksResponse.Results.Last().Close,
+                Float = stocksResponse.TickerInfo?.TickerDetails?.Float
             };
         }
-        else
+        catch (Exception e)
         {
-            passesFilter = filter.CollectionModifier.ToLowerInvariant() switch
-            {
-                "all" => filter.Operator switch
-                {
-                    FilterOperator.lt => firstOperandResult.Zip(secondOperandResult, (x, y) => x < y).All(result => result == true),
-                    FilterOperator.le => firstOperandResult.Zip(secondOperandResult, (x, y) => x <= y).All(result => result == true),
-                    FilterOperator.eq => firstOperandResult.Zip(secondOperandResult, (x, y) => x == y).All(result => result == true),
-                    FilterOperator.ge => firstOperandResult.Zip(secondOperandResult, (x, y) => x >= y).All(result => result == true),
-                    FilterOperator.gt => firstOperandResult.Zip(secondOperandResult, (x, y) => x > y).All(result => result == true),
-                    _ => throw new NotImplementedException(),
-                },
-                "any" => filter.Operator switch
-                {
-                    FilterOperator.lt => firstOperandResult.Zip(secondOperandResult, (x, y) => x < y).Any(result => result == true),
-                    FilterOperator.le => firstOperandResult.Zip(secondOperandResult, (x, y) => x <= y).Any(result => result == true),
-                    FilterOperator.eq => firstOperandResult.Zip(secondOperandResult, (x, y) => x == y).Any(result => result == true),
-                    FilterOperator.ge => firstOperandResult.Zip(secondOperandResult, (x, y) => x >= y).Any(result => result == true),
-                    FilterOperator.gt => firstOperandResult.Zip(secondOperandResult, (x, y) => x > y).Any(result => result == true),
-                    _ => throw new NotImplementedException(),
-                },
-                "average" => filter.Operator switch
-                {
-                    FilterOperator.lt => firstOperandResult.Average() < secondOperandResult.Average(),
-                    FilterOperator.le => firstOperandResult.Average() <= secondOperandResult.Average(),
-                    FilterOperator.eq => firstOperandResult.Average() == secondOperandResult.Average(),
-                    FilterOperator.ge => firstOperandResult.Average() >= secondOperandResult.Average(),
-                    FilterOperator.gt => firstOperandResult.Average() > secondOperandResult.Average(),
-                    _ => throw new NotImplementedException(),
-                },
-                _ => throw new NotImplementedException()
-            };
-        }
-
-        if (!passesFilter)
-        {
+            logger.LogError("Error applying filter {filter} to stocks response for {ticker} at {timestamp}: {message}", filter, stocksResponse?.Ticker, timestamp, e.Message);
             return null;
         }
-
-        return new ScanResponse.Item
-        {
-            Ticker = stocksResponse.Ticker,
-            Price = stocksResponse.Results.Last().Close,
-            Float = stocksResponse.TickerInfo?.TickerDetails?.Float
-        };
     }
     #endregion
 }

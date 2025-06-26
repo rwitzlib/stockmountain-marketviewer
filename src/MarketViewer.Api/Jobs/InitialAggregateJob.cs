@@ -69,7 +69,7 @@ public class InitialAggregateJob(
             sp.Stop();
 
             var now = DateTimeOffset.Now;
-            var startTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 1, 0, now.Offset);
+            var startTime = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.AddMinutes(1).Minute, 3, 0, now.Offset);
 
             var scheduledSnapshotJob = JobBuilder.Create<SnapshotJob>()
                 .StoreDurably(true)
@@ -96,6 +96,11 @@ public class InitialAggregateJob(
     private async Task PopulateStocksResponses(Timeframe timeframe, DateTimeOffset date)
     {
         var tickers = marketCache.GetTickers();
+
+        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") is "local")
+        {
+            tickers = ["SPY"]; // Limit to 1000 tickers in local environment for testing
+        }
 
         for (int i = 0; i < tickers.Count(); i += BATCH_SIZE)
         {

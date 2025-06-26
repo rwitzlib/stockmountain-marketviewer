@@ -4,6 +4,7 @@ using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.Scan;
 using MarketViewer.Contracts.Responses.Market;
 using Polygon.Client.Models;
+using Polygon.Client.Responses;
 using System.Collections.Concurrent;
 using System.Text.Json;
 
@@ -117,5 +118,15 @@ public class DictionaryMarketCache(IAmazonS3 _amazonS3) : IMarketCache
             Timespan.hour => $"backtest/{timestamp.Date.Year}/{month}/aggregate_{multiplier}_{timespan}",
             _ => throw new NotImplementedException()
         };
+    }
+
+    public void AddLiveBar(PolygonWebsocketAggregateResponse bar)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Bar GetLiveBar(string ticker)
+    {
+        throw new NotImplementedException();
     }
 }

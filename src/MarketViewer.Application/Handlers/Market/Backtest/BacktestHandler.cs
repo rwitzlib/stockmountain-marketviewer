@@ -49,7 +49,7 @@ public class BacktestHandler(
             var parameters = new BacktestRequestDetails
             {
                 PositionInfo = request.PositionInfo,
-                Exit = request.Exit,
+                ExitInfo = request.ExitInfo,
                 Argument = request.Argument
             };
 
@@ -126,6 +126,7 @@ public class BacktestHandler(
                     OtherProfit = record.OtherProfit,
                     Start = record.Start,
                     End = record.End,
+                    DurationSeconds = record.DurationSeconds,
                     RequestDetails = BacktestUtilities.DecompressRequestDetails(record.RequestDetails),
                     Errors = record.Errors
                 });
@@ -188,6 +189,7 @@ public class BacktestHandler(
                     OtherProfit = record.OtherProfit,
                     Start = record.Start,
                     End = record.End,
+                    DurationSeconds = record.DurationSeconds,
                     RequestDetails = BacktestUtilities.DecompressRequestDetails(record.RequestDetails),
                     Errors = record.Errors
                 }
@@ -291,7 +293,7 @@ public class BacktestHandler(
                         Bought = [],
                         Sold = []
                     },
-                    Other = parameters.Exit.Other is null ? null : new BacktestDayDetails
+                    Other = parameters.ExitInfo.Other is null ? null : new BacktestDayDetails
                     {
                         StartCashAvailable = availableFundsOther,
                         Bought = [],
@@ -304,14 +306,14 @@ public class BacktestHandler(
                     var currentTime = marketOpen.AddMinutes(i);
 
                     SellPositionIfApplicable("hold", holdOpenPositions, currentTime, ref availableFundsHold, backtestEntryDay);
-                    if (parameters.Exit.Other is not null)
+                    if (parameters.ExitInfo.Other is not null)
                     {
                         SellPositionIfApplicable("other", otherOpenPositions, currentTime, ref availableFundsOther, backtestEntryDay);
                     }
                     SellPositionIfApplicable("high", highOpenPositions, currentTime, ref availableFundsHigh, backtestEntryDay);
 
                     BuyPositionIfApplicable("hold", entry, currentTime, parameters, ref availableFundsHold, holdOpenPositions, backtestEntryDay);
-                    if (parameters.Exit.Other is not null)
+                    if (parameters.ExitInfo.Other is not null)
                     {
                         BuyPositionIfApplicable("other", entry, currentTime, parameters, ref availableFundsOther, otherOpenPositions, backtestEntryDay);
                     }
@@ -319,7 +321,7 @@ public class BacktestHandler(
 
                     maxConcurrentHoldPositions = holdOpenPositions.Count > maxConcurrentHoldPositions ? holdOpenPositions.Count : maxConcurrentHoldPositions;
                     maxConcurrentHighPositions = highOpenPositions.Count > maxConcurrentHighPositions ? highOpenPositions.Count : maxConcurrentHighPositions;
-                    if (parameters.Exit.Other is not null)
+                    if (parameters.ExitInfo.Other is not null)
                     {
                         maxConcurrentOtherPositions = otherOpenPositions.Count > maxConcurrentHighPositions ? otherOpenPositions.Count : maxConcurrentHighPositions;
                     }
@@ -328,7 +330,7 @@ public class BacktestHandler(
                 backtestEntryDay.Hold.EndCashAvailable = availableFundsHold;
                 backtestEntryDay.Hold.TotalBalance = holdOpenPositions.Sum(q => q.StartPosition) + backtestEntryDay.Hold.EndCashAvailable;
 
-                if (parameters.Exit.Other is not null)
+                if (parameters.ExitInfo.Other is not null)
                 {
                     backtestEntryDay.Other.EndCashAvailable = availableFundsOther;
                     backtestEntryDay.Other.TotalBalance = otherOpenPositions.Sum(q => q.StartPosition) + backtestEntryDay.Other.EndCashAvailable;
@@ -343,8 +345,8 @@ public class BacktestHandler(
             var holdWins = backtestDayResults.SelectMany(q => q.Hold.Sold).Where(q => q.Profit > 0);
             var holdLosses = backtestDayResults.SelectMany(q => q.Hold.Sold).Where(q => q.Profit < 0);
 
-            var otherWins = parameters.Exit.Other is null ? [] : backtestDayResults.SelectMany(q => q.Other.Sold).Where(q => q.Profit > 0);
-            var otherLosses = parameters.Exit.Other is null ? [] : backtestDayResults.SelectMany(q => q.Other.Sold).Where(q => q.Profit < 0);
+            var otherWins = parameters.ExitInfo.Other is null ? [] : backtestDayResults.SelectMany(q => q.Other.Sold).Where(q => q.Profit > 0);
+            var otherLosses = parameters.ExitInfo.Other is null ? [] : backtestDayResults.SelectMany(q => q.Other.Sold).Where(q => q.Profit < 0);
 
             var highWins = backtestDayResults.SelectMany(q => q.High.Sold).Where(q => q.Profit > 0);
             var highLosses = backtestDayResults.SelectMany(q => q.High.Sold).Where(q => q.Profit < 0);
@@ -373,7 +375,7 @@ public class BacktestHandler(
                         AvgLoss = highLosses.Any() ? highLosses.Average(q => q.Profit) : 0,
                         MaxConcurrentPositions = backtestDayResults.Any() ? backtestDayResults.Max(result => result.High.OpenPositions) : 0
                     },
-                    Other = parameters.Exit.Other is null ? null : new BacktestEntryStats
+                    Other = parameters.ExitInfo.Other is null ? null : new BacktestEntryStats
                     {
                         EndBalance = availableFundsOther,
                         SumProfit = availableFundsOther - parameters.PositionInfo.StartingBalance,

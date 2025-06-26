@@ -77,7 +77,7 @@ public class ScanArgumentMapperUnitTests
         result.Filters[0].FirstOperand.Should().BeOfType<PriceActionOperand>();
         result.Filters[0].FirstOperand.Should().BeEquivalentTo(new PriceActionOperand
         {
-            PriceAction = PriceActionType.Close,
+            PriceAction = PriceActionType.close,
             Modifier = OperandModifier.Value,
             Timeframe = new Timeframe(1, Timespan.minute)
         });
@@ -86,7 +86,7 @@ public class ScanArgumentMapperUnitTests
         result.Filters[0].SecondOperand.Should().BeOfType<PriceActionOperand>();
         result.Filters[0].SecondOperand.Should().BeEquivalentTo(new PriceActionOperand
         {
-            PriceAction = PriceActionType.Open,
+            PriceAction = PriceActionType.open,
             Modifier = OperandModifier.Slope,
             Timeframe = new Timeframe(1, Timespan.minute)
         });
@@ -125,14 +125,14 @@ public class ScanArgumentMapperUnitTests
                     CollectionModifier = "ALL",
                     FirstOperand = new PriceActionOperand
                     {
-                        PriceAction = PriceActionType.Close,
+                        PriceAction = PriceActionType.close,
                         Modifier = OperandModifier.Value,
                         Timeframe = new Timeframe(1, Timespan.minute)
                     },
                     Operator = FilterOperator.gt,
                     SecondOperand = new PriceActionOperand
                     {
-                        PriceAction = PriceActionType.Open,
+                        PriceAction = PriceActionType.open,
                         Modifier = OperandModifier.Slope,
                         Timeframe = new Timeframe(1, Timespan.minute)
                     },
@@ -174,7 +174,7 @@ public class ScanArgumentMapperUnitTests
         result.Filters[0].FirstOperand.Should().BeEquivalentTo(new OperandDto
         {
             Type = OperandType.PriceAction,
-            Name = "Close",
+            Name = "close",
             Modifier = OperandModifier.Value,
             Timeframe = new Timeframe(1, Timespan.minute)
         });
@@ -184,7 +184,7 @@ public class ScanArgumentMapperUnitTests
         result.Filters[0].SecondOperand.Should().BeEquivalentTo(new OperandDto
         {
             Type = OperandType.PriceAction,
-            Name = "Open",
+            Name = "open",
             Modifier = OperandModifier.Slope,
             Timeframe = new Timeframe(1, Timespan.minute)
         });

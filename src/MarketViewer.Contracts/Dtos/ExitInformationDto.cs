@@ -1,6 +1,6 @@
-﻿using MarketViewer.Contracts.Models.Scan;
+﻿using MarketViewer.Contracts.Models;
+using MarketViewer.Contracts.Models.Scan;
 using System.Diagnostics.CodeAnalysis;
-using static MarketViewer.Contracts.Models.Backtest.BacktestExitInformation;
 
 namespace MarketViewer.Contracts.Dtos;
 

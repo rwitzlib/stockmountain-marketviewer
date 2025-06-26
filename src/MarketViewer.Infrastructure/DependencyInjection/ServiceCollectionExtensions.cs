@@ -35,6 +35,7 @@ public static class ServiceCollectionExtensions
             .AddSingleton<IUserRepository, UserRepository>()
             .AddSingleton<IBacktestRepository, BacktestRepository>();
 
+        services.AddHostedService<StocksLiveFeed>();
 
         return services;
     }

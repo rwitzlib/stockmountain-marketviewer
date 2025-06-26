@@ -41,7 +41,7 @@ public class ScanArgumentConverterUnitTests
 
         var priceActionOperand = argument.Filters[7].FirstOperand.Should().BeOfType<PriceActionOperand>().Subject;
         priceActionOperand.Modifier.Should().Be(OperandModifier.Value);
-        priceActionOperand.PriceAction.Should().Be(PriceActionType.Vwap);
+        priceActionOperand.PriceAction.Should().Be(PriceActionType.vwap);
 
         argument.Argument.Should().BeNull();
     }
@@ -63,7 +63,7 @@ public class ScanArgumentConverterUnitTests
 
         var priceActionOperand = argument.Filters[7].FirstOperand.Should().BeOfType<PriceActionOperand>().Subject;
         priceActionOperand.Modifier.Should().Be(OperandModifier.Value);
-        priceActionOperand.PriceAction.Should().Be(PriceActionType.Vwap);
+        priceActionOperand.PriceAction.Should().Be(PriceActionType.vwap);
 
         argument.Argument.Should().BeNull();
     }

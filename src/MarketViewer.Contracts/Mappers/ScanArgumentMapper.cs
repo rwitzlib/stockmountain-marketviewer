@@ -79,7 +79,7 @@ public static class ScanArgumentMapper
             case OperandType.PriceAction:
                 return new PriceActionOperand
                 {
-                    PriceAction = Enum.Parse<PriceActionType>(operandDetails.Name),
+                    PriceAction = Enum.Parse<PriceActionType>(operandDetails.Name.ToLowerInvariant()),
                     Modifier = operandDetails.Modifier.Value,
                     Timeframe = operandDetails.Timeframe
                 };

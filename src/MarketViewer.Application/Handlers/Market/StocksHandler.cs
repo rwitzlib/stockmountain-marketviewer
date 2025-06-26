@@ -14,6 +14,8 @@ using MarketViewer.Contracts.Responses.Market;
 using MarketViewer.Contracts.Caching;
 using MarketViewer.Contracts.Enums;
 using MarketViewer.Contracts.Models.Scan;
+using Polygon.Client.Models;
+using Amazon.Runtime.Internal;
 
 namespace MarketViewer.Application.Handlers.Market;
 
@@ -36,12 +38,24 @@ public class StocksHandler(IMarketDataRepository repository, IMarketCache market
         if (ShouldUseCache(request))
         {
             var timeframe = new Timeframe(1, request.Timespan);
-            response = marketCache.GetStocksResponse(request.Ticker, timeframe, DateTimeOffset.Now);
+            var cacheResponse = marketCache.GetStocksResponse(request.Ticker, timeframe, DateTimeOffset.Now);
             
             // If cache miss, fall back to repository
-            if (response == null)
+            if (cacheResponse is null)
             {
                 response = await repository.GetStockDataAsync(request);
+            }
+            else
+            {
+                response = cacheResponse.Clone();
+            }
+
+            if (request.To.Date == DateTimeOffset.Now.Date)
+            {
+                // If the request is for today's data, we need to ensure we have the latest live bar
+                var latestBar = marketCache.GetLiveBar(request.Ticker);
+
+                TryAddBarToResponse(request.Multiplier, request.Timespan, latestBar, response);
             }
         }
         else
@@ -88,8 +102,23 @@ public class StocksHandler(IMarketDataRepository repository, IMarketCache market
             if (studies.Count > 0)
             {
                 response.Studies = studies;
+
+                for (int i = 0; i < response.Studies.Count; i++)
+                {
+                    var study = response.Studies[i];
+
+                    for (int j = 0; j < study.Results.Count; j++)
+                    {
+                        if (study.Results[j].Count > request.Limit)
+                        {
+                            study.Results[j] = study.Results[j].TakeLast(request.Limit).ToList();
+                        }
+                    }
+                }
             }
         }
+
+        response.Results = response.Results.TakeLast(request.Limit).ToList();
 
         return new OperationResult<StocksResponse>
         {
@@ -142,5 +171,54 @@ public class StocksHandler(IMarketDataRepository repository, IMarketCache market
 
         return errorMessages.Count == 0;
     }
+
+    private static void TryAddBarToResponse(int multiplier, Timespan timespan, Bar latestBar, StocksResponse response)
+    {
+        if (latestBar is null || response.Results?.Count == 0 || latestBar.Timestamp <= response.Results.Last().Timestamp)
+        {
+            return;
+        }
+
+        switch (timespan)
+        {
+            case Timespan.minute:
+                if (multiplier != 1)
+                {
+                    return; // Only add live bar for 1 minute aggregates
+                }
+                response.Results.Add(latestBar);
+                break;
+            case Timespan.hour:
+                if (multiplier != 1)
+                {
+                    return; // Only add live bar for 1 hour aggregates
+                }
+                var last = response.Results.Last();
+
+                if (last.Timestamp + (60 * 60000) < latestBar.Timestamp)
+                {
+                    response.Results.Add(latestBar);
+                }
+                else
+                {
+                    // Update the last bar with the latest data
+                    last.Close = latestBar.Close;
+                    last.High = Math.Max(last.High, latestBar.High);
+                    last.Low = Math.Min(last.Low, latestBar.Low);
+                    last.Volume += latestBar.Volume;
+                    last.Vwap = (last.Close + last.High + last.Low) / 3;
+                }
+                break;
+            case Timespan.day:
+            case Timespan.week:
+            case Timespan.month:
+            case Timespan.quarter:
+            case Timespan.year:
+                return;
+            default:
+                throw new NotImplementedException();
+        }
+    }
+
     #endregion
 }

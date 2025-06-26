@@ -45,4 +45,7 @@ public class StocksRequest : BaseRequest, IRequest<OperationResult<StocksRespons
     public DateTimeOffset To { get; set; }
 
     public List<StudyFields> Studies { get; set; }
+
+    [Range(1, 50000)]
+    public int Limit { get; set; } = 50000;
 }
