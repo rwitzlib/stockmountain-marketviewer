@@ -25,6 +25,11 @@ public class StocksLiveFeed(
     {
         using var socket = new ClientWebSocket();
 
+        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") is "local")
+        {
+            return;
+        }
+
         try
         {
             while (!cancellationToken.IsCancellationRequested)
